@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>スタイルガイド | Chilli 鍋</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* Styles for THIS page only (the guide's own layout). Do not copy these into features. */
+  .sg-section { padding-block: 28px; border-bottom: 1px solid var(--line); }
+  .sg-section > .heading { display: flex; align-items: baseline; gap: 10px; }
+  .sg-section > .heading small { font-size: var(--fs-caption); font-weight: 400; color: var(--muted); }
+  .sg-note { color: var(--muted); font-size: var(--fs-caption); margin: -6px 0 14px; }
+  .sg-demo {
+    padding: 20px; background: var(--bg);
+    border: 1px dashed var(--line-strong); border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .sg-code {
+    position: relative; margin: 0 0 8px;
+    background: #231A18; color: #F3E9E4; border-radius: 0 0 var(--radius) var(--radius);
+    font: 12px/1.6 ui-monospace, Menlo, Consolas, monospace;
+    max-height: 260px; overflow: auto;
+  }
+  
+  .sg-code pre { margin: 0; padding: 16px; white-space: pre; }
+  .sg-copy {
+    position: sticky; float: right; top: 8px; margin: 8px 8px 0 0;
+    padding: 4px 10px; font: 500 11px var(--font);
+    background: #3A2E2B; color: #fff; border: 0; border-radius: 4px; cursor: pointer;
+  }
+  .sg-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .sg-swatch { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+  .sg-swatch .chip-color { height: 64px; }
+  .sg-swatch div:last-child { padding: 8px 10px; font-size: var(--fs-caption); line-height: 1.5; }
+  .sg-swatch code { font-size: 11px; color: var(--muted); }
+  .sg-food { width: 100%; height: 100%; background:
+      radial-gradient(circle at 35% 40%, #E8B04B 0 9%, transparent 10%),
+      radial-gradient(circle at 62% 55%, #6B8E3A 0 11%, transparent 12%),
+      radial-gradient(circle at 48% 70%, #F2D7A6 0 8%, transparent 9%),
+      radial-gradient(circle at 50% 50%, #B8321F 0 46%, #3A1A12 47% 55%, #1E1513 56%); }
+  .sg-toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .sg-toc a { font-size: var(--fs-caption); padding: 4px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); color: var(--ink); background: var(--surface); }
+  .sg-phone { max-width: 390px; border: 1px solid var(--line-strong); border-radius: 16px; overflow: hidden; background: var(--bg); }
+  .sg-phone .tabbar, .sg-phone .site-header { position: static; display: block; }
+  .sg-phone .main-nav { display: none; }
+  .sg-phone .menu-toggle { display: grid !important; }
+  .sg-type-row { display: grid; grid-template-columns: 140px 1fr; gap: 12px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<!-- Icon sprite: use with <svg><use href="#i-cart"/></svg> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-flame" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2c1 3.5-1.6 5.2-1.6 8 0 1.3.8 2.3 2 2.3s2-1 2-2.4c0-.8-.2-1.5-.6-2.2 2.9 1.6 4.7 4.6 4.7 7.6A6.5 6.5 0 0 1 12 22a6.5 6.5 0 0 1-6.5-6.7c0-4.3 3.3-6.6 4.4-10.2.3.9.4 1.7.3 2.6C12.5 6 13 4 12 2Z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.3-6 8-6s6.8 2 8 6"/></g></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.2 11h10.6L20 7H6.2"/><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/></g></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></g></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3v8M9 3v8M6 7h3M7.5 11v10M17 3c-2 2-2.5 5-2.5 8H17v10"/></g></symbol>
+  <symbol id="i-burger" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></g></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></g></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></g></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></g></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 20s-7.5-4.6-9.3-9.2C1.6 7.6 3.7 4.5 7 4.5c2 0 3.5 1.2 5 3 1.5-1.8 3-3 5-3 3.3 0 5.4 3.1 4.3 6.3C19.5 15.4 12 20 12 20Z"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></g></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 7h15a1 1 0 0 1 1 1v11H4a1 1 0 0 1-1-1V6a2 2 0 0 1 2-2h11v3"/><circle cx="16" cy="13" r="1.3" fill="currentColor"/></g></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.9-3.5 3.4-5 6.5-5s5.6 1.5 6.5 5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 15c2 .6 3.1 2.2 3.5 5"/></g></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></g></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></g></symbol>
+  <symbol id="i-bowl" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 11h18a9 9 0 0 1-18 0Z"/><path d="M8 7c0-2 1.5-2 1.5-4M12.5 7c0-2 1.5-2 1.5-4"/></g></symbol>
+</svg>
+
+<!-- ===== Shared header (copy into includes/header.php) ===== -->
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="index.php">
+      <svg><use href="#i-flame"/></svg>
+      <span class="logo-name">Chilli 鍋<span class="logo-sub">麻辣香鍋・麻辣湯</span></span>
+    </a>
+    <nav class="main-nav" aria-label="メインメニュー">
+      <a href="index.php">ホーム</a>
+      <a href="menu.php">メニュー</a>
+      <a href="about.php">こだわり</a>
+      <a href="faq.php">よくある質問</a>
+    </nav>
+    <div class="header-icons">
+      <a href="search.php" aria-label="検索"><svg><use href="#i-search"/></svg></a>
+      <a href="mypage.php" aria-label="マイページ"><svg><use href="#i-user"/></svg></a>
+      <a href="cart.php" aria-label="カート"><svg><use href="#i-cart"/></svg><span class="cart-count">2</span></a>
+      <button class="menu-toggle" aria-label="メニューを開く"><svg><use href="#i-burger"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main class="container page">
+  <h1 class="title">スタイルガイド</h1>
+  <p class="muted">共通のデザインルール。新しい部品が必要なときは、まずここに追加してから使ってください。<br>
+  Shared design rules. Copy the code under each example. Need a new piece? Add it here first.</p>
+  <nav class="sg-toc" aria-label="目次">
+    <a href="#colors">色</a><a href="#type">文字</a><a href="#buttons">ボタン</a><a href="#forms">入力</a>
+    <a href="#chips">選択チップ</a><a href="#badges">バッジ</a><a href="#cards">カード</a><a href="#lists">リスト</a>
+    <a href="#feedback">メッセージ</a><a href="#layout">ヘッダー・フッター</a><a href="#icons">アイコン</a>
+  </nav>
+
+  <!-- ============ COLORS ============ -->
+  <section class="sg-section" id="colors">
+    <h2 class="heading">色 <small>Colors · CSS variables</small></h2>
+    <p class="sg-note">Always use the variable, e.g. <code>color: var(--chili);</code> Never type the hex code in your own CSS.</p>
+    <div class="sg-swatches">
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--chili)"></div><div><b>メイン</b><br><code>--chili #C8261B</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--chili-dark)"></div><div><b>ホバー</b><br><code>--chili-dark #A51E15</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--chili-soft)"></div><div><b>選択中の背景</b><br><code>--chili-soft #FDECEA</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--bg)"></div><div><b>ページ背景</b><br><code>--bg #FAF6F2</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--ink)"></div><div><b>本文</b><br><code>--ink #2A1F1D</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--muted)"></div><div><b>補足テキスト</b><br><code>--muted #7A6E68</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--line)"></div><div><b>線</b><br><code>--line #EDE5E0</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--orange)"></div><div><b>調理中</b><br><code>--orange #E07A1F</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--green)"></div><div><b>完了・入金</b><br><code>--green #2E8B57</code></div></div>
+    </div>
+  </section>
+
+  <!-- ============ TYPE ============ -->
+  <section class="sg-section" id="type">
+    <h2 class="heading">文字 <small>Typography · Noto Sans JP</small></h2>
+    <div class="sg-demo">
+      <div class="sg-type-row"><span class="caption">.title 32px Bold</span><span class="title">ログイン</span></div>
+      <div class="sg-type-row"><span class="caption">.heading 20px Bold</span><span class="heading">おすすめメニュー</span></div>
+      <div class="sg-type-row"><span class="caption">body 14px Regular</span><span>牛肉とたっぷりの野菜、きのこを使用した人気の一品です。</span></div>
+      <div class="sg-type-row"><span class="caption">.caption 12px</span><span class="caption">会員の方は、こちらからログインしてください。</span></div>
+      <div class="sg-type-row"><span class="caption">.price / .price-lg</span><span><span class="price">¥980</span>　<span class="price-lg">¥3,500</span></span></div>
+    </div>
+    <div class="sg-code" data-for="prev"></div>
+  </section>
+
+  <!-- ============ BUTTONS ============ -->
+  <section class="sg-section" id="buttons">
+    <h2 class="heading">ボタン <small>Buttons</small></h2>
+    <p class="sg-note">One red button per screen for the main action. Everything else is outline or ghost.</p>
+    <div class="sg-demo">
+<div class="row">
+  <button class="btn btn-chili">注文を確定する <span class="arrow"></span></button>
+  <button class="btn btn-outline">新規会員登録</button>
+  <button class="btn btn-ghost">ゲストとして注文する <span class="arrow"></span></button>
+  <button class="btn btn-chili" disabled>無効</button>
+  <button class="btn btn-chili btn-sm">カートに追加</button>
+  <button class="icon-btn" aria-label="お気に入り"><svg><use href="#i-heart"/></svg></button>
+  <button class="icon-btn" aria-label="削除"><svg><use href="#i-trash"/></svg></button>
+</div>
+<div style="margin-top:12px; max-width:360px">
+  <button class="btn btn-chili btn-block">ログイン <span class="arrow"></span></button>
+</div>
+    </div>
+    <div class="sg-code" data-for="prev"></div>
+  </section>
+
+  <!-- ============ FORMS ============ -->
+  <section class="sg-section" id="forms">
+    <h2 class="heading">入力 <small>Form fields</small></h2>
+    <p class="sg-note">To show an error: add <code>is-error</code> to <code>.field</code>. The message under it appears automatically.</p>
+    <div class="sg-demo">
+<form class="narrow" onsubmit="return false">
+  <div class="field">
+    <label class="field-label" for="sg-email"><svg><use href="#i-mail"/></svg>メールアドレス</label>
+    <input class="input" id="sg-email" type="email" placeholder="example@shop.jp">
+  </div>
+  <div class="field is-error">
+    <label class="field-label" for="sg-email2"><svg><use href="#i-mail"/></svg>メールアドレス（エラー）</label>
+    <input class="input" id="sg-email2" type="email" value="example@shop">
+    <p class="field-error">メールアドレスを正しく入力してください</p>
+  </div>
+  <div class="field">
+    <label class="field-label" for="sg-pass"><svg><use href="#i-lock"/></svg>パスワード</label>
+    <div class="input-wrap">
+      <input class="input" id="sg-pass" type="password" placeholder="6文字以上で入力">
+      <button class="input-icon" type="button" aria-label="パスワードを表示"><svg width="18" height="18"><use href="#i-eye"/></svg></button>
+    </div>
+  </div>
+  <div class="stack-sm">
+    <label class="check"><input type="checkbox" id="sg-terms"> 利用規約に同意する</label>
+    <label class="check"><input type="radio" name="sg-size" id="sg-r1" checked> レギュラー（1人前）</label>
+    <label class="check"><input type="radio" name="sg-size" id="sg-r2"> ラージ（2人前）</label>
+  </div>
+  <div class="divider">または</div>
+</form>
+    </div>
+    <div class="sg-code" data-for="prev"></div>
+  </section>
+
+  <!-- ============ CHIPS ============ -->
+  <section class="sg-section" id="chips">
+    <h2 class="heading">選択チップ・タブ <small>Option chips, tabs, stepper</small></h2>
+    <p class="sg-note">Selected chip = add <code>is-selected</code> (or <code>aria-pressed="true"</code>). Active tab = <code>is-active</code>.</p>
+    <div class="sg-demo">
+<div class="stack">
+  <div>
+    <p class="caption">辛さを選ぶ</p>
+    <div class="chip-group" role="group" aria-label="辛さ">
+      <button class="chip"><span class="chili-icons">🌶</span>甘口</button>
+      <button class="chip is-selected" aria-pressed="true"><span class="chili-icons">🌶🌶</span>普通</button>
+      <button class="chip"><span class="chili-icons">🌶🌶🌶</span>中辛</button>
+      <button class="chip"><span class="chili-icons">🌶🌶🌶🌶</span>激辛</button>
+    </div>
+  </div>
+  <div>
+    <p class="caption">チャージする金額</p>
+    <div class="chip-group">
+      <button class="chip is-selected">¥1,000</button>
+      <button class="chip">¥3,000</button>
+      <button class="chip">¥5,000</button>
+      <button class="chip">¥10,000</button>
+    </div>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab is-active" role="tab">すべて</button>
+    <button class="tab" role="tab">今月</button>
+    <button class="tab" role="tab">先月</button>
+  </div>
+  <div class="stepper">
+    <button type="button" aria-label="減らす">−</button>
+    <output>1</output>
+    <button type="button" aria-label="増やす">+</button>
+  </div>
+</div>
+    </div>
+    <div class="sg-code" data-for="prev"></div>
+  </section>
+
+  <!-- ============ BADGES ============ -->
+  <section class="sg-section" id="badges">
+    <h2 class="heading">バッジ <small>Status badges</small></h2>
+    <div class="sg-demo">
+<div class="row">
+  <span class="badge badge-received">受付済</span>
+  <span class="badge badge-cooking">調理中</span>
+  <span class="badge badge-done">受取済</span>
+  <span class="badge badge-label">人気No.1</span>
+  <span class="badge badge-soldout">品切れ</span>
+</div>
+    </div>
+    <div class="sg-code" data-for="prev"></div>
+  </section>
+
+  <!-- ============ CARDS ============ -->
+  <section class="sg-section" id="cards">
+    <h2 class="heading">カード <small>Cards</small></h2>
+    <p class="sg-note">Replace <code>&lt;div class="sg-food"&gt;</code> with <code>&lt;img src="…" alt="…"&gt;</code> in real pages.</p>
+
+    <h3 class="caption">メニューカード（縦） · .card-bowl</h3>
+    <div class="sg-demo">
+<div class="grid-4">
+  <a class="card-bowl" href="customize.php?menu_id=1">
+    <div class="card-media"><div class="sg-food"></div><span class="badge badge-label">人気No.1</span></div>
+    <div class="card-info">
+      <div><div class="card-name">麻辣湯（辛さあり）</div><div class="price">¥980</div></div>
+      <span class="text-chili">→</span>
+    </div>
+  </a>
+  <a class="card-bowl is-soldout" href="#">
+    <div class="card-media"><div class="sg-food"></div></div>
+    <div class="card-info">
+      <div><div class="card-name">海鮮麻辣湯</div><span class="badge badge-soldout">品切れ</span></div>
+    </div>
+  </a>
+</div>
+    </div>
+    <div class="sg-code" data-for="prev"></div>
+
+    <h3 class="caption">メニュー行（横） · .menu-row</h3>
+    <div class="sg-demo">
+<div class="menu-row">
+  <div class="menu-thumb"><div class="sg-food"></div></div>
+  <div class="menu-main">
+    <b>牛肉麻辣湯</b>
+    <span class="caption">牛肉・野菜・きのこ・春雨など</span>
+    <div class="menu-foot">
+      <span class="price">¥980</span>
+      <button class="btn btn-chili btn-sm">カートに追加</button>
+    </div>
+  </div>
+</div>
+    </div>
+    <div class="sg-code" data-for="prev"></div>
+
+    <h3 class="caption">マイページのタイル · .tile</h3>
+    <div class="sg-demo">
+<div class="tile-grid" style="max-width:420px">
+  <a class="tile" href="history.php"><svg><use href="#i-receipt"/></svg>注文履歴</a>
+  <a class="tile" href="favorites.php"><svg><use href="#i-heart"/></svg>お気に入り</a>
+  <a class="tile" href="wallet.php"><svg><use href="#i-wallet"/></svg>ウォレット</a>
+  <a class="tile" href="family.php"><svg><use href="#i-users"/></svg>Family &amp; Friends</a>
+  <a class="tile" href="profile.php"><svg><use href="#i-user"/></svg>会員情報の変更</a>
+  <a class="tile" href="logout.php"><svg><use href="#i-logout"/></svg>ログアウト</a>
+</div>
+    </div>
+    <div class="sg-code" data-for="prev"></div>
+
+    <h3 class="caption">ウォレット残高 · .balance-card</h3>
+    <div class="sg-demo">
+<div class="grid-2">
+  <div class="balance-card">
+    <div><div class="balance-label">ウォレット残高</div><div class="balance-amount">¥3,500</div></div>
+    <a class="btn btn-chili btn-sm" href="wallet.php">チャージ</a>
+  </div>
+  <div class="balance-card is-filled">
+    <div><div class="balance-label">現在の残高</div><div class="balance-amount">¥3,500</div></div>
+  </div>
+</div>
+    </div>
+    <div class="sg-code" data-for="prev"></div>
+
+    <h3 class="caption">注文履歴カード · .order-card</h3>
+    <div class="sg-demo">
+<div class="card order-card" style="max-width:480px">
+  <div class="order-top">
+    <div><b>注文番号：#123456</b><div class="caption">2026/10/15 12:30</div></div>
+    <span class="badge badge-received">受付済</span>
+  </div>
+  <div class="order-items">
+    <div class="thumb"><div class="sg-food"></div></div>
+    <div class="caption">麻辣香鍋（汁なし）×1<br>牛肉トッピング ×1</div>
+  </div>
+  <div class="order-foot">
+    <span>合計 <span class="price">¥1,330</span></span>
+    <button class="btn btn-chili btn-sm">もう一度注文する</button>
+  </div>
+</div>
+    </div>
+    <div class="sg-code" data-for="prev"></div>
+  </section>
+
+  <!-- ============ LISTS ============ -->
+  <section class="sg-section" id="lists">
+    <h2 class="heading">リスト・合計・進行状況 <small>Lists, totals, steps</small></h2>
+    <div class="sg-demo">
+<div class="stack" style="max-width:480px">
+  <ul class="list">
+    <li><div>チャージ<div class="caption">2026/10/15 12:30</div></div><span class="amount-plus">+¥1,000</span></li>
+    <li><div>ご注文 #123456<div class="caption">2026/10/15 12:35</div></div><span class="amount-minus">−¥980</span></li>
+  </ul>
+  <div class="total-row"><span>合計（3人）</span><span class="price-lg">¥2,940</span></div>
+  <ol class="steps">
+    <li class="is-done">カート</li>
+    <li class="is-current">お届け先</li>
+    <li>支払い</li>
+    <li>完了</li>
+  </ol>
+</div>
+    </div>
+    <div class="sg-code" data-for="prev"></div>
+  </section>
+
+  <!-- ============ FEEDBACK ============ -->
+  <section class="sg-section" id="feedback">
+    <h2 class="heading">メッセージ <small>Toast, empty state</small></h2>
+    <p class="sg-note">In real pages, put toasts inside <code>&lt;div class="toast-area"&gt;</code> so they float at the bottom.</p>
+    <div class="sg-demo">
+<div class="stack">
+  <div><div class="toast" role="status">カートに追加しました <button class="toast-close" aria-label="閉じる">×</button></div></div>
+  <div class="empty card">
+    <svg><use href="#i-bowl"/></svg>
+    <p>お気に入りはまだありません</p>
+    <a class="btn btn-outline" href="menu.php">メニューを見る</a>
+  </div>
+</div>
+    </div>
+    <div class="sg-code" data-for="prev"></div>
+  </section>
+
+  <!-- ============ HEADER / FOOTER / TABBAR ============ -->
+  <section class="sg-section" id="layout">
+    <h2 class="heading">ヘッダー・フッター・タブバー <small>Layout (goes in includes/)</small></h2>
+    <p class="sg-note">The real header is at the top of this page. Resize the window below 768px to see the mobile version and the bottom tab bar. Add <code>class="has-tabbar"</code> to <code>&lt;body&gt;</code> on customer pages.</p>
+    <h3 class="caption">モバイル表示</h3>
+    <div class="sg-phone">
+      <div class="sg-demo" style="padding:0; border:0">
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="index.php"><svg><use href="#i-flame"/></svg><span class="logo-name">Chilli 鍋<span class="logo-sub">麻辣香鍋・麻辣湯</span></span></a>
+    <div class="header-icons">
+      <a href="cart.php" aria-label="カート"><svg><use href="#i-cart"/></svg><span class="cart-count">2</span></a>
+      <button class="menu-toggle" aria-label="メニューを開く"><svg><use href="#i-burger"/></svg></button>
+    </div>
+  </div>
+</header>
+<div style="height:140px"></div>
+<nav class="tabbar" aria-label="タブ">
+  <ul>
+    <li><a class="is-active" href="index.php"><svg><use href="#i-home"/></svg>ホーム</a></li>
+    <li><a href="menu.php"><svg><use href="#i-menu"/></svg>メニュー</a></li>
+    <li><a href="cart.php"><svg><use href="#i-cart"/></svg>カート</a></li>
+    <li><a href="mypage.php"><svg><use href="#i-user"/></svg>マイページ</a></li>
+  </ul>
+</nav>
+      </div>
+      <div class="sg-code" data-for="prev"></div>
+    </div>
+  </section>
+
+  <!-- ============ ICONS ============ -->
+  <section class="sg-section" id="icons">
+    <h2 class="heading">アイコン <small>Icons</small></h2>
+    <p class="sg-note">Copy the <code>&lt;svg&gt;&lt;symbol&gt;…</code> block at the top of this file into <code>includes/header.php</code> once. Then use any icon with <code>&lt;svg&gt;&lt;use href="#i-cart"/&gt;&lt;/svg&gt;</code>.</p>
+    <div class="sg-demo">
+      <div class="row" id="sg-icon-list" style="color:var(--chili)"></div>
+    </div>
+  </section>
+</main>
+
+<!-- ===== Shared footer (copy into includes/footer.php) ===== -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="logo"><svg><use href="#i-flame"/></svg><span class="logo-name">Chilli 鍋</span></div>
+    <nav class="footer-links">
+      <a href="about.php">こだわり</a><a href="faq.php">よくある質問</a><a href="terms.php">利用規約</a><a href="privacy.php">プライバシーポリシー</a>
+    </nav>
+    <span>© 2026 Chilli 鍋</span>
+  </div>
+</footer>
+
+<script>
+/* Guide-only script: shows the code of each example and makes chips/tabs clickable. */
+(function () {
+  function clean(html) {
+    var lines = html.replace(/^\n+|\s+$/g, '').split('\n');
+    var min = Math.min.apply(null, lines.filter(function (l) { return l.trim(); })
+      .map(function (l) { return l.match(/^\s*/)[0].length; }));
+    return lines.map(function (l) { return l.slice(min); }).join('\n');
+  }
+  document.querySelectorAll('.sg-code[data-for="prev"]').forEach(function (box) {
+    var demo = box.previousElementSibling;
+    if (!demo) return;
+    var code = clean(demo.innerHTML);
+    var pre = document.createElement('pre');
+    pre.textContent = code;
+    var btn = document.createElement('button');
+    btn.className = 'sg-copy'; btn.type = 'button'; btn.textContent = 'コピー';
+    btn.addEventListener('click', function () {
+      var done = function () { btn.textContent = 'コピーしました'; setTimeout(function () { btn.textContent = 'コピー'; }, 1500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(code).then(done, function () { select(pre); });
+      else select(pre);
+    });
+    box.appendChild(btn); box.appendChild(pre);
+  });
+  function select(el) { var r = document.createRange(); r.selectNodeContents(el); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+
+  document.querySelectorAll('.chip-group').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var c = e.target.closest('.chip'); if (!c) return;
+      g.querySelectorAll('.chip').forEach(function (x) { x.classList.remove('is-selected'); x.setAttribute('aria-pressed', 'false'); });
+      c.classList.add('is-selected'); c.setAttribute('aria-pressed', 'true');
+    });
+  });
+  document.querySelectorAll('.tabs').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var t = e.target.closest('.tab'); if (!t) return;
+      g.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('is-active'); });
+      t.classList.add('is-active');
+    });
+  });
+  document.querySelectorAll('.stepper').forEach(function (s) {
+    var out = s.querySelector('output'), b = s.querySelectorAll('button');
+    b[0].onclick = function () { out.value = out.textContent = Math.max(1, +out.textContent - 1); };
+    b[1].onclick = function () { out.value = out.textContent = +out.textContent + 1; };
+  });
+  var list = document.getElementById('sg-icon-list');
+  document.querySelectorAll('symbol').forEach(function (sym) {
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'display:grid;justify-items:center;gap:4px;width:84px;font-size:11px;color:var(--muted)';
+    wrap.innerHTML = '<svg width="24" height="24" style="color:var(--chili)"><use href="#' + sym.id + '"/></svg>' + sym.id;
+    list.appendChild(wrap);
+  });
+})();
+</script>
+</body>
+</html>
