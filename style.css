@@ -1,0 +1,435 @@
+/* =========================================================
+   Chilli 鍋 — shared stylesheet
+   Every page loads this file. Use the classes shown in
+   public/styleguide.html instead of writing your own styles.
+
+   Works on its own, or together with Bootstrap 5
+   (load Bootstrap first, then this file).
+   ========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap");
+
+/* ---------- 1. Design tokens (change colors here only) ---------- */
+:root {
+  /* colors */
+  --chili: #C8261B;        /* main red: buttons, active, prices */
+  --chili-dark: #A51E15;   /* hover / pressed */
+  --chili-soft: #FDECEA;   /* selected option background */
+  --bg: #FAF6F2;           /* page background */
+  --surface: #FFFFFF;      /* cards, inputs */
+  --ink: #2A1F1D;          /* main text */
+  --muted: #7A6E68;        /* secondary text */
+  --line: #EDE5E0;         /* borders */
+  --line-strong: #D9CFC9;  /* input borders */
+  --orange: #E07A1F;       /* status: cooking */
+  --orange-soft: #FDF0E3;
+  --green: #2E8B57;        /* status: done, wallet + */
+  --green-soft: #E6F4EC;
+  --dark: #1E1513;         /* hero / dark sections */
+
+  /* type */
+  --font: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --fs-title: 32px;
+  --fs-heading: 20px;
+  --fs-body: 14px;
+  --fs-caption: 12px;
+
+  /* shape & space */
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+  --shadow: 0 1px 2px rgba(42, 31, 29, .04), 0 4px 12px rgba(42, 31, 29, .05);
+  --header-h: 64px;
+  --tabbar-h: 64px;
+  --container: 1120px;
+}
+
+/* ---------- 2. Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--fs-body);
+  line-height: 1.7;
+  color: var(--ink);
+  background: var(--bg);
+}
+img { max-width: 100%; display: block; }
+a { color: var(--chili); text-decoration: none; }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--chili); outline-offset: 2px; }
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.page { padding-block: 32px 48px; }
+
+/* ---------- 3. Typography ---------- */
+.title   { font-size: var(--fs-title);   font-weight: 700; line-height: 1.35; margin: 0 0 8px; }
+.heading { font-size: var(--fs-heading); font-weight: 700; line-height: 1.4;  margin: 0 0 12px; }
+.caption { font-size: var(--fs-caption); color: var(--muted); }
+.muted   { color: var(--muted); }
+.price   { font-weight: 700; font-variant-numeric: tabular-nums; }
+.price-lg { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.text-chili { color: var(--chili); }
+
+/* "おすすめメニュー  すべて見る →" row */
+.section-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; margin-bottom: 16px;
+}
+.section-head .heading { margin: 0; }
+.link-more { font-size: var(--fs-caption); color: var(--ink); }
+
+/* ---------- 4. Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 20px;
+  font: 700 var(--fs-body)/1 var(--font);
+  border: 1px solid transparent; border-radius: var(--radius);
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.btn:hover { text-decoration: none; }
+.btn-chili   { background: var(--chili); color: #fff; }
+.btn-chili:hover { background: var(--chili-dark); color: #fff; }
+.btn-outline { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
+.btn-outline:hover { border-color: var(--ink); color: var(--ink); }
+.btn-ghost   { background: transparent; color: var(--chili); }
+.btn-ghost:hover { background: var(--chili-soft); }
+.btn:disabled, .btn.is-disabled {
+  background: #E4DEDA; color: #A39A95; border-color: transparent; cursor: not-allowed;
+}
+.btn-sm    { min-height: 32px; padding: 0 12px; font-size: var(--fs-caption); }
+.btn-block { display: flex; width: 100%; }
+.btn .arrow::after { content: "→"; }
+
+/* round icon button (heart, trash, +) */
+.icon-btn {
+  display: inline-grid; place-items: center;
+  width: 36px; height: 36px; padding: 0;
+  background: transparent; color: var(--chili);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  cursor: pointer;
+}
+.icon-btn:hover { background: var(--chili-soft); }
+.icon-btn svg { width: 18px; height: 18px; }
+
+/* ---------- 5. Forms ---------- */
+.field { display: grid; gap: 6px; margin-bottom: 16px; }
+.field-label {
+  display: flex; align-items: center; gap: 8px;
+  font-size: var(--fs-caption); font-weight: 500;
+}
+.field-label svg { width: 16px; height: 16px; color: var(--muted); }
+.input {
+  width: 100%; height: 44px; padding: 0 14px;
+  font: var(--fs-body) var(--font); color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong); border-radius: var(--radius);
+}
+.input::placeholder { color: #B5ABA6; }
+.input:focus { outline: none; border-color: var(--chili); box-shadow: 0 0 0 3px var(--chili-soft); }
+.field.is-error .input { border-color: var(--chili); background: #FFF8F7; }
+.field-error {
+  display: none; font-size: var(--fs-caption); color: var(--chili);
+}
+.field.is-error .field-error { display: block; }
+.field-error::before { content: "● "; font-size: 8px; vertical-align: 2px; }
+
+/* input with an icon button inside (password eye) */
+.input-wrap { position: relative; }
+.input-wrap .input { padding-right: 44px; }
+.input-wrap .input-icon {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  width: 32px; height: 32px; display: grid; place-items: center;
+  background: none; border: 0; color: var(--muted); cursor: pointer;
+}
+
+/* checkbox & radio */
+.check {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: var(--fs-body); cursor: pointer;
+}
+.check input { width: 18px; height: 18px; margin: 0; accent-color: var(--chili); }
+
+/* "or" divider */
+.divider {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--muted); font-size: var(--fs-caption); margin: 20px 0;
+}
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+/* ---------- 6. Option chips (spice level, soup, amount) ---------- */
+.chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-width: 72px; min-height: 44px; padding: 8px 14px;
+  font: 500 var(--fs-caption) var(--font); color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-strong); border-radius: var(--radius);
+  cursor: pointer;
+}
+.chip:hover { border-color: var(--chili); }
+.chip.is-selected, .chip[aria-pressed="true"] {
+  border: 2px solid var(--chili); background: var(--chili-soft); color: var(--chili);
+  padding: 7px 13px;
+}
+.chip .chili-icons { color: var(--chili); letter-spacing: -2px; font-size: 14px; }
+
+/* category tabs (麻辣湯 / 麻辣香鍋 / トッピング) */
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tab {
+  min-height: 36px; padding: 0 18px;
+  font: 500 var(--fs-caption) var(--font); color: var(--ink);
+  background: var(--surface); border: 1px solid var(--line-strong);
+  border-radius: var(--radius); cursor: pointer;
+}
+.tab.is-active { background: var(--chili); border-color: var(--chili); color: #fff; }
+
+/* quantity stepper  [ − 1 + ] */
+.stepper {
+  display: inline-flex; align-items: center; width: max-content; justify-self: start;
+  border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface);
+}
+.stepper button {
+  width: 36px; height: 36px; border: 0; background: none;
+  font-size: 18px; color: var(--ink); cursor: pointer;
+}
+.stepper output, .stepper input {
+  width: 36px; text-align: center; border: 0; background: none;
+  font: 500 var(--fs-body) var(--font); font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 7. Badges ---------- */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 10px; border-radius: var(--radius-pill);
+  font-size: var(--fs-caption); font-weight: 700; line-height: 1.6;
+}
+.badge-received { background: var(--chili-soft);  color: var(--chili); }  /* 受付済 */
+.badge-cooking  { background: var(--orange-soft); color: var(--orange); } /* 調理中 */
+.badge-done     { background: var(--green-soft);  color: var(--green); }  /* 受取済 */
+.badge-label    { background: var(--chili); color: #fff; border-radius: 4px; } /* 人気No.1 */
+.badge-soldout  { background: #E4DEDA; color: var(--muted); }             /* 品切れ */
+
+/* ---------- 8. Cards ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.card-body { padding: 16px; }
+
+/* menu card (vertical): photo, name, price, arrow */
+.card-bowl {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  color: var(--ink);
+}
+.card-bowl:hover { text-decoration: none; border-color: var(--line-strong); }
+.card-bowl .card-media { position: relative; aspect-ratio: 4 / 3; background: var(--dark); }
+.card-bowl .card-media img { width: 100%; height: 100%; object-fit: cover; }
+.card-bowl .card-media .badge-label { position: absolute; top: 8px; left: 8px; }
+.card-bowl .card-info {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 8px;
+  padding: 12px;
+}
+.card-bowl .card-name { font-weight: 500; }
+.card-bowl.is-soldout .card-media { opacity: .45; }
+
+/* menu row (horizontal): photo left, text middle, button right */
+.menu-row {
+  display: grid; grid-template-columns: 96px 1fr; gap: 14px;
+  padding: 14px 0; border-bottom: 1px solid var(--line);
+}
+.menu-row .menu-thumb { width: 96px; aspect-ratio: 1; border-radius: var(--radius); overflow: hidden; background: var(--dark); }
+.menu-row .menu-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.menu-row .menu-main { display: grid; gap: 4px; min-width: 0; }
+.menu-row .menu-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* icon tile (マイページ menu) */
+.tile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.tile {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  min-height: 104px; padding: 12px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  color: var(--ink); font-size: var(--fs-caption); font-weight: 500; text-align: center;
+}
+.tile:hover { border-color: var(--chili); text-decoration: none; }
+.tile svg { width: 28px; height: 28px; color: var(--chili); }
+
+/* wallet balance card */
+.balance-card {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 20px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow);
+}
+.balance-card.is-filled { background: var(--chili); color: #fff; border-color: var(--chili); }
+.balance-card .balance-label { font-size: var(--fs-caption); }
+.balance-card .balance-amount { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* order history card */
+.order-card { padding: 16px; display: grid; gap: 10px; }
+.order-card .order-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.order-card .order-items { display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: center; }
+.order-card .order-items .thumb { width: 56px; aspect-ratio: 1; border-radius: 6px; background: var(--dark); overflow: hidden; }
+.order-card .order-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; }
+
+/* simple list (cart rows, transactions) */
+.list { list-style: none; margin: 0; padding: 0; }
+.list > li {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid var(--line);
+}
+.amount-plus  { color: var(--green); font-weight: 700; font-variant-numeric: tabular-nums; }
+.amount-minus { color: var(--chili); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* total row */
+.total-row { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; }
+
+/* empty state */
+.empty {
+  display: grid; justify-items: center; gap: 12px;
+  padding: 40px 16px; text-align: center; color: var(--muted);
+}
+.empty svg { width: 64px; height: 64px; color: var(--chili); }
+
+/* step progress (カート → お届け先 → 支払い → 完了) */
+.steps { display: flex; justify-content: space-between; list-style: none; margin: 0; padding: 0; position: relative; }
+.steps::before {
+  content: ""; position: absolute; top: 9px; left: 10%; right: 10%; height: 2px; background: var(--line-strong);
+}
+.steps li {
+  position: relative; flex: 1; display: grid; justify-items: center; gap: 6px;
+  font-size: var(--fs-caption); color: var(--muted);
+}
+.steps li::before {
+  content: ""; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--surface); border: 2px solid var(--line-strong); z-index: 1;
+}
+.steps li.is-done::before, .steps li.is-current::before { background: var(--chili); border-color: var(--chili); }
+.steps li.is-current::before { box-shadow: 0 0 0 4px var(--chili-soft); }
+.steps li.is-done, .steps li.is-current { color: var(--chili); font-weight: 700; }
+
+/* toast message */
+.toast {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-radius: var(--radius);
+  background: var(--ink); color: #fff; font-size: var(--fs-body);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
+}
+.toast .toast-close { background: none; border: 0; color: #fff; opacity: .7; cursor: pointer; font-size: 16px; }
+.toast-area {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 100;
+}
+
+/* ---------- 9. Header ---------- */
+.site-header {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.site-header .container {
+  height: var(--header-h);
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+}
+.logo { display: flex; align-items: center; gap: 8px; color: var(--ink); }
+.logo:hover { text-decoration: none; }
+.logo svg { width: 28px; height: 28px; color: var(--chili); }
+.logo-name { font-weight: 700; font-size: 16px; line-height: 1.1; }
+.logo-sub  { display: block; font-size: 10px; font-weight: 500; color: var(--muted); }
+.main-nav { display: flex; gap: 28px; }
+.main-nav a { color: var(--ink); font-size: var(--fs-caption); font-weight: 500; }
+.main-nav a.is-active, .main-nav a:hover { color: var(--chili); text-decoration: none; }
+.header-icons { display: flex; align-items: center; gap: 4px; }
+.header-icons a, .header-icons button {
+  position: relative; display: grid; place-items: center;
+  width: 40px; height: 40px; color: var(--ink); background: none; border: 0; cursor: pointer;
+}
+.header-icons svg { width: 20px; height: 20px; }
+.cart-count {
+  position: absolute; top: 4px; right: 2px;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: var(--radius-pill); background: var(--chili); color: #fff;
+  font-size: 10px; font-weight: 700; line-height: 16px; text-align: center;
+}
+.menu-toggle { display: none !important; }
+
+/* ---------- 10. Hero ---------- */
+.hero {
+  position: relative; overflow: hidden; color: #fff;
+  background: var(--dark) center / cover no-repeat;
+}
+.hero::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(20, 12, 10, .85) 0%, rgba(20, 12, 10, .4) 55%, rgba(20, 12, 10, 0) 100%);
+}
+.hero .container { position: relative; padding-block: 72px; }
+.hero .title { font-size: clamp(28px, 5vw, 44px); max-width: 14em; }
+.hero p { max-width: 28em; opacity: .9; margin: 0 0 24px; }
+
+/* ---------- 11. Footer ---------- */
+.site-footer {
+  margin-top: 48px; padding-block: 32px;
+  background: var(--surface); border-top: 1px solid var(--line);
+  font-size: var(--fs-caption); color: var(--muted);
+}
+.site-footer .container { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 20px; }
+.footer-links a { color: var(--muted); }
+
+/* ---------- 12. Bottom tab bar (mobile only) ---------- */
+.tabbar {
+  display: none;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--surface); border-top: 1px solid var(--line);
+}
+.tabbar ul { display: grid; grid-template-columns: repeat(4, 1fr); list-style: none; margin: 0; padding: 0; }
+.tabbar a {
+  display: grid; justify-items: center; gap: 2px; padding: 8px 0;
+  font-size: 10px; color: var(--muted);
+}
+.tabbar a:hover { text-decoration: none; }
+.tabbar svg { width: 22px; height: 22px; }
+.tabbar a.is-active { color: var(--chili); font-weight: 700; }
+
+/* ---------- 13. Layout helpers ---------- */
+.stack    { display: grid; gap: 16px; }
+.stack-sm { display: grid; gap: 8px; }
+.row      { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.grid-2   { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid-3   { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.grid-4   { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.narrow   { max-width: 440px; margin-inline: auto; }   /* login / sign-up forms */
+
+/* ---------- 14. Responsive ---------- */
+@media (max-width: 900px) {
+  .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 768px) {
+  :root { --fs-title: 24px; --fs-heading: 18px; --header-h: 56px; }
+  .main-nav { display: none; }
+  .menu-toggle { display: grid !important; }
+  .tabbar { display: block; }
+  body.has-tabbar { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px)); }
+  .toast-area { bottom: calc(var(--tabbar-h) + 16px + env(safe-area-inset-bottom, 0px)); }
+  .hero .container { padding-block: 40px; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .page { padding-block: 20px 32px; }
+}
+@media (max-width: 480px) {
+  .grid-3, .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .tile-grid { gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
