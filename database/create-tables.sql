@@ -167,6 +167,28 @@ CREATE TABLE spice_levels (
 );
 
 
+CREATE TABLE spice_levels (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,                -- 説明 (例: 辛くない)
+    level INT NOT NULL UNIQUE,                -- 1,2,3,4,5
+    extra_price INT NOT NULL DEFAULT 0 CHECK (extra_price >= 0),
+    is_available BOOLEAN NOT NULL DEFAULT TRUE   -- FALSE = owner が一時的に止める
+);
+
+INSERT INTO spice_levels (name, level, extra_price) VALUES
+('辛くない', 0, 0),
+('小辛',     1, 0),
+('中辛',     2, 0),
+('大辛',     3, 50),
+('激辛',     4, 100);
+
+INSERT INTO spice_levels (name, level, extra_price) VALUES
+('辛くない', 1, 0),
+('ピリ辛',   2, 0),
+('中辛',     3, 0),
+('大辛',     4, 0),
+('激辛',     5, 0);
+
 -- =====================================================================
 -- 6. PRICE HISTORY  → Change prices (automatic)        [Myat]
 -- =====================================================================
