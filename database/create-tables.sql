@@ -1,5 +1,4 @@
-Claude
-Create tables · SQL
+
 -- =====================================================================
 --  malatang_ec  — FINAL DATABASE for all features
 --  Works on MySQL 8.0.16+ and MariaDB 10.4+ (XAMPP)
@@ -973,4 +972,4 @@ INSERT INTO spice_levels (name, level, extra_price) VALUES
 -- Check: show all tables and views
 SHOW FULL TABLES;
  
-Claude finished the response
+
