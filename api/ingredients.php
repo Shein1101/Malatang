@@ -11,7 +11,7 @@ $method = require_method('GET', 'POST','PUT','DELETE');   // 🆕 POST and put �
 // ========== GET: စာရင်းပြ ==========
 if ($method === 'GET') {                    // 🆕 GET ဆိုရင်ပဲ ဒီအပိုင်း run မယ်
     $sql = 'SELECT i.id, i.name, i.price, i.stock, i.is_available, i.image_url,
-                   c.id AS category_id, c.name AS category_name
+            c.id AS category_id, c.name AS category_name
             FROM ingredients i
             JOIN categories c ON c.id = i.category_id
             WHERE i.is_deleted = 0
