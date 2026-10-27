@@ -8,17 +8,16 @@
 
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/api.php';
+require __DIR__ . '/../includes/auth.php';   // require_admin() → 401 / 403
 
 $method = require_method('GET', 'POST', 'PUT');
 
-// admin かどうか (.env の DEV_ADMIN=1 はテスト用)
-$isAdmin = (($_SESSION['role'] ?? '') === 'admin') || (($env['DEV_ADMIN'] ?? '0') === '1');
 
 // ========== GET ==========
 if ($method === 'GET') {
     $all = isset($_GET['all']);              // ?all=1 → 止めているものも見せる
-    if ($all && !$isAdmin) {
-        send_error('Admin only', 403);
+    if ($all) {
+        require_admin();
     }
 
     // 1. スープ
@@ -55,9 +54,7 @@ if ($method === 'GET') {
 }
 
 // ========== ここから下は admin だけ ==========
-if (!$isAdmin) {
-    send_error('Admin only', 403);
-}
+require_admin();
 if (($_GET['type'] ?? '') !== 'spice') {
     send_error('type=spice only (soups: coming next)', 400);
 }

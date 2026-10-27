@@ -3,7 +3,7 @@
 // Screen only, NO SQL. Data comes from ../api/store.php
 // 1. お店の情報  2. 写真  3. お知らせ
 $pageTitle = '店舗ページ編集 | Chilli 鍋';
-include '../includes/header.php';
+include '../includes/admin_header.php';   // require_admin(): admin でなければ login.php へ
 ?>
 
 <main class="container">
@@ -193,4 +193,7 @@ document.querySelector('main').addEventListener('click', async (e) => {
 window.addEventListener('load', loadAll);
 </script>
 
-<?php include '../includes/footer.php'; ?>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

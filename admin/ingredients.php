@@ -1,10 +1,8 @@
-Claude
-Ingredients · PHP
 <?php
 // admin/ingredients.php — 具材管理 (add / edit / delete). Owner: Myat
 // Screen only, NO SQL. Data comes from ../api/ingredients.php
 $pageTitle = '具材管理 | Chilli 鍋';
-include '../includes/header.php';
+include '../includes/admin_header.php';   // require_admin(): admin でなければ login.php へ
 ?>
  
 <main class="container">
@@ -173,7 +171,7 @@ document.getElementById('list').addEventListener('click', async (e) => {
 window.addEventListener('load', loadList);
 </script>
  
-<?php include '../includes/footer.php'; ?>
- 
-Claude finished the response
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

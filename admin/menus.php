@@ -1,10 +1,9 @@
-
 <?php
 // admin/menus.php — メニュー管理 (owner). Owner: Myat
 // Screen only, NO SQL. Data comes from ../api/menus.php
 // 追加 / 名前・説明・値段の変更 / 販売 ON・OFF / 削除
 $pageTitle = 'メニュー管理 | Chilli 鍋';
-include '../includes/header.php';
+include '../includes/admin_header.php';   // require_admin(): admin でなければ login.php へ
 ?>
  
 <main class="container">
@@ -131,6 +130,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
 window.addEventListener('load', loadList);
 </script>
  
-<?php include '../includes/footer.php'; ?>
- 
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

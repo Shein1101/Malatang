@@ -1,10 +1,9 @@
-
 <?php
 // admin/stock.php — 在庫・品切れ (owner). Owner: Myat
 // Screen only, NO SQL. Uses ../api/ingredients.php and ../api/menus.php (PUT)
 // 変えたらすぐ保存 (保存ボタンなし)。在庫 0 → 自動で品切れ (DB の trigger)
 $pageTitle = '在庫・品切れ | Chilli 鍋';
-include '../includes/header.php';
+include '../includes/admin_header.php';   // require_admin(): admin でなければ login.php へ
 ?>
  
 <main class="container">
@@ -106,6 +105,7 @@ document.querySelector('main').addEventListener('change', async (e) => {
 window.addEventListener('load', loadAll);
 </script>
  
-<?php include '../includes/footer.php'; ?>
- 
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

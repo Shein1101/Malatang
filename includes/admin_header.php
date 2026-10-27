@@ -13,6 +13,7 @@ $adminNav  = [
     'menus.php'       => 'メニュー',
     'ingredients.php' => '具材',
     'stock.php'       => '在庫',
+    'options.php'     => '辛さ',
     'store.php'       => '店舗',
 ];
 ?>

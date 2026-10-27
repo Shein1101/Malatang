@@ -5,6 +5,7 @@
 
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/api.php';
+require __DIR__ . '/../includes/auth.php';   // require_admin() → 401 / 403
 
 $method = require_method('GET', 'POST','PUT','DELETE');   // 🆕 POST and put ကိုပါ ခွင့်ပြုမယ်
 
@@ -35,11 +36,7 @@ if ($method === 'GET') {                    // 🆕 GET ဆိုရင်ပဲ
 }
 
 // ========== 🆕 ဒီအောက်က admin ပဲ လုပ်ခွင့်ရှိ ==========
-$isAdmin  = ($_SESSION['role'] ?? '') === 'admin';
-$devAdmin = ($env['DEV_ADMIN'] ?? '0') === '1';   // .env ထဲက DEV_ADMIN=1 (စမ်းဖို့)
-if (!$isAdmin && !$devAdmin) {
-    send_error('Admin only', 403);
-}
+require_admin();
 
 // ========== 🆕 POST: ingredient အသစ်ထည့် ==========
 if ($method === 'POST') {
