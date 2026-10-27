@@ -1,5 +1,4 @@
-Claude
-Menus · PHP
+
 <?php
 // admin/menus.php — メニュー管理 (owner). Owner: Myat
 // Screen only, NO SQL. Data comes from ../api/menus.php
@@ -134,4 +133,4 @@ window.addEventListener('load', loadList);
  
 <?php include '../includes/footer.php'; ?>
  
-Claude finished the response
+
