@@ -3,7 +3,7 @@
 // Screen only, NO SQL. Data comes from ../api/store.php
 // 1. お店の情報  2. 写真  3. お知らせ
 $pageTitle = '店舗ページ編集 | Chilli 鍋';
-include '../includes/header.php';
+include '../includes/admin_header.php';
 ?>
 
 <main class="container">

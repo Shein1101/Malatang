@@ -1,10 +1,9 @@
-
 <?php
 // admin/stock.php — 在庫・品切れ (owner). Owner: Myat
 // Screen only, NO SQL. Uses ../api/ingredients.php and ../api/menus.php (PUT)
 // 変えたらすぐ保存 (保存ボタンなし)。在庫 0 → 自動で品切れ (DB の trigger)
 $pageTitle = '在庫・品切れ | Chilli 鍋';
-include '../includes/header.php';
+include '../includes/admin_header.php';
 ?>
  
 <main class="container">

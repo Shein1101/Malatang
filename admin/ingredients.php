@@ -1,10 +1,8 @@
-Claude
-Ingredients · PHP
 <?php
 // admin/ingredients.php — 具材管理 (add / edit / delete). Owner: Myat
 // Screen only, NO SQL. Data comes from ../api/ingredients.php
 $pageTitle = '具材管理 | Chilli 鍋';
-include '../includes/header.php';
+include '../includes/admin_header.php';
 ?>
  
 <main class="container">

@@ -1,11 +1,9 @@
-Claude
-Options · PHP
 <?php
 // admin/options.php — 辛さ管理 (owner). Owner: Myat
 // Screen only, NO SQL. Data comes from ../api/options.php
 // 辛さの説明・追加料金を変える / ON・OFF / 新しい辛さを追加
 $pageTitle = '辛さ管理 | Chilli 鍋';
-include '../includes/header.php';
+include '../includes/admin_header.php';
 ?>
  
 <main class="container">
