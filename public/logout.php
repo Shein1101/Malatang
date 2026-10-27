@@ -1,28 +1,19 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>ログアウト</title>
-</head>
+<?php
+// S16 ログアウト — Owner: Lin (FEAT-16). Calls the API, then goes back to the menu.
+$pageTitle = 'ログアウト | Chilli 鍋';
+include '../includes/header.php';
+?>
 
-<body>
-
-<script src="../assets/js/app.js"></script>
+<main class="container page">
+  <p class="caption">ログアウトしています…</p>
+</main>
 
 <script>
-async function logout() {
-
-    await callApi(
-        '../api/auth.php?action=logout',
-        'POST',
-        {}
-    );
-
-    window.location.href = 'menu.php';
-}
-
-logout();
+// app.js は footer で読み込まれるので、読み込み後に実行
+document.addEventListener('DOMContentLoaded', async function () {
+  await callApi('POST', '../api/auth.php?action=logout');
+  window.location.href = 'menu.php';
+});
 </script>
 
-</body>
-</html>
+<?php include '../includes/footer.php'; ?>

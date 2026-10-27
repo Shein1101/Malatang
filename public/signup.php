@@ -1,142 +1,116 @@
 <?php
-require_once '../includes/db.php';
+// S15 新規登録 — Owner: Lin (FEAT-16). Screen only, no SQL.
 require_once '../includes/auth.php';
+
+// ログイン済みなら来なくていい
+if (current_user_id() !== null) {
+    header('Location: menu.php');
+    exit;
+}
+
+$pageTitle = '新規登録 | Chilli 鍋';
+include '../includes/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>新規登録 - Chilli 鍋</title>
+<main class="container page">
+  <div class="narrow">
+    <h1 class="title">新規会員登録</h1>
+    <p class="caption">登録すると、注文履歴やお気に入りが使えます。</p>
 
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+    <div id="error" class="alert alert-danger d-none"></div>
 
-    <link rel="stylesheet" href="../assets/css/style.css">
-</head>
+    <form id="signupForm" novalidate>
+      <div class="field">
+        <label class="field-label" for="name"><svg><use href="#i-user"/></svg>名前</label>
+        <input class="input" id="name" name="name" type="text" autocomplete="name" maxlength="100" required>
+      </div>
 
-<body>
+      <div class="field">
+        <label class="field-label" for="email"><svg><use href="#i-mail"/></svg>メールアドレス</label>
+        <input class="input" id="email" name="email" type="email" autocomplete="email" placeholder="example@shop.jp" maxlength="255" required>
+      </div>
 
-<div class="container mt-5" style="max-width: 500px;">
+      <div class="field">
+        <label class="field-label" for="phone">電話番号</label>
+        <input class="input" id="phone" name="phone" type="tel" autocomplete="tel" placeholder="090-1234-5678" maxlength="20" required>
+      </div>
 
-    <h1 class="text-center mb-4">新規登録</h1>
-
-    <div id="errorMessage" class="alert alert-danger d-none"></div>
-
-    <form id="signupForm">
-
-        <div class="mb-3">
-            <label for="name" class="form-label">名前</label>
-            <input
-                type="text"
-                class="form-control"
-                id="name"
-                required
-            >
+      <div class="field">
+        <label class="field-label" for="password"><svg><use href="#i-lock"/></svg>パスワード</label>
+        <div class="input-wrap">
+          <input class="input" id="password" name="password" type="password" autocomplete="new-password" placeholder="8文字以上で入力" required>
+          <button class="input-icon" type="button" data-toggle-password="password" aria-label="パスワードを表示"><svg width="18" height="18"><use href="#i-eye"/></svg></button>
         </div>
+      </div>
 
-        <div class="mb-3">
-            <label for="email" class="form-label">メールアドレス</label>
-            <input
-                type="email"
-                class="form-control"
-                id="email"
-                required
-            >
-        </div>
+      <div class="field">
+        <label class="field-label" for="passwordConfirm"><svg><use href="#i-lock"/></svg>パスワード（確認）</label>
+        <input class="input" id="passwordConfirm" name="passwordConfirm" type="password" autocomplete="new-password" required>
+      </div>
 
-        <div class="mb-3">
-            <label for="phone" class="form-label">電話番号</label>
-            <input
-                type="tel"
-                class="form-control"
-                id="phone"
-                required
-            >
-        </div>
-
-        <div class="mb-3">
-            <label for="password" class="form-label">パスワード</label>
-            <input
-                type="password"
-                class="form-control"
-                id="password"
-                required
-            >
-        </div>
-
-        <div class="mb-3">
-            <label for="passwordConfirm" class="form-label">
-                パスワード（確認）
-            </label>
-
-            <input
-                type="password"
-                class="form-control"
-                id="passwordConfirm"
-                required
-            >
-        </div>
-
-        <button type="submit" class="btn btn-danger w-100">
-            新規登録
-        </button>
-
+      <button type="submit" class="btn btn-chili btn-block">登録する <span class="arrow"></span></button>
     </form>
 
-    <div class="text-center mt-3">
-        <a href="login.php">
-            すでにアカウントをお持ちですか？ ログイン
-        </a>
-    </div>
+    <div class="divider">または</div>
 
-</div>
-
-<script src="../assets/js/app.js"></script>
+    <a class="btn btn-outline btn-block" href="login.php">ログインはこちら</a>
+  </div>
+</main>
 
 <script>
-document.getElementById('signupForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
+document.querySelectorAll('[data-toggle-password]').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    const input = document.getElementById(btn.dataset.togglePassword);
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+});
 
-    const name = document.getElementById('name').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const password = document.getElementById('password').value;
-    const passwordConfirm = document.getElementById('passwordConfirm').value;
+document.getElementById('signupForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
 
-    const errorMessage = document.getElementById('errorMessage');
+  const form = e.target;
+  const errorBox = document.getElementById('error');
+  errorBox.classList.add('d-none');
 
-    errorMessage.classList.add('d-none');
+  const name = form.name.value.trim();
+  const email = form.email.value.trim();
+  const phone = form.phone.value.trim();
+  const password = form.password.value;
+  const passwordConfirm = form.passwordConfirm.value;
 
-    if (password !== passwordConfirm) {
-        errorMessage.textContent = 'パスワードが一致しません。';
-        errorMessage.classList.remove('d-none');
-        return;
-    }
+  // 画面でも先にチェック（サーバーでも同じチェックをする）
+  if (name === '' || email === '' || phone === '' || password === '') {
+    showError(errorBox, 'すべての項目を入力してください。');
+    return;
+  }
+  if (password.length < 8) {
+    showError(errorBox, 'パスワードは8文字以上で入力してください。');
+    return;
+  }
+  if (password !== passwordConfirm) {
+    showError(errorBox, 'パスワードが一致しません。');
+    return;
+  }
 
-    const result = await callApi(
-        '../api/auth.php?action=signup',
-        'POST',
-        {
-            name: name,
-            email: email,
-            phone: phone,
-            password: password
-        }
-    );
+  const button = form.querySelector('button[type="submit"]');
+  button.disabled = true;
 
-    if (!result.success) {
-        errorMessage.textContent = result.error;
-        errorMessage.classList.remove('d-none');
-        return;
-    }
+  const res = await callApi('POST', '../api/auth.php?action=signup', {
+    name: name,
+    email: email,
+    phone: phone,
+    password: password
+  });
 
-    window.location.href = 'mypage.php';
+  button.disabled = false;
+
+  if (!res.success) {
+    showError(errorBox, res.error);
+    return;
+  }
+
+  window.location.href = 'menu.php';
 });
 </script>
 
-</body>
-</html>
+<?php include '../includes/footer.php'; ?>
