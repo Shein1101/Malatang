@@ -1,7 +1,7 @@
 <?php
 // Order list for store owners — Owner: Zan
 $pageTitle = '注文一覧 | Chilli 鍋';
-include '../includes/header.php';
+include '../includes/admin_header.php';
 ?>
 
 <main class="container">
