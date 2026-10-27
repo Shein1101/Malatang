@@ -42,6 +42,8 @@ $loggedIn  = current_user_id() !== null;
     <div class="header-icons">
       <a href="cart.php" aria-label="カート"><svg><use href="#i-cart"></use></svg><span class="cart-count">2</span></a>
       <?php if ($loggedIn): ?>
+      <a href="favorites.php" aria-label="お気に入り"><svg><use href="#i-heart"></use></svg></a>
+      <a href="history.php" aria-label="注文履歴"><svg><use href="#i-receipt"></use></svg></a>
       <a href="logout.php" aria-label="ログアウト"><svg><use href="#i-logout"></use></svg></a>
       <?php else: ?>
       <a href="login.php" aria-label="ログイン"><svg><use href="#i-user"></use></svg></a>

@@ -1,6 +1,6 @@
 # Malatang EC - ER Diagram
 
-23 tables · 37 relationships (malatang_ec, version 4 — Oct 20, 2026)
+24 tables · 39 relationships (malatang_ec, version 4 — Oct 20, 2026)
 
 ```mermaid
 erDiagram
@@ -11,6 +11,8 @@ erDiagram
     USERS ||--o{ FAVORITES : saves
     FAVORITES ||--o{ FAVORITE_INGREDIENTS : has
     INGREDIENTS ||--o{ FAVORITE_INGREDIENTS : used_in
+    USERS ||--o{ FAVORITE_INGREDIENT_PICKS : likes
+    INGREDIENTS ||--o{ FAVORITE_INGREDIENT_PICKS : liked_in
     USERS ||--o{ FRIENDS : is_friend
     USERS ||--o{ FRIENDS : has_friend
     MENUS ||--o{ RECIPE_SHARES : chosen_in
@@ -74,6 +76,12 @@ erDiagram
         int ingredient_id PK, FK
         enum action
         int quantity
+    }
+
+    FAVORITE_INGREDIENT_PICKS {
+        int user_id PK, FK
+        int ingredient_id PK, FK
+        timestamp created_at
     }
 
     FRIENDS {
