@@ -33,11 +33,11 @@ if (($_GET['type'] ?? '') === 'ingredient') {
         $stmt = $pdo->prepare(
             'SELECT i.id, i.name, i.price, i.is_available, i.image_url,
                     c.id AS category_id, c.name AS category_name
-             FROM favorite_ingredient_picks p
-             JOIN ingredients i ON i.id = p.ingredient_id
-             JOIN categories  c ON c.id = i.category_id
-             WHERE p.user_id = ? AND i.is_deleted = 0
-             ORDER BY c.sort_order, i.sort_order, i.id'
+            FROM favorite_ingredient_picks p
+            JOIN ingredients i ON i.id = p.ingredient_id
+            JOIN categories  c ON c.id = i.category_id
+            WHERE p.user_id = ? AND i.is_deleted = 0
+            ORDER BY c.sort_order, i.sort_order, i.id'
         );
         $stmt->execute([$user_id]);
         $data = [];
@@ -139,12 +139,12 @@ if ($method === 'GET') {
                 f.has_soup, f.soup_id, s.name AS soup_name,
                 f.spice_level_id, sp.level AS spice_level, sp.name AS spice_name,
                 f.created_at
-         FROM favorites f
-         JOIN menus m              ON m.id = f.menu_id
-         JOIN soups s              ON s.id = f.soup_id
-         LEFT JOIN spice_levels sp ON sp.id = f.spice_level_id
-         WHERE f.user_id = ?
-         ORDER BY f.id DESC'
+        FROM favorites f
+        JOIN menus m              ON m.id = f.menu_id
+        JOIN soups s              ON s.id = f.soup_id
+        LEFT JOIN spice_levels sp ON sp.id = f.spice_level_id
+        WHERE f.user_id = ?
+        ORDER BY f.id DESC'
     );
     $stmt->execute([$user_id]);
     $itemsByFavorite = favorite_items($pdo, $user_id);
@@ -202,9 +202,9 @@ if ($method === 'POST') {
         // --- 注文履歴の bowl から (自分の注文だけ) ---
         $stmt = $pdo->prepare(
             'SELECT ob.menu_id, ob.has_soup, ob.soup_id, ob.spice_level_id
-             FROM order_bowls ob
-             JOIN orders o ON o.id = ob.order_id
-             WHERE ob.id = ? AND o.user_id = ?'
+            FROM order_bowls ob
+            JOIN orders o ON o.id = ob.order_id
+            WHERE ob.id = ? AND o.user_id = ?'
         );
         $stmt->execute([(int) $in['order_bowl_id'], $user_id]);
         $row = $stmt->fetch();
@@ -218,9 +218,9 @@ if ($method === 'POST') {
 
         $stmt = $pdo->prepare(
             'SELECT ingredient_id, action, SUM(quantity) AS quantity
-             FROM order_items
-             WHERE order_bowl_id = ? AND ingredient_id IS NOT NULL
-             GROUP BY ingredient_id, action'
+            FROM order_items
+            WHERE order_bowl_id = ? AND ingredient_id IS NOT NULL
+            GROUP BY ingredient_id, action'
         );
         $stmt->execute([(int) $in['order_bowl_id']]);
         $items = $stmt->fetchAll();
@@ -257,7 +257,7 @@ if ($method === 'POST') {
     $pdo->beginTransaction();
     $stmt = $pdo->prepare(
         'INSERT INTO favorites (user_id, nickname, menu_id, has_soup, soup_id, spice_level_id)
-         VALUES (?, ?, ?, ?, ?, ?)'
+        VALUES (?, ?, ?, ?, ?, ?)'
     );
     $stmt->execute([
         $user_id, $nickname, $bowl['menu_id'], $bowl['has_soup'] ? 1 : 0,
@@ -267,7 +267,7 @@ if ($method === 'POST') {
 
     $stmt = $pdo->prepare(
         'INSERT INTO favorite_ingredients (favorite_id, ingredient_id, action, quantity)
-         VALUES (?, ?, ?, ?)'
+        VALUES (?, ?, ?, ?)'
     );
     foreach ($items as $it) {
         $stmt->execute([$favorite_id, $it['ingredient_id'], $it['action'], $it['quantity']]);
