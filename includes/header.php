@@ -1,8 +1,9 @@
 <?php
 // Shared header: every page includes this first. Owner: Lin
 // $pageTitle can be set by the page before including this file.
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
+require_once __DIR__ . '/auth.php';   // starts the session, gives current_user_id()
 $pageTitle = $pageTitle ?? 'Chilli 鍋';
+$loggedIn  = current_user_id() !== null;
 ?>
 <!doctype html>
 <html lang="ja">
@@ -40,6 +41,13 @@ $pageTitle = $pageTitle ?? 'Chilli 鍋';
     <a class="logo" href="index.php"><svg><use href="#i-flame"></use></svg><span class="logo-name">Chilli 鍋<span class="logo-sub">麻辣香鍋・麻辣湯</span></span></a>
     <div class="header-icons">
       <a href="cart.php" aria-label="カート"><svg><use href="#i-cart"></use></svg><span class="cart-count">2</span></a>
+      <?php if ($loggedIn): ?>
+      <a href="favorites.php" aria-label="お気に入り"><svg><use href="#i-heart"></use></svg></a>
+      <a href="history.php" aria-label="注文履歴"><svg><use href="#i-receipt"></use></svg></a>
+      <a href="logout.php" aria-label="ログアウト"><svg><use href="#i-logout"></use></svg></a>
+      <?php else: ?>
+      <a href="login.php" aria-label="ログイン"><svg><use href="#i-user"></use></svg></a>
+      <?php endif; ?>
       <button class="menu-toggle" aria-label="メニューを開く"><svg><use href="#i-burger"></use></svg></button>
     </div>
   </div>
@@ -50,6 +58,10 @@ $pageTitle = $pageTitle ?? 'Chilli 鍋';
     <li><a class="is-active" href="index.php"><svg><use href="#i-home"></use></svg>ホーム</a></li>
     <li><a href="menu.php"><svg><use href="#i-menu"></use></svg>メニュー</a></li>
     <li><a href="cart.php"><svg><use href="#i-cart"></use></svg>カート</a></li>
+    <?php if ($loggedIn): ?>
     <li><a href="mypage.php"><svg><use href="#i-user"></use></svg>マイページ</a></li>
+    <?php else: ?>
+    <li><a href="login.php"><svg><use href="#i-user"></use></svg>ログイン</a></li>
+    <?php endif; ?>
   </ul>
 </nav>
