@@ -90,7 +90,7 @@ function load_cart(PDO $pdo, bool $forUpdate = false): array {
     $stmt = $pdo->prepare(
         "SELECT cb.id, cb.menu_id, m.name AS menu_name, cb.has_soup,
                 cb.soup_id, s.name AS soup_name,
-                cb.spice_level_id, sp.name AS spice_name, cb.quantity
+                cb.spice_level_id, sp.name AS spice_name, cb.shared_recipe_id, cb.quantity
          FROM cart_bowls cb
          JOIN menus m ON m.id = cb.menu_id
          JOIN soups s ON s.id = cb.soup_id
@@ -152,6 +152,7 @@ function load_cart(PDO $pdo, bool $forUpdate = false): array {
             'soup_name'      => $r['soup_name'],
             'spice_level_id' => $r['spice_level_id'] === null ? null : (int) $r['spice_level_id'],
             'spice_name'     => $r['spice_name'],
+            'shared_recipe_id' => $r['shared_recipe_id'] === null ? null : (int) $r['shared_recipe_id'],   // 友達のレシピから (Lin, FEAT-20)
             'quantity'       => $qty,
             'ingredients'    => $items,
             'price'          => $check['price'],

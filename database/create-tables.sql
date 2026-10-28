@@ -197,6 +197,7 @@ CREATE TABLE cart_bowls (
     has_soup BOOLEAN NOT NULL DEFAULT TRUE,   -- スープ: TRUE = あり, FALSE = なし (dry)
     soup_id INT NOT NULL,                     -- 味: flavor (麻辣味…)
     spice_level_id INT NULL,
+    shared_recipe_id INT NULL,                -- Family & Friends: added from a shared recipe (FK below, after recipe_shares)
     quantity INT NOT NULL DEFAULT 1 CHECK (quantity > 0),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -265,6 +266,11 @@ CREATE TABLE recipe_share_ingredients (
     FOREIGN KEY (share_id) REFERENCES recipe_shares(id) ON DELETE CASCADE,
     FOREIGN KEY (ingredient_id) REFERENCES ingredients(id)
 );
+
+-- cart_bowls is made before recipe_shares, so its FK is added here
+ALTER TABLE cart_bowls
+    ADD CONSTRAINT fk_cart_bowls_shared_recipe
+        FOREIGN KEY (shared_recipe_id) REFERENCES recipe_shares(id) ON DELETE SET NULL;
  
  
 -- =====================================================================

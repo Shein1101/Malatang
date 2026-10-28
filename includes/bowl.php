@@ -66,14 +66,15 @@ function bowl_price(PDO $pdo, array $bowl, array $items, int $quantity = 1): arr
 
 // cart に bowl を1つ入れる (チェックは先に bowl_price でしておく)
 // transaction は呼ぶ側でする (再注文で何杯もまとめて入れるため)
-function add_bowl_to_cart(PDO $pdo, int $user_id, array $bowl, array $items, int $quantity = 1): int {
+// $shared_recipe_id = 友達から届いたレシピ (api/shares.php) のとき、その id
+function add_bowl_to_cart(PDO $pdo, int $user_id, array $bowl, array $items, int $quantity = 1, ?int $shared_recipe_id = null): int {
     $stmt = $pdo->prepare(
-        'INSERT INTO cart_bowls (user_id, menu_id, has_soup, soup_id, spice_level_id, quantity)
-         VALUES (?, ?, ?, ?, ?, ?)'
+        'INSERT INTO cart_bowls (user_id, menu_id, has_soup, soup_id, spice_level_id, shared_recipe_id, quantity)
+         VALUES (?, ?, ?, ?, ?, ?, ?)'
     );
     $stmt->execute([
         $user_id, $bowl['menu_id'], $bowl['has_soup'] ? 1 : 0,
-        $bowl['soup_id'], $bowl['spice_level_id'], $quantity,
+        $bowl['soup_id'], $bowl['spice_level_id'], $shared_recipe_id, $quantity,
     ]);
     $cart_bowl_id = (int) $pdo->lastInsertId();
 

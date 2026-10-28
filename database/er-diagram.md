@@ -1,6 +1,6 @@
 # Malatang EC - ER Diagram
 
-24 tables · 39 relationships (malatang_ec, version 4 — Oct 20, 2026)
+24 tables · 40 relationships (malatang_ec, version 4 — Oct 20, 2026)
 
 ```mermaid
 erDiagram
@@ -35,6 +35,7 @@ erDiagram
     SOUPS ||--o{ CART_BOWLS : flavor_of
     SPICE_LEVELS |o--o{ CART_BOWLS : spice_of
     USERS |o--o{ CART_BOWLS : puts_in_cart
+    RECIPE_SHARES |o--o{ CART_BOWLS : added_from
     CART_BOWLS ||--o{ CART_BOWL_INGREDIENTS : has
     INGREDIENTS ||--o{ CART_BOWL_INGREDIENTS : used_in
     USERS |o--o{ ORDERS : places
@@ -218,6 +219,7 @@ erDiagram
         boolean has_soup
         int soup_id FK
         int spice_level_id FK
+        int shared_recipe_id FK
         int quantity
         timestamp created_at
     }

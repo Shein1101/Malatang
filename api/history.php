@@ -50,6 +50,7 @@ if ($method === 'GET') {
             'added_ingredients'   => $r['added_ingredients'],     // 'エビ ×2, 牛肉 ×1' or null
             'removed_ingredients' => $r['removed_ingredients'],   // 'もやし' or null
             'bowl_total'          => (int) $r['bowl_total'],
+            'from_shared_recipe'  => (bool) $r['from_shared_recipe'],  // 友達から届いたレシピで注文した
         ];
     }
     send_json(array_values($orders));

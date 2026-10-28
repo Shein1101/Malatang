@@ -44,6 +44,7 @@ $loggedIn  = current_user_id() !== null;
       <?php if ($loggedIn): ?>
       <a href="favorites.php" aria-label="お気に入り"><svg><use href="#i-heart"></use></svg></a>
       <a href="history.php" aria-label="注文履歴"><svg><use href="#i-receipt"></use></svg></a>
+      <a class="d-none d-sm-grid" href="friends.php" aria-label="ファミリー&フレンズ"><svg><use href="#i-users"></use></svg></a>
       <a href="logout.php" aria-label="ログアウト"><svg><use href="#i-logout"></use></svg></a>
       <?php else: ?>
       <a href="login.php" aria-label="ログイン"><svg><use href="#i-user"></use></svg></a>
