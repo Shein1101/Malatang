@@ -29,7 +29,7 @@ if ($method === 'GET') {                    // 🆕 GET ဆိုရင်ပဲ
             'price'         => (int) $r['price'],
             'portion'       => $r['portion'],                  // 1つの量 (例: 50g)。null = 書いてない
             'stock'         => (int) $r['stock'],
-            'weekly_stock'  => (int) $r['weekly_stock'],   // 週の在庫 (売れた数 = weekly_stock - stock)
+            'weekly_stock'  => (int) $r['weekly_stock'],   // 在庫 (売れた数 = weekly_stock - stock)
             'is_available'  => (bool) $r['is_available'],
             'image_url'     => $r['image_url'],
             'category_id'   => (int) $r['category_id'],
@@ -69,7 +69,7 @@ if ($method === 'POST') {
         send_error('Category not found', 400);
     }
 
-    // 週の在庫 (မပို့ရင် 100) — 0 နဲ့အထက် ကိန်းပြည့်
+    // 在庫 (မပို့ရင် 100) — 0 နဲ့အထက် ကိန်းပြည့်
     $weekly = filter_var($in['weekly_stock'] ?? 100, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
     if ($weekly === false) {
         send_error('Weekly stock must be a number 0 or more', 400);
@@ -139,7 +139,7 @@ if ($method === 'PUT') {
         $sets[] = 'stock = ?';
         $values[] = $stock;
     }
-    if (isset($in['weekly_stock'])) {      // 🆕 週の在庫
+    if (isset($in['weekly_stock'])) {      // 🆕 在庫
         $weekly = filter_var($in['weekly_stock'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
         if ($weekly === false) {
             send_error('Weekly stock must be a number 0 or more', 400);

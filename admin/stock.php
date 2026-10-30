@@ -1,9 +1,9 @@
 <?php
 // admin/stock.php — 具材・在庫 (owner). Owner: Myat
 // Screen only, NO SQL. Data comes from ../api/ingredients.php
-// 具材の追加 / 値段・週の在庫・残りの変更 (変えたら自動で保存) / 販売 ON・OFF / 削除 を 1 ページで。
-// 週の在庫 = 1 週間に用意する数。残り = 今の数 (お客さんが注文すると DB の trigger で減る)。
-// 売れた = 週の在庫 − 残り。1つの量 (例: 50g) はお客さんに見せる。
+// 具材の追加 / 値段・在庫・残りの変更 (変えたら自動で保存) / 販売 ON・OFF / 削除 を 1 ページで。
+// 在庫 = 用意した数。残り = 今の数 (お客さんが注文すると DB の trigger で減る)。
+// 売れた = 在庫 − 残り。1つの量 (例: 50g) はお客さんに見せる。
 // (前の admin/ingredients.php はここにまとめた。メニューの ON / OFF は メニュー ページ)
 $pageTitle = '具材・在庫 | Chilli 鍋';
 include '../includes/admin_header.php';
@@ -11,7 +11,7 @@ include '../includes/admin_header.php';
 
 <main class="container">
   <h1>具材・在庫</h1>
-  <p class="caption">お客さんが注文すると「残り」が自動で減ります（メニューに最初から入っている具材も）。「売れた」= 週の在庫 − 残り。残りが 0 になると自動で品切れになります。
+  <p class="caption">お客さんが注文すると「残り」が自動で減ります（メニューに最初から入っている具材も）。「売れた」= 在庫 − 残り。残りが 0 になると自動で品切れになります。
     この表は 30 秒ごとに自動で新しくなります（入力中は止まります）。<span id="updatedAt"></span></p>
   <p id="message"></p>
 
@@ -36,7 +36,7 @@ include '../includes/admin_header.php';
         <input name="portion" class="form-control" maxlength="20" placeholder="50g">
       </div>
       <div class="col-md-2">
-        <label class="form-label">週の在庫</label>
+        <label class="form-label">在庫</label>
         <input name="weekly_stock" type="number" min="0" value="100" class="form-control">
       </div>
       <div class="col-md-2">
@@ -64,7 +64,7 @@ include '../includes/admin_header.php';
   <table class="table align-middle">
     <thead>
       <tr>
-        <th>カテゴリ</th><th>名前</th><th>値段（円）</th><th title="お客さんのカスタマイズ画面に出ます">1つの量</th><th>週の在庫</th><th>残り</th><th>売れた</th><th>販売</th><th>操作</th>
+        <th>カテゴリ</th><th>名前</th><th>値段（円）</th><th title="お客さんのカスタマイズ画面に出ます">1つの量</th><th>在庫</th><th>残り</th><th>売れた</th><th>販売</th><th>操作</th>
       </tr>
     </thead>
     <tbody id="list"><tr><td colspan="9">読み込み中…</td></tr></tbody>
@@ -87,7 +87,7 @@ function normalize(s) {
     .replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
 }
 
-// 残りわずか = 残りが週の在庫の 20% 以下 (週の在庫が 0 のときは 5 以下)
+// 残りわずか = 残りが在庫の 20% 以下 (在庫が 0 のときは 5 以下)
 function lowLine(i) {
   return i.weekly_stock > 0 ? Math.ceil(i.weekly_stock * 0.2) : 5;
 }
@@ -232,13 +232,13 @@ document.getElementById('list').addEventListener('click', async (e) => {
   loadList();
 });
 
-// 5. 値段・1つの量・週の在庫・残り は、変えたら自動で保存 (保存ボタンなし)
-//    週の在庫・残り … 打ち終わって 0.8 秒たったら保存 (残り 0 → すぐ 品切れ)
+// 5. 値段・1つの量・在庫・残り は、変えたら自動で保存 (保存ボタンなし)
+//    在庫・残り … 打ち終わって 0.8 秒たったら保存 (残り 0 → すぐ 品切れ)
 //    値段・1つの量  … 欄から出たとき / Enter で保存 (打ちかけのまま残らないように)
 const FIELDS = {
   'price-':   ['price', '値段'],
   'portion-': ['portion', '1つの量'],      // 文字 (例: 50g)。空 = 消す
-  'weekly-':  ['weekly_stock', '週の在庫'],
+  'weekly-':  ['weekly_stock', '在庫'],
   'stock-':   ['stock', '残り']
 };
 const timers = {};
@@ -282,7 +282,7 @@ document.getElementById('list').addEventListener('change', async (e) => {
     return;
   }
 
-  // 値段・1つの量は欄から出たとき。週の在庫・残りも、0.8 秒待たずに出たらここで保存
+  // 値段・1つの量は欄から出たとき。在庫・残りも、0.8 秒待たずに出たらここで保存
   if (el.id && Object.keys(FIELDS).some(p => el.id.startsWith(p))) {
     clearTimeout(timers[el.id]);
     saveField(el);
