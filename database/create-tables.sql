@@ -670,6 +670,16 @@ BEGIN
     IF v_ok = 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Menu is sold out';
     END IF;
+    -- A default ingredient of the menu is sold out → the whole menu is sold out [Myat]
+    IF EXISTS (SELECT 1 FROM menu_ingredients mi JOIN ingredients i ON i.id = mi.ingredient_id
+               WHERE mi.menu_id = p_menu_id AND i.is_deleted = 0 AND i.is_available = 0) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Menu is sold out';
+    END IF;
+    -- ...or there is not enough of it for this many bowls
+    IF EXISTS (SELECT 1 FROM menu_ingredients mi JOIN ingredients i ON i.id = mi.ingredient_id
+               WHERE mi.menu_id = p_menu_id AND i.is_deleted = 0 AND i.stock < mi.quantity * p_quantity) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ingredient is sold out';
+    END IF;
     SET v_total = v_price;
  
     -- Soup (optional)
