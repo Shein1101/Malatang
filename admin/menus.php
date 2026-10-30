@@ -77,7 +77,7 @@ async function loadList() {
   for (const m of res.data) {
     rows += `
       <tr>
-        <td><input class="form-control form-control-sm" id="name-${m.id}" value="${esc(m.name)}"></td>
+        <td><input class="form-control form-control-sm" id="name-${m.id}" value="${esc(m.name)}">${m.is_custom ? '<span class="caption">自分で作る のベース（メニュー一覧には出ません）</span>' : ''}</td>
         <td><input class="form-control form-control-sm" id="desc-${m.id}" value="${esc(m.description)}"></td>
         <td><input type="number" min="0" class="form-control form-control-sm" style="width:100px"
                    id="price-${m.id}" value="${m.price}"></td>

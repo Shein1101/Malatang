@@ -130,11 +130,12 @@ CREATE TABLE menus (
     image_url VARCHAR(500),
     is_available BOOLEAN NOT NULL DEFAULT TRUE,   -- FALSE = sold out
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,    -- delete = set TRUE (keeps old orders safe)
+    is_custom BOOLEAN NOT NULL DEFAULT FALSE,     -- TRUE = 自分で作る base (customize.php, not shown on menu.php)
     sort_order INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
- 
+
 -- Default ingredients of each menu (included in the menu price)
 CREATE TABLE menu_ingredients (
     menu_id INT NOT NULL,
@@ -961,13 +962,13 @@ INSERT INTO ingredients (category_id, name, price, stock, sort_order) VALUES
 (5, '豆腐',       100, 40, 1),
 (5, '湯葉',       150, 30, 2);
  
-INSERT INTO menus (name, description, price, sort_order) VALUES
-('基本の麻辣湯',       'スープと具材を自由に選べる', 500, 1),
-('お肉たっぷり麻辣湯', '豚バラと牛肉入り',           800, 2);
+INSERT INTO menus (name, description, price, sort_order, is_custom) VALUES
+('自分で作る麻辣湯',   '味・辛さ・具材をぜんぶ自分で選ぶ一杯', 500, 1, TRUE),
+('お肉たっぷり麻辣湯', '豚バラと牛肉入り',                     800, 2, FALSE);
  
 -- Default ingredients (春雨 cannot be removed: it's the noodle base)
 INSERT INTO menu_ingredients (menu_id, ingredient_id, quantity, is_removable) VALUES
-(1, 2, 1, TRUE), (1, 8, 1, FALSE),
+(1, 8, 1, FALSE),                    -- 自分で作る: 春雨 only, customer adds the rest
 (2, 4, 1, TRUE), (2, 5, 1, TRUE), (2, 8, 1, FALSE);
  
 INSERT INTO soups (name, description, price, sort_order) VALUES

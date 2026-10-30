@@ -2,6 +2,7 @@
 // public/menu.php — メニュー一覧 (customer). Owner: Myat
 // Screen only, NO SQL. Data comes from ../api/menus.php
 // Card click → customize.php?menu_id=... (Zan)
+// Cards = ready-made dishes only. 自分で作る (menus.is_custom) is the banner on top → customize.php (Lin)
 $pageTitle = 'メニュー | Chilli 鍋';
 include '../includes/header.php';
 ?>
@@ -9,6 +10,9 @@ include '../includes/header.php';
 <main class="container">
   <h1>メニュー</h1>
   <p id="error" class="text-danger d-none"></p>
+
+  <!-- 自分で作る (一から具材・味を選ぶ) → customize.php -->
+  <div id="customCta"></div>
 
   <!-- menu のカードがここに並ぶ -->
   <div id="menuList" class="grid-4">
@@ -56,6 +60,19 @@ function menuCard(m) {
     </a>`;
 }
 
+// 自分で作る の案内 (売り切れ・削除のときは出さない)
+function customCta(m) {
+  if (!m || !m.is_available) return '';
+  return `
+    <a class="card card-body d-flex flex-row align-items-center justify-content-between gap-3 mb-4 text-reset" href="customize.php">
+      <div>
+        <div class="heading m-0">${esc(m.name)}</div>
+        <div class="caption">${esc(m.description)}</div>
+      </div>
+      <div class="text-nowrap"><span class="price">${yen(m.price)}〜</span> <span class="text-chili">→</span></div>
+    </a>`;
+}
+
 // API から menu をもらって、カードを並べる
 async function loadMenus() {
   const res = await callApi('GET', '../api/menus.php');
@@ -65,8 +82,9 @@ async function loadMenus() {
     showError(document.getElementById('error'), res.error);
     return;
   }
+  document.getElementById('customCta').innerHTML = customCta(res.data.find(m => m.is_custom));
   let html = '';
-  for (const m of res.data) {
+  for (const m of res.data.filter(m => !m.is_custom)) {   // ready-made dish だけ
     html += menuCard(m);
   }
   list.innerHTML = html;

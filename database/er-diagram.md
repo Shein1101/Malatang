@@ -173,6 +173,7 @@ erDiagram
         varchar image_url
         boolean is_available
         boolean is_deleted
+        boolean is_custom
         int sort_order
         timestamp created_at
         timestamp updated_at

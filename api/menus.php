@@ -2,6 +2,7 @@
 // api/menus.php — Menus API. Owner: Myat
 //   GET          anyone → menu list
 //   GET ?id=3    anyone → one menu + its default ingredients
+//   GET ?custom=1 anyone → 自分で作る base menu (is_custom = 1), same shape as ?id (Lin)
 //   POST         admin  → add a menu (春雨 goes in automatically)
 //   PUT  ?id=3   admin  → change name / description / price / is_available / sort_order
 //                         and/or ingredients: [{ingredient_id, quantity, is_removable}]
@@ -38,13 +39,22 @@ function soldout_ingredients(PDO $pdo): array {
 if ($method === 'GET') {
     $soldout = soldout_ingredients($pdo);
 
+    // ---------- ?custom=1: 自分で作る の base menu → ?id と同じ答え (Lin) ----------
+    if (isset($_GET['custom'])) {
+        $id = $pdo->query('SELECT id FROM menus WHERE is_custom = 1 AND is_deleted = 0 ORDER BY id LIMIT 1')->fetchColumn();
+        if ($id === false) {
+            send_error('Menu not found', 404);
+        }
+        $_GET['id'] = $id;
+    }
+
     // 🆕 ---------- ?id=3 があるとき: menu ひとつ + 具材 ----------
     if (isset($_GET['id'])) {
         $id = (int) $_GET['id'];
 
         // 1. menu をひとつ探す
         $stmt = $pdo->prepare(
-            'SELECT id, name, description, price, image_url, is_available, sort_order
+            'SELECT id, name, description, price, image_url, is_available, is_custom, sort_order
              FROM menus
              WHERE id = ? AND is_deleted = 0'
         );
@@ -90,12 +100,13 @@ if ($method === 'GET') {
             'is_on'        => (bool) $menu['is_available'],
             'soldout_ingredients' => $soldout[$id] ?? [],
             'is_available' => $menu['is_available'] && empty($soldout[$id]),
+            'is_custom'    => (bool) $menu['is_custom'],
             'ingredients'  => $ingredients,
         ]);
     }
 
     // ---------- ?id がないとき: menu の一覧 (前と同じ) ----------
-    $sql = 'SELECT id, name, description, price, image_url, is_available, sort_order
+    $sql = 'SELECT id, name, description, price, image_url, is_available, is_custom, sort_order
             FROM menus
             WHERE is_deleted = 0
             ORDER BY sort_order, id';
@@ -112,6 +123,7 @@ if ($method === 'GET') {
             'is_on'        => (bool) $r['is_available'],
             'soldout_ingredients' => $soldout[(int) $r['id']] ?? [],
             'is_available' => $r['is_available'] && empty($soldout[(int) $r['id']]),
+            'is_custom'    => (bool) $r['is_custom'],      // TRUE = 自分で作る (menu.php はカードにしない)
             'sort_order'   => (int) $r['sort_order'],
         ];
     }
