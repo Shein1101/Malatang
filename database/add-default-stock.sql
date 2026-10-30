@@ -8,25 +8,35 @@
 --  Now:    order a bowl          → its default ingredients go down (残り -1, 売れた +1)
 --          customer removed one  → that one is given back
 --          order cancelled       → default ingredients are given back
---          stock 0 or less       → 品切れ automatically
+--          stock 0 or less       → 品切れ automatically (販売 ON is not possible)
 -- =====================================================================
 USE malatang_ec;
 
 DROP TRIGGER IF EXISTS trg_ingredients_stock_soldout;
+DROP TRIGGER IF EXISTS trg_ingredients_stock_soldout_insert;
 DROP TRIGGER IF EXISTS trg_order_bowls_reduce_default_stock;
 DROP TRIGGER IF EXISTS trg_order_items_reduce_stock;
 DROP TRIGGER IF EXISTS trg_orders_cancel_default_stock;
 
 DELIMITER $$
 
--- Ingredient stock: 0 (or less) → sold out, refilled → available again
+-- Ingredient stock: 0 (or less) → always sold out (販売 can not be ON), refilled → available again
 CREATE TRIGGER trg_ingredients_stock_soldout
 BEFORE UPDATE ON ingredients FOR EACH ROW
 BEGIN
-    IF NEW.stock <= 0 AND OLD.stock > 0 THEN
+    IF NEW.stock <= 0 THEN
         SET NEW.is_available = FALSE;
-    ELSEIF NEW.stock > 0 AND OLD.stock <= 0 THEN
+    ELSEIF OLD.stock <= 0 THEN
         SET NEW.is_available = TRUE;
+    END IF;
+END$$
+
+-- New ingredient with stock 0 → sold out from the start
+CREATE TRIGGER trg_ingredients_stock_soldout_insert
+BEFORE INSERT ON ingredients FOR EACH ROW
+BEGIN
+    IF NEW.stock <= 0 THEN
+        SET NEW.is_available = FALSE;
     END IF;
 END$$
 

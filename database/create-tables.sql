@@ -496,14 +496,23 @@ BEGIN
     END IF;
 END$$
  
--- Ingredient stock: 0 (or less) → sold out, refilled → available again
+-- Ingredient stock: 0 (or less) → always sold out (販売 can not be ON), refilled → available again
 CREATE TRIGGER trg_ingredients_stock_soldout
 BEFORE UPDATE ON ingredients FOR EACH ROW
 BEGIN
-    IF NEW.stock <= 0 AND OLD.stock > 0 THEN
+    IF NEW.stock <= 0 THEN
         SET NEW.is_available = FALSE;
-    ELSEIF NEW.stock > 0 AND OLD.stock <= 0 THEN
+    ELSEIF OLD.stock <= 0 THEN
         SET NEW.is_available = TRUE;
+    END IF;
+END$$
+
+-- New ingredient with stock 0 → sold out from the start
+CREATE TRIGGER trg_ingredients_stock_soldout_insert
+BEFORE INSERT ON ingredients FOR EACH ROW
+BEGIN
+    IF NEW.stock <= 0 THEN
+        SET NEW.is_available = FALSE;
     END IF;
 END$$
  

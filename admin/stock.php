@@ -95,6 +95,10 @@ function lowLine(i) {
   return i.weekly_stock > 0 ? Math.ceil(i.weekly_stock * 0.2) : 5;
 }
 
+function saleLabel(on) {
+  return on ? '販売中' : '<span class="badge badge-soldout">品切れ</span>';
+}
+
 // 1. 具材を全部もらって表にする
 async function loadList() {
   const res = await callApi('GET', '../api/ingredients.php');
@@ -127,10 +131,10 @@ async function loadList() {
         </td>
         <td>${sold}</td>
         <td>
-          <div class="form-check form-switch">
+          <div class="form-check form-switch" ${i.stock <= 0 ? 'title="残りを増やすと販売できます"' : ''}>
             <input class="form-check-input" type="checkbox" role="switch"
-                   data-switch="${i.id}" ${i.is_available ? 'checked' : ''}>
-            <label class="form-check-label">${i.is_available ? '販売中' : '<span class="badge badge-soldout">品切れ</span>'}</label>
+                   data-switch="${i.id}" ${i.is_available ? 'checked' : ''} ${i.stock <= 0 ? 'disabled' : ''}>
+            <label class="form-check-label">${saleLabel(i.is_available)}</label>
           </div>
         </td>
         <td class="text-nowrap">
@@ -269,7 +273,19 @@ document.getElementById('restockYes').addEventListener('click', async () => {
 // 7. 自動で新しくする: お客さんの注文で減った 残り / 売れた を 30 秒ごとに読み直す
 //    (表の数字を書きかけ・確認ボックスが出ているときは、消さないように待つ)
 let dirty = false;
-document.getElementById('list').addEventListener('input', () => { dirty = true; });
+document.getElementById('list').addEventListener('input', (e) => {
+  dirty = true;
+  // 残り を 0 にしたら、保存する前から 販売 を 品切れ に見せる (保存すると DB でも 品切れ になる)
+  if (e.target.id && e.target.id.startsWith('stock-')) {
+    const id = e.target.id.slice(6);
+    const sw = document.querySelector(`[data-switch="${id}"]`);
+    const zero = Number(e.target.value) <= 0;
+    if (zero) sw.checked = false;
+    sw.disabled = zero;
+    sw.nextElementSibling.innerHTML = zero ? saleLabel(false) + ' <small class="text-muted">（保存で確定）</small>'
+                                           : saleLabel(sw.checked);
+  }
+});
 setInterval(() => {
   const typing = document.activeElement && document.activeElement.matches('#list input[type=number]');
   if (!dirty && !typing && restockConfirm.hidden && !document.hidden) loadList();
