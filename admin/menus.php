@@ -31,7 +31,8 @@ include '../includes/admin_header.php';
         <button class="btn btn-chili w-100">追加</button>
       </div>
     </div>
-    <p class="caption mt-2 mb-0">※ 春雨は自動で入ります（お客さんは外せません）</p>
+    <p class="caption mt-2 mb-0">※ 春雨は自動で入ります（お客さんは外せません）。
+      メニューの具材がひとつでも品切れになると、そのメニューはお客さんには「売り切れ」になります。</p>
   </form>
  
   <!-- menu の一覧 -->
@@ -82,9 +83,14 @@ async function loadList() {
                    id="price-${m.id}" value="${m.price}"></td>
         <td>
           <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" role="switch" id="on-${m.id}" ${m.is_available ? 'checked' : ''}>
-            <label class="form-check-label" for="on-${m.id}">${m.is_available ? 'ON' : 'OFF'}</label>
+            <input class="form-check-input" type="checkbox" role="switch" id="on-${m.id}" ${m.is_on ? 'checked' : ''}>
+            <label class="form-check-label" for="on-${m.id}">${m.is_on ? 'ON' : 'OFF'}</label>
           </div>
+          ${m.soldout_ingredients.length > 0
+            ? `<div class="small text-danger" title="具材・在庫 で残りを増やすと、また注文できます">
+                 <span class="badge badge-soldout">売り切れ中</span> 品切れ: ${esc(m.soldout_ingredients.join('、'))}
+               </div>`
+            : ''}
         </td>
         <td class="text-nowrap">
           <button class="btn btn-sm btn-outline" data-action="save" data-id="${m.id}">保存</button>

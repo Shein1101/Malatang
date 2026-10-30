@@ -14,8 +14,29 @@ require __DIR__ . '/../includes/auth.php';   // require_admin() → 401 / 403
 
 $method = require_method('GET', 'POST', 'PUT', 'DELETE');   // 🆕
 
+// 🆕 最初から入っている具材が 品切れ の menu → { menu_id: ['ホタテ', …] }
+//    その menu は お客さんには 売り切れ (DB の fn_bowl_price も注文を止める)
+function soldout_ingredients(PDO $pdo): array {
+    $rows = $pdo->query(
+        'SELECT mi.menu_id, i.name
+         FROM menu_ingredients mi
+         JOIN ingredients i ON i.id = mi.ingredient_id
+         WHERE i.is_deleted = 0 AND i.is_available = 0
+         ORDER BY i.sort_order'
+    )->fetchAll();
+    $out = [];
+    foreach ($rows as $r) {
+        $out[(int) $r['menu_id']][] = $r['name'];
+    }
+    return $out;
+}
+
 // ========== GET ==========
+//   is_on               = owner の 販売 スイッチ (admin/menus.php で使う)
+//   soldout_ingredients = 品切れの具材の名前
+//   is_available        = お客さんが注文できるか (is_on で、品切れの具材がない)
 if ($method === 'GET') {
+    $soldout = soldout_ingredients($pdo);
 
     // 🆕 ---------- ?id=3 があるとき: menu ひとつ + 具材 ----------
     if (isset($_GET['id'])) {
@@ -66,7 +87,9 @@ if ($method === 'GET') {
             'description'  => $menu['description'],
             'price'        => (int) $menu['price'],
             'image_url'    => $menu['image_url'],
-            'is_available' => (bool) $menu['is_available'],
+            'is_on'        => (bool) $menu['is_available'],
+            'soldout_ingredients' => $soldout[$id] ?? [],
+            'is_available' => $menu['is_available'] && empty($soldout[$id]),
             'ingredients'  => $ingredients,
         ]);
     }
@@ -86,7 +109,9 @@ if ($method === 'GET') {
             'description'  => $r['description'],
             'price'        => (int) $r['price'],
             'image_url'    => $r['image_url'],
-            'is_available' => (bool) $r['is_available'],
+            'is_on'        => (bool) $r['is_available'],
+            'soldout_ingredients' => $soldout[(int) $r['id']] ?? [],
+            'is_available' => $r['is_available'] && empty($soldout[(int) $r['id']]),
             'sort_order'   => (int) $r['sort_order'],
         ];
     }
