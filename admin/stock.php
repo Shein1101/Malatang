@@ -3,7 +3,7 @@
 // Screen only, NO SQL. Data comes from ../api/ingredients.php
 // 具材の追加 / 値段・週の在庫・残りの変更 (変えたら自動で保存) / 販売 ON・OFF / 削除 を 1 ページで。
 // 週の在庫 = 1 週間に用意する数。残り = 今の数 (お客さんが注文すると DB の trigger で減る)。
-// 売れた = 週の在庫 − 残り。新しい週は「今週の在庫をセット」で 残り = 週の在庫 に戻す。
+// 売れた = 週の在庫 − 残り。1つの量 (例: 50g) はお客さんに見せる。
 // (前の admin/ingredients.php はここにまとめた。メニューの ON / OFF は メニュー ページ)
 $pageTitle = '具材・在庫 | Chilli 鍋';
 include '../includes/admin_header.php';
@@ -23,13 +23,17 @@ include '../includes/admin_header.php';
         <label class="form-label">カテゴリ</label>
         <select name="category_id" class="form-select" required></select>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
         <label class="form-label">名前</label>
         <input name="name" class="form-control" required maxlength="100">
       </div>
       <div class="col-md-2">
         <label class="form-label">値段（円）</label>
         <input name="price" type="number" min="0" class="form-control" required>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label">1つの量</label>
+        <input name="portion" class="form-control" maxlength="20" placeholder="50g">
       </div>
       <div class="col-md-2">
         <label class="form-label">週の在庫</label>
@@ -55,22 +59,15 @@ include '../includes/admin_header.php';
     <input id="search" type="search" class="form-control" style="max-width:240px"
            placeholder="具材を検索 (例: えび、きのこ)" autocomplete="off">
     <span id="searchCount" class="text-muted small"></span>
-    <button type="button" id="restockBtn" class="btn btn-outline ms-auto">今週の在庫をセット（残り = 週の在庫）</button>
-  </div>
-  <!-- 「今週の在庫をセット」を押したときの確認 (confirm() の代わり) -->
-  <div id="restockConfirm" class="alert alert-warning d-flex flex-wrap align-items-center gap-2" hidden>
-    <span>すべての具材の「残り」を「週の在庫」の数に戻します。よろしいですか？</span>
-    <button type="button" id="restockYes" class="btn btn-chili btn-sm">はい、セットする</button>
-    <button type="button" id="restockNo" class="btn btn-ghost btn-sm">やめる</button>
   </div>
 
   <table class="table align-middle">
     <thead>
       <tr>
-        <th>カテゴリ</th><th>名前</th><th>値段（円）</th><th>週の在庫</th><th>残り</th><th>売れた</th><th>販売</th><th>操作</th>
+        <th>カテゴリ</th><th>名前</th><th>値段（円）</th><th title="お客さんのカスタマイズ画面に出ます">1つの量</th><th>週の在庫</th><th>残り</th><th>売れた</th><th>販売</th><th>操作</th>
       </tr>
     </thead>
-    <tbody id="list"><tr><td colspan="8">読み込み中…</td></tr></tbody>
+    <tbody id="list"><tr><td colspan="9">読み込み中…</td></tr></tbody>
   </table>
 </main>
 
@@ -120,6 +117,8 @@ async function loadList() {
         <td>${esc(i.name)}</td>
         <td><input type="number" min="0" class="form-control form-control-sm" style="width:90px"
                    id="price-${i.id}" value="${i.price}"></td>
+        <td><input class="form-control form-control-sm" style="width:80px" maxlength="20" placeholder="例: 50g"
+                   id="portion-${i.id}" value="${esc(i.portion)}"></td>
         <td><input type="number" min="0" class="form-control form-control-sm" style="width:80px"
                    id="weekly-${i.id}" value="${i.weekly_stock}"></td>
         <td>
@@ -179,7 +178,7 @@ function filterList() {
   if (shown === 0 && rows.length > 0) {
     if (!empty) {
       document.getElementById('list').insertAdjacentHTML('beforeend',
-        '<tr id="noResult"><td colspan="8" class="text-muted">該当する具材はありません</td></tr>');
+        '<tr id="noResult"><td colspan="9" class="text-muted">該当する具材はありません</td></tr>');
     }
   } else if (empty) {
     empty.remove();
@@ -206,6 +205,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
     category_id: Number(form.category_id.value),
     name: form.name.value,
     price: Number(form.price.value),
+    portion: form.portion.value,
     weekly_stock: Number(form.weekly_stock.value),
     stock: Number(form.stock.value)
   });
@@ -213,6 +213,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
     say(`「${form.name.value}」を追加しました`, true);
     form.name.value = '';
     form.price.value = '';
+    form.portion.value = '';
     form.weekly_stock.value = 100;
     form.stock.value = 100;
     loadList();
@@ -231,10 +232,15 @@ document.getElementById('list').addEventListener('click', async (e) => {
   loadList();
 });
 
-// 5. 値段・週の在庫・残り は、変えたら自動で保存 (保存ボタンなし)
+// 5. 値段・1つの量・週の在庫・残り は、変えたら自動で保存 (保存ボタンなし)
 //    週の在庫・残り … 打ち終わって 0.8 秒たったら保存 (残り 0 → すぐ 品切れ)
-//    値段           … 欄から出たとき / Enter で保存 (打ちかけの値段が残らないように)
-const FIELDS = { 'price-': ['price', '値段'], 'weekly-': ['weekly_stock', '週の在庫'], 'stock-': ['stock', '残り'] };
+//    値段・1つの量  … 欄から出たとき / Enter で保存 (打ちかけのまま残らないように)
+const FIELDS = {
+  'price-':   ['price', '値段'],
+  'portion-': ['portion', '1つの量'],      // 文字 (例: 50g)。空 = 消す
+  'weekly-':  ['weekly_stock', '週の在庫'],
+  'stock-':   ['stock', '残り']
+};
 const timers = {};
 
 async function saveField(input) {
@@ -242,10 +248,13 @@ async function saveField(input) {
   const [field, label] = FIELDS[prefix];
   const id = input.id.slice(prefix.length);
   const name = input.closest('tr').dataset.name;
-  if (input.value === '') return;   // 消しただけのときは待つ
+  const isText = field === 'portion';
+  if (!isText && input.value === '') return;   // 数字を消しただけのときは待つ
 
-  const res = await callApi('PUT', `../api/ingredients.php?id=${id}`, { [field]: Number(input.value) });
-  say(res.success ? `「${name}」の${label}を ${input.value} にしました` : res.error, res.success);
+  const value = isText ? input.value.trim() : Number(input.value);
+  const res = await callApi('PUT', `../api/ingredients.php?id=${id}`, { [field]: value });
+  const shown = value === '' ? 'なし' : value;
+  say(res.success ? `「${name}」の${label}を ${shown} にしました` : res.error, res.success);
 
   // 表を作り直す (品切れ・売れた・バーも新しくなる)。打っていた欄にカーソルを戻す
   const focusId = document.activeElement ? document.activeElement.id : '';
@@ -273,26 +282,15 @@ document.getElementById('list').addEventListener('change', async (e) => {
     return;
   }
 
-  // 値段は欄から出たとき。週の在庫・残りも、0.8 秒待たずに出たらここで保存
+  // 値段・1つの量は欄から出たとき。週の在庫・残りも、0.8 秒待たずに出たらここで保存
   if (el.id && Object.keys(FIELDS).some(p => el.id.startsWith(p))) {
     clearTimeout(timers[el.id]);
     saveField(el);
   }
 });
 
-// 6. 新しい週: 全部の 残り を 週の在庫 に戻す (確認してから)
-const restockConfirm = document.getElementById('restockConfirm');
-document.getElementById('restockBtn').addEventListener('click', () => { restockConfirm.hidden = false; });
-document.getElementById('restockNo').addEventListener('click', () => { restockConfirm.hidden = true; });
-document.getElementById('restockYes').addEventListener('click', async () => {
-  restockConfirm.hidden = true;
-  const res = await callApi('PUT', '../api/ingredients.php?action=restock');
-  say(res.success ? `${res.data.restocked} 件の具材の残りを週の在庫にセットしました` : res.error, res.success);
-  loadList();
-});
-
-// 7. 自動で新しくする: お客さんの注文で減った 残り / 売れた を 30 秒ごとに読み直す
-//    (表の数字を書きかけ・確認ボックスが出ているときは、消さないように待つ)
+// 6. 自動で新しくする: お客さんの注文で減った 残り / 売れた を 30 秒ごとに読み直す
+//    (表の欄を書きかけのときは、消さないように待つ)
 let dirty = false;
 document.getElementById('list').addEventListener('input', (e) => {
   dirty = true;
@@ -307,8 +305,8 @@ document.getElementById('list').addEventListener('input', (e) => {
   }
 });
 setInterval(() => {
-  const typing = document.activeElement && document.activeElement.matches('#list input[type=number]');
-  if (!dirty && !typing && restockConfirm.hidden && !document.hidden) loadList();
+  const typing = document.activeElement && document.activeElement.matches('#list input:not([type=checkbox])');
+  if (!dirty && !typing && !document.hidden) loadList();
 }, 30000);
 
 window.addEventListener('load', loadList);

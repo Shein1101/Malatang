@@ -56,7 +56,7 @@ if ($method === 'GET') {
 
         // 2. その menu に最初から入っている具材 (menu_ingredients と ingredients をつなぐ)
         $stmt = $pdo->prepare(
-            'SELECT i.id, i.name, i.price, i.is_available,
+            'SELECT i.id, i.name, i.price, i.portion, i.is_available,
                     c.name AS category_name,
                     mi.quantity, mi.is_removable
              FROM menu_ingredients mi
@@ -74,6 +74,7 @@ if ($method === 'GET') {
                 'name'          => $r['name'],
                 'category_name' => $r['category_name'],
                 'price'         => (int) $r['price'],
+                'portion'       => $r['portion'],   // 1つの量 (例: 50g)
                 'is_available'  => (bool) $r['is_available'],
                 'quantity'      => (int) $r['quantity'],
                 'is_removable'  => (bool) $r['is_removable'],   // false = お客さんは外せない (春雨など)

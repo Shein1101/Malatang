@@ -2,8 +2,7 @@
 // api/ingredients.php — Ingredients API. Owner: Myat
 //   GET   anyone → ingredients list
 //   POST  admin  → add an ingredient
-//   PUT   admin  → ?id=53 change (price / stock / weekly_stock / is_available)
-//                  ?action=restock  all: stock = weekly_stock (new week)
+//   PUT   admin  → ?id=53 change (price / portion / stock / weekly_stock / is_available)
 //   DELETE admin → ?id=53 (is_deleted = 1)
 
 require __DIR__ . '/../includes/db.php';
@@ -14,7 +13,7 @@ $method = require_method('GET', 'POST','PUT','DELETE');   // 🆕 POST and put �
 
 // ========== GET: စာရင်းပြ ==========
 if ($method === 'GET') {                    // 🆕 GET ဆိုရင်ပဲ ဒီအပိုင်း run မယ်
-    $sql = 'SELECT i.id, i.name, i.price, i.stock, i.weekly_stock, i.is_available, i.image_url,
+    $sql = 'SELECT i.id, i.name, i.price, i.portion, i.stock, i.weekly_stock, i.is_available, i.image_url,
             c.id AS category_id, c.name AS category_name
             FROM ingredients i
             JOIN categories c ON c.id = i.category_id
@@ -28,6 +27,7 @@ if ($method === 'GET') {                    // 🆕 GET ဆိုရင်ပဲ
             'id'            => (int) $r['id'],
             'name'          => $r['name'],
             'price'         => (int) $r['price'],
+            'portion'       => $r['portion'],                  // 1つの量 (例: 50g)。null = 書いてない
             'stock'         => (int) $r['stock'],
             'weekly_stock'  => (int) $r['weekly_stock'],   // 週の在庫 (売れた数 = weekly_stock - stock)
             'is_available'  => (bool) $r['is_available'],
@@ -41,6 +41,15 @@ if ($method === 'GET') {                    // 🆕 GET ဆိုရင်ပဲ
 
 // ========== 🆕 ဒီအောက်က admin ပဲ လုပ်ခွင့်ရှိ ==========
 require_admin();
+
+// 1つの量: စာလုံး 20 လုံးအထိ။ ဗလာဆိုရင် NULL (customer ဘက်မှာ မပြဘူး)
+function check_portion($value): ?string {
+    $p = trim((string) $value);
+    if (mb_strlen($p) > 20) {
+        send_error('1つの量 is 20 characters or less', 400);
+    }
+    return $p === '' ? null : $p;
+}
 
 // ========== 🆕 POST: ingredient အသစ်ထည့် ==========
 if ($method === 'POST') {
@@ -68,13 +77,14 @@ if ($method === 'POST') {
 
     // DB ထဲ ထည့်မယ် — ? နေရာမှာ တန်ဖိုးတွေ လုံခြုံစွာ ဝင်သွားမယ်
     $stmt = $pdo->prepare(
-        'INSERT INTO ingredients (category_id, name, price, stock, weekly_stock, image_url, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO ingredients (category_id, name, price, portion, stock, weekly_stock, image_url, sort_order)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
     );
     $stmt->execute([
         (int) $in['category_id'],
         trim($in['name']),
         $price,
+        check_portion($in['portion'] ?? ''),
         (int) ($in['stock'] ?? 0),
         $weekly,
         $in['image_url'] ?? null,
@@ -86,14 +96,6 @@ if ($method === 'POST') {
 
 // ========== 🆕 PUT: ingredient ပြင် (?id=53) ==========
 if ($method === 'PUT') {
-    // 🆕 ?action=restock — အပတ်သစ်: ingredient အားလုံးရဲ့ 残り (stock) ကို 週の在庫 (weekly_stock) အတိုင်း ပြန်ထား
-    //    (stock 0 → 品切れ ဖြစ်နေတာတွေကို DB trigger က 販売中 ပြန်လုပ်ပေးမယ်)
-    if (($_GET['action'] ?? '') === 'restock') {
-        $stmt = $pdo->prepare('UPDATE ingredients SET stock = weekly_stock WHERE is_deleted = ?');
-        $stmt->execute([0]);
-        send_json(['restocked' => $stmt->rowCount()]);
-    }
-
     // 1. URL ထဲက id ကို ယူမယ်  (ingredients.php?id=53 → 53)
     $id = (int) ($_GET['id'] ?? 0);
     if ($id <= 0) {
@@ -124,6 +126,10 @@ if ($method === 'PUT') {
         }
         $sets[] = 'price = ?';
         $values[] = $price;
+    }
+    if (array_key_exists('portion', $in)) {      // 🆕 1つの量 ("" = 消す)
+        $sets[] = 'portion = ?';
+        $values[] = check_portion($in['portion']);
     }
     if (isset($in['stock'])) {
         $stock = filter_var($in['stock'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
