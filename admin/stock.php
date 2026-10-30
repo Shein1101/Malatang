@@ -1,7 +1,7 @@
 <?php
 // admin/stock.php — 具材・在庫 (owner). Owner: Myat
 // Screen only, NO SQL. Data comes from ../api/ingredients.php
-// 具材の追加 / 値段・週の在庫・残りの変更 (保存ボタン) / 販売 ON・OFF / 削除 を 1 ページで。
+// 具材の追加 / 値段・週の在庫・残りの変更 (変えたら自動で保存) / 販売 ON・OFF / 削除 を 1 ページで。
 // 週の在庫 = 1 週間に用意する数。残り = 今の数 (お客さんが注文すると DB の trigger で減る)。
 // 売れた = 週の在庫 − 残り。新しい週は「今週の在庫をセット」で 残り = 週の在庫 に戻す。
 // (前の admin/ingredients.php はここにまとめた。メニューの ON / OFF は メニュー ページ)
@@ -115,7 +115,7 @@ async function loadList() {
     const sold = Math.max(i.weekly_stock - i.stock, 0);
     const pct = i.weekly_stock > 0 ? Math.min(Math.round(i.stock / i.weekly_stock * 100), 100) : 0;
     rows += `
-      <tr data-state="${state}" data-search="${esc(normalize(i.name + ' ' + i.category_name))}">
+      <tr data-state="${state}" data-name="${esc(i.name)}" data-search="${esc(normalize(i.name + ' ' + i.category_name))}">
         <td>${esc(i.category_name)}</td>
         <td>${esc(i.name)}</td>
         <td><input type="number" min="0" class="form-control form-control-sm" style="width:90px"
@@ -138,7 +138,6 @@ async function loadList() {
           </div>
         </td>
         <td class="text-nowrap">
-          <button class="btn btn-sm btn-outline" data-action="save" data-id="${i.id}">保存</button>
           <button class="btn btn-sm btn-ghost" data-action="delete" data-id="${i.id}"
                   data-name="${esc(i.name)}">削除</button>
         </td>
@@ -222,41 +221,63 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   }
 });
 
-// 4. 表の中のボタン (保存 / 削除)
+// 4. 削除ボタン
 document.getElementById('list').addEventListener('click', async (e) => {
-  const btn = e.target.closest('button[data-action]');
+  const btn = e.target.closest('button[data-action="delete"]');
   if (!btn) return;
-  const id = btn.dataset.id;
-  let res;
-
-  if (btn.dataset.action === 'save') {
-    // 値段・週の在庫・残り を PUT で送る
-    res = await callApi('PUT', `../api/ingredients.php?id=${id}`, {
-      price: Number(document.getElementById(`price-${id}`).value),
-      weekly_stock: Number(document.getElementById(`weekly-${id}`).value),
-      stock: Number(document.getElementById(`stock-${id}`).value)
-    });
-    say(res.success ? '保存しました' : res.error, res.success);
-  }
-
-  if (btn.dataset.action === 'delete') {
-    if (!confirm(`「${btn.dataset.name}」を削除しますか？`)) return;
-    res = await callApi('DELETE', `../api/ingredients.php?id=${id}`);
-    say(res.success ? `「${btn.dataset.name}」を削除しました` : res.error, res.success);
-  }
-
-  loadList();   // 品切れ・売れた の表示も新しくなる
+  if (!confirm(`「${btn.dataset.name}」を削除しますか？`)) return;
+  const res = await callApi('DELETE', `../api/ingredients.php?id=${btn.dataset.id}`);
+  say(res.success ? `「${btn.dataset.name}」を削除しました` : res.error, res.success);
+  loadList();
 });
 
-// 5. 販売 ON / OFF スイッチは、押したらすぐ保存
+// 5. 値段・週の在庫・残り は、変えたら自動で保存 (保存ボタンなし)
+//    週の在庫・残り … 打ち終わって 0.8 秒たったら保存 (残り 0 → すぐ 品切れ)
+//    値段           … 欄から出たとき / Enter で保存 (打ちかけの値段が残らないように)
+const FIELDS = { 'price-': ['price', '値段'], 'weekly-': ['weekly_stock', '週の在庫'], 'stock-': ['stock', '残り'] };
+const timers = {};
+
+async function saveField(input) {
+  const prefix = Object.keys(FIELDS).find(p => input.id.startsWith(p));
+  const [field, label] = FIELDS[prefix];
+  const id = input.id.slice(prefix.length);
+  const name = input.closest('tr').dataset.name;
+  if (input.value === '') return;   // 消しただけのときは待つ
+
+  const res = await callApi('PUT', `../api/ingredients.php?id=${id}`, { [field]: Number(input.value) });
+  say(res.success ? `「${name}」の${label}を ${input.value} にしました` : res.error, res.success);
+
+  // 表を作り直す (品切れ・売れた・バーも新しくなる)。打っていた欄にカーソルを戻す
+  const focusId = document.activeElement ? document.activeElement.id : '';
+  await loadList();
+  if (focusId) document.getElementById(focusId)?.focus();
+}
+
+document.getElementById('list').addEventListener('input', (e) => {
+  const el = e.target;
+  if (!el.id || !(el.id.startsWith('weekly-') || el.id.startsWith('stock-'))) return;
+  clearTimeout(timers[el.id]);
+  timers[el.id] = setTimeout(() => saveField(el), 800);
+});
+
 document.getElementById('list').addEventListener('change', async (e) => {
   const el = e.target;
-  if (!el.dataset.switch) return;
-  const res = await callApi('PUT', `../api/ingredients.php?id=${el.dataset.switch}`, {
-    is_available: el.checked
-  });
-  say(res.success ? '保存しました' : res.error, res.success);
-  loadList();
+
+  // 販売 ON / OFF スイッチは、押したらすぐ保存
+  if (el.dataset.switch) {
+    const res = await callApi('PUT', `../api/ingredients.php?id=${el.dataset.switch}`, {
+      is_available: el.checked
+    });
+    say(res.success ? '保存しました' : res.error, res.success);
+    loadList();
+    return;
+  }
+
+  // 値段は欄から出たとき。週の在庫・残りも、0.8 秒待たずに出たらここで保存
+  if (el.id && Object.keys(FIELDS).some(p => el.id.startsWith(p))) {
+    clearTimeout(timers[el.id]);
+    saveField(el);
+  }
 });
 
 // 6. 新しい週: 全部の 残り を 週の在庫 に戻す (確認してから)
@@ -275,15 +296,14 @@ document.getElementById('restockYes').addEventListener('click', async () => {
 let dirty = false;
 document.getElementById('list').addEventListener('input', (e) => {
   dirty = true;
-  // 残り を 0 にしたら、保存する前から 販売 を 品切れ に見せる (保存すると DB でも 品切れ になる)
-  if (e.target.id && e.target.id.startsWith('stock-')) {
+  // 残り を 0 にしたら、すぐ 販売 を 品切れ に見せる (0.8 秒後に自動で保存 → DB でも 品切れ)
+  if (e.target.id && e.target.id.startsWith('stock-') && e.target.value !== '') {
     const id = e.target.id.slice(6);
     const sw = document.querySelector(`[data-switch="${id}"]`);
     const zero = Number(e.target.value) <= 0;
     if (zero) sw.checked = false;
     sw.disabled = zero;
-    sw.nextElementSibling.innerHTML = zero ? saleLabel(false) + ' <small class="text-muted">（保存で確定）</small>'
-                                           : saleLabel(sw.checked);
+    sw.nextElementSibling.innerHTML = saleLabel(sw.checked);
   }
 });
 setInterval(() => {
