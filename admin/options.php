@@ -10,25 +10,9 @@ include '../includes/admin_header.php';
   <h1>辛さ管理</h1>
   <p class="caption">お客さんには「1（辛くない）」のように表示されます。OFF にした辛さはお客さんの画面に出ません。</p>
   <p id="message"></p>
- 
-  <!-- 辛さの一覧 -->
-  <table class="table align-middle">
-    <thead>
-      <tr>
-        <th>番号</th>
-        <th>説明</th>
-        <th>追加料金（円）</th>
-        <th>販売</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody id="list">
-      <tr><td colspan="5">読み込み中…</td></tr>
-    </tbody>
-  </table>
- 
-  <!-- 新しい辛さを追加 -->
-  <form id="addForm" class="card card-body">
+
+  <!-- 新しい辛さを追加 (具材管理と同じく、表の上) -->
+  <form id="addForm" class="card card-body mb-4">
     <h2 class="h5">辛さを追加</h2>
     <div class="row g-2">
       <div class="col-md-2">
@@ -48,6 +32,22 @@ include '../includes/admin_header.php';
       </div>
     </div>
   </form>
+
+  <!-- 辛さの一覧 -->
+  <table class="table align-middle">
+    <thead>
+      <tr>
+        <th>番号</th>
+        <th>説明</th>
+        <th>追加料金（円）</th>
+        <th>販売</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="list">
+      <tr><td colspan="5">読み込み中…</td></tr>
+    </tbody>
+  </table>
 </main>
  
 <script>
