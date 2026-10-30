@@ -11,9 +11,9 @@ $current   = basename($_SERVER['PHP_SELF']);
 $adminNav  = [
     'orders.php'      => '注文',
     'menus.php'       => 'メニュー',
-    'ingredients.php' => '具材',
     'options.php'     => '辛さ',
-    'stock.php'       => '在庫',
+    'stock.php'       => '具材・在庫',
+    'supplies.php'    => '備品',
     'store.php'       => '店舗',
 ];
 ?>

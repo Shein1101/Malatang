@@ -2,9 +2,15 @@
 // api/menus.php — Menus API. Owner: Myat
 //   GET          anyone → menu list
 //   GET ?id=3    anyone → one menu + its default ingredients
+//   POST         admin  → add a menu (春雨 goes in automatically)
+//   PUT  ?id=3   admin  → change name / description / price / is_available / sort_order
+//                         and/or ingredients: [{ingredient_id, quantity, is_removable}]
+//                         (ingredients = the WHOLE new list of default ingredients)
+//   DELETE ?id=3 admin  → is_deleted = 1
 
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/api.php';
+require __DIR__ . '/../includes/auth.php';   // require_admin() → 401 / 403
 
 $method = require_method('GET', 'POST', 'PUT', 'DELETE');   // 🆕
 
@@ -88,11 +94,7 @@ if ($method === 'GET') {
 }  
 
 // ========== 🆕 ここから下は admin だけ ==========
-$isAdmin  = ($_SESSION['role'] ?? '') === 'admin';
-$devAdmin = ($env['DEV_ADMIN'] ?? '0') === '1';   // .env の DEV_ADMIN=1 (テスト用)
-if (!$isAdmin && !$devAdmin) {
-    send_error('Admin only', 403);
-}
+require_admin();
 
 // 値段は 0 以上の整数か
 function check_price($value): int {
@@ -149,15 +151,63 @@ if ($method === 'PUT') {
     if (isset($in['image_url']))    { $sets[] = 'image_url = ?';    $values[] = $in['image_url']; }
     if (isset($in['is_available'])) { $sets[] = 'is_available = ?'; $values[] = $in['is_available'] ? 1 : 0; }
     if (isset($in['sort_order']))   { $sets[] = 'sort_order = ?';   $values[] = (int) $in['sort_order']; }
-    if (count($sets) === 0) {
+
+    // 🆕 最初から入っている具材 (ingredients があるときだけ。新しいリスト全部を送る)
+    $items = null;
+    if (array_key_exists('ingredients', $in)) {
+        if (!is_array($in['ingredients'])) {
+            send_error('ingredients must be a list', 400);
+        }
+        $items = [];
+        $check = $pdo->prepare('SELECT id FROM ingredients WHERE id = ? AND is_deleted = 0');
+        foreach ($in['ingredients'] as $it) {
+            $ingId = filter_var($it['ingredient_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            $qty   = filter_var($it['quantity'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($ingId === false || $qty === false) {
+                send_error('Each ingredient needs an id and a quantity of 1 or more', 400);
+            }
+            if (isset($items[$ingId])) {
+                send_error('The same ingredient is in the list twice', 400);
+            }
+            $check->execute([$ingId]);
+            if (!$check->fetch()) {
+                send_error('Ingredient not found', 400);
+            }
+            $items[$ingId] = [$qty, !empty($it['is_removable']) ? 1 : 0];
+        }
+    }
+
+    if (count($sets) === 0 && $items === null) {
         send_error('Nothing to change', 400);
     }
 
-    // 値段を変えたら price_history に残る (DB の trigger)。だれが変えたかを渡す
-    $pdo->prepare('SET @current_user_id = ?')->execute([$_SESSION['user_id'] ?? null]);
+    // menu と具材を一緒に変える: 全部成功するか、全部なかったことにする
+    $pdo->beginTransaction();
+    try {
+        if (count($sets) > 0) {
+            // 値段を変えたら price_history に残る (DB の trigger)。だれが変えたかを渡す
+            $pdo->prepare('SET @current_user_id = ?')->execute([$_SESSION['user_id'] ?? null]);
 
-    $values[] = $id;
-    $pdo->prepare('UPDATE menus SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($values);
+            $values[] = $id;
+            $pdo->prepare('UPDATE menus SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($values);
+        }
+
+        if ($items !== null) {
+            // 前の具材を消して、新しいリストを入れる
+            $pdo->prepare('DELETE FROM menu_ingredients WHERE menu_id = ?')->execute([$id]);
+            $add = $pdo->prepare(
+                'INSERT INTO menu_ingredients (menu_id, ingredient_id, quantity, is_removable) VALUES (?, ?, ?, ?)'
+            );
+            foreach ($items as $ingId => [$qty, $removable]) {
+                $add->execute([$id, $ingId, $qty, $removable]);
+            }
+        }
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;   // includes/api.php が 500 にする
+    }
+
     send_json(['id' => $id, 'updated' => true]);
 }
 

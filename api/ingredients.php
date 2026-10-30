@@ -2,15 +2,19 @@
 // api/ingredients.php — Ingredients API. Owner: Myat
 //   GET   anyone → ingredients list
 //   POST  admin  → add an ingredient
+//   PUT   admin  → ?id=53 change (price / stock / weekly_stock / is_available)
+//                  ?action=restock  all: stock = weekly_stock (new week)
+//   DELETE admin → ?id=53 (is_deleted = 1)
 
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/api.php';
+require __DIR__ . '/../includes/auth.php';   // require_admin() → 401 / 403
 
 $method = require_method('GET', 'POST','PUT','DELETE');   // 🆕 POST and put ကိုပါ ခွင့်ပြုမယ်
 
 // ========== GET: စာရင်းပြ ==========
 if ($method === 'GET') {                    // 🆕 GET ဆိုရင်ပဲ ဒီအပိုင်း run မယ်
-    $sql = 'SELECT i.id, i.name, i.price, i.stock, i.is_available, i.image_url,
+    $sql = 'SELECT i.id, i.name, i.price, i.stock, i.weekly_stock, i.is_available, i.image_url,
             c.id AS category_id, c.name AS category_name
             FROM ingredients i
             JOIN categories c ON c.id = i.category_id
@@ -25,6 +29,7 @@ if ($method === 'GET') {                    // 🆕 GET ဆိုရင်ပဲ
             'name'          => $r['name'],
             'price'         => (int) $r['price'],
             'stock'         => (int) $r['stock'],
+            'weekly_stock'  => (int) $r['weekly_stock'],   // 週の在庫 (売れた数 = weekly_stock - stock)
             'is_available'  => (bool) $r['is_available'],
             'image_url'     => $r['image_url'],
             'category_id'   => (int) $r['category_id'],
@@ -35,11 +40,7 @@ if ($method === 'GET') {                    // 🆕 GET ဆိုရင်ပဲ
 }
 
 // ========== 🆕 ဒီအောက်က admin ပဲ လုပ်ခွင့်ရှိ ==========
-$isAdmin  = ($_SESSION['role'] ?? '') === 'admin';
-$devAdmin = ($env['DEV_ADMIN'] ?? '0') === '1';   // .env ထဲက DEV_ADMIN=1 (စမ်းဖို့)
-if (!$isAdmin && !$devAdmin) {
-    send_error('Admin only', 403);
-}
+require_admin();
 
 // ========== 🆕 POST: ingredient အသစ်ထည့် ==========
 if ($method === 'POST') {
@@ -59,16 +60,23 @@ if ($method === 'POST') {
         send_error('Category not found', 400);
     }
 
+    // 週の在庫 (မပို့ရင် 100) — 0 နဲ့အထက် ကိန်းပြည့်
+    $weekly = filter_var($in['weekly_stock'] ?? 100, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+    if ($weekly === false) {
+        send_error('Weekly stock must be a number 0 or more', 400);
+    }
+
     // DB ထဲ ထည့်မယ် — ? နေရာမှာ တန်ဖိုးတွေ လုံခြုံစွာ ဝင်သွားမယ်
     $stmt = $pdo->prepare(
-        'INSERT INTO ingredients (category_id, name, price, stock, image_url, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?)'
+        'INSERT INTO ingredients (category_id, name, price, stock, weekly_stock, image_url, sort_order)
+         VALUES (?, ?, ?, ?, ?, ?, ?)'
     );
     $stmt->execute([
         (int) $in['category_id'],
         trim($in['name']),
         $price,
         (int) ($in['stock'] ?? 0),
+        $weekly,
         $in['image_url'] ?? null,
         (int) ($in['sort_order'] ?? 0),
     ]);
@@ -78,6 +86,14 @@ if ($method === 'POST') {
 
 // ========== 🆕 PUT: ingredient ပြင် (?id=53) ==========
 if ($method === 'PUT') {
+    // 🆕 ?action=restock — အပတ်သစ်: ingredient အားလုံးရဲ့ 残り (stock) ကို 週の在庫 (weekly_stock) အတိုင်း ပြန်ထား
+    //    (stock 0 → 品切れ ဖြစ်နေတာတွေကို DB trigger က 販売中 ပြန်လုပ်ပေးမယ်)
+    if (($_GET['action'] ?? '') === 'restock') {
+        $stmt = $pdo->prepare('UPDATE ingredients SET stock = weekly_stock WHERE is_deleted = ?');
+        $stmt->execute([0]);
+        send_json(['restocked' => $stmt->rowCount()]);
+    }
+
     // 1. URL ထဲက id ကို ယူမယ်  (ingredients.php?id=53 → 53)
     $id = (int) ($_GET['id'] ?? 0);
     if ($id <= 0) {
@@ -85,9 +101,10 @@ if ($method === 'PUT') {
     }
 
     // 2. အဲဒီ ingredient ရှိလား စစ်မယ်
-    $find = $pdo->prepare('SELECT id FROM ingredients WHERE id = ? AND is_deleted = 0');
+    $find = $pdo->prepare('SELECT id, stock FROM ingredients WHERE id = ? AND is_deleted = 0');
     $find->execute([$id]);
-    if (!$find->fetch()) {
+    $current = $find->fetch();
+    if (!$current) {
         send_error('Ingredient not found', 404);
     }
 
@@ -116,7 +133,20 @@ if ($method === 'PUT') {
         $sets[] = 'stock = ?';
         $values[] = $stock;
     }
+    if (isset($in['weekly_stock'])) {      // 🆕 週の在庫
+        $weekly = filter_var($in['weekly_stock'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+        if ($weekly === false) {
+            send_error('Weekly stock must be a number 0 or more', 400);
+        }
+        $sets[] = 'weekly_stock = ?';
+        $values[] = $weekly;
+    }
     if (isset($in['is_available'])) {
+        // 🆕 残り 0 のままでは 販売 ON にできない (DB trigger も 0 なら必ず 品切れ にする)
+        $stockAfter = $stock ?? (int) $current['stock'];
+        if ($in['is_available'] && $stockAfter <= 0) {
+            send_error('残りが 0 なので販売できません。先に「残り」を増やして保存してください', 400);
+        }
         $sets[] = 'is_available = ?';
         $values[] = $in['is_available'] ? 1 : 0;
     }
