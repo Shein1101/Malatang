@@ -81,6 +81,7 @@ WHERE is_deleted = 0 AND name IN ('羊肉', 'パクチー', '白菜', '春雨');
 UPDATE menus
 SET name = '自分で作る麻辣湯',
     description = '春雨とスープから、好きな具材を自由に選んで作る',
+    price = 300,
     sort_order = 0
 WHERE id = 1;
 
