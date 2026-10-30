@@ -394,8 +394,28 @@ CREATE TABLE favorite_ingredient_picks (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE
 );
- 
- 
+
+
+-- =====================================================================
+-- 12. SUPPLIES  → 備品・消耗品 (admin only)               [Myat]
+--     Things the shop uses but does NOT sell (塩, 油, ティッシュ, スプーン).
+--     Not ingredients → customers never see them.
+--     Sample data: database/add-supplies.sql
+-- =====================================================================
+CREATE TABLE supplies (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category VARCHAR(20) NOT NULL,                -- 調味料 / 消耗品 / 道具
+    name VARCHAR(100) NOT NULL,
+    unit VARCHAR(20) NOT NULL DEFAULT '個',       -- 個, 本, 箱, 袋, kg ...
+    quantity DECIMAL(10,1) NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+    min_quantity DECIMAL(10,1) NOT NULL DEFAULT 0 CHECK (min_quantity >= 0),  -- 0 = no warning
+    note VARCHAR(255),
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    sort_order INT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
 -- =====================================================================
 -- INDEXES (make pages faster)
 -- =====================================================================
