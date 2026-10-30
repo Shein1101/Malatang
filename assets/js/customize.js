@@ -33,6 +33,11 @@ function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// 1つの量 (お店が 具材・在庫 で書いたもの。例: 50g) → 「（1つ 50g）」。書いてなければ何も出さない [Myat]
+function portionText(p) {
+  return p ? ` <small class="text-muted">（1つ ${esc(p)}）</small>` : '';
+}
+
 // ---------- 2. データを読む ----------
 async function load() {
   const menuId = new URLSearchParams(location.search).get('menu_id');
@@ -91,7 +96,7 @@ function renderStatic() {
     <li>
       <label class="check">
         <input type="checkbox" data-default="${i.ingredient_id}" checked ${i.is_removable ? '' : 'disabled'}>
-        ${esc(i.name)}${i.quantity > 1 ? ' ×' + i.quantity : ''}
+        ${esc(i.name)}${i.quantity > 1 ? ' ×' + i.quantity : ''}${portionText(i.portion)}
       </label>
       <span class="caption">${i.is_removable ? '外せます' : '外せません'}</span>
     </li>`).join('');
@@ -109,7 +114,7 @@ function renderStatic() {
       const soldOut = !i.is_available || i.stock <= 0;
       html += `
         <li class="${soldOut ? 'cz-soldout' : ''}">
-          <div>${esc(i.name)}<div class="caption">+${yen(i.price)}</div></div>
+          <div>${esc(i.name)}${portionText(i.portion)}<div class="caption">+${yen(i.price)}</div></div>
           ${soldOut
             ? '<span class="badge badge-soldout">売り切れ</span>'
             : `<div class="stepper">
