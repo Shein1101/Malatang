@@ -433,3 +433,14 @@ a:hover { text-decoration: underline; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* === customize.php / cart.php / payment.php / admin/orders.php — Zan === */
+.cz-layout { display: grid; gap: 24px; grid-template-columns: 1fr; }
+@media (min-width: 900px) {
+  .cz-layout { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
+  .cz-price { position: sticky; top: 96px; }
+}
+.cz-price { display: grid; gap: 12px; }
+.cz-between { justify-content: space-between; align-items: center; }
+.cz-qty { justify-content: space-between; align-items: center; }
+.cz-soldout { opacity: .55; }

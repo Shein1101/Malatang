@@ -31,3 +31,15 @@ function showError(el, message) {
   el.textContent = message;
   el.classList.remove('d-none');
 }
+
+// ヘッダーのカートの数を本当の数にする (ページを開くたびに動く)
+// header.php の <span class="cart-count"> を使う。0 なら隠す。
+async function refreshCartCount() {
+  const badge = document.querySelector('.site-header .cart-count');
+  if (!badge) return;                       // 管理画面などカートがないページ
+  const res = await callApi('GET', '../api/cart.php');
+  const count = res.success ? res.data.count : 0;
+  badge.textContent = count;
+  badge.style.display = count > 0 ? '' : 'none';
+}
+window.addEventListener('load', refreshCartCount);

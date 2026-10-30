@@ -3,7 +3,7 @@
 // Screen only, NO SQL. Uses ../api/ingredients.php and ../api/menus.php (PUT)
 // 変えたらすぐ保存 (保存ボタンなし)。在庫 0 → 自動で品切れ (DB の trigger)
 $pageTitle = '在庫・品切れ | Chilli 鍋';
-include '../includes/admin_header.php';   // require_admin(): admin でなければ login.php へ
+include '../includes/admin_header.php';
 ?>
  
 <main class="container">

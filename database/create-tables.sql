@@ -5,7 +5,7 @@
 --  Chilli 鍋 / 麻辣湯 EC site
 --  Sauce removed. 4 soups. Prices are INT in yen (円).
 --
---  Version 4 (Oct 20): 23 tables, 37 relationships. Payment = mock card only.
+--  Version 4 (Oct 20): 24 tables, 39 relationships. Payment = mock card only.
 --   * Wallet removed (can come back in M4)
 --   * Family & Friends = recipe sharing (as in the demo, slide 9):
 --     a customer shares a custom bowl with a friend or family member,
@@ -356,7 +356,9 @@ CREATE TABLE payments (
  
 -- =====================================================================
 -- 11. FAVORITES  → Favorites & reorder                 [Lin]
---     Saves a whole custom bowl
+--     favorites + favorite_ingredients = マイレシピ (a whole custom bowl)
+--     favorite_ingredient_picks       = お気に入りの具材 (ingredients I
+--       often add, shown first when I customize any menu)
 -- =====================================================================
 CREATE TABLE favorites (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -381,6 +383,16 @@ CREATE TABLE favorite_ingredients (
     PRIMARY KEY (favorite_id, ingredient_id),
     FOREIGN KEY (favorite_id) REFERENCES favorites(id) ON DELETE CASCADE,
     FOREIGN KEY (ingredient_id) REFERENCES ingredients(id)
+);
+
+-- お気に入りの具材 (one row = one ingredient I like)
+CREATE TABLE favorite_ingredient_picks (
+    user_id INT NOT NULL,
+    ingredient_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, ingredient_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE
 );
  
  

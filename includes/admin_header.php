@@ -12,8 +12,8 @@ $adminNav  = [
     'orders.php'      => '注文',
     'menus.php'       => 'メニュー',
     'ingredients.php' => '具材',
-    'stock.php'       => '在庫',
     'options.php'     => '辛さ',
+    'stock.php'       => '在庫',
     'store.php'       => '店舗',
 ];
 ?>

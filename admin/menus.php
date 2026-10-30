@@ -3,7 +3,7 @@
 // Screen only, NO SQL. Data comes from ../api/menus.php
 // 追加 / 名前・説明・値段の変更 / 販売 ON・OFF / 削除
 $pageTitle = 'メニュー管理 | Chilli 鍋';
-include '../includes/admin_header.php';   // require_admin(): admin でなければ login.php へ
+include '../includes/admin_header.php';
 ?>
  
 <main class="container">

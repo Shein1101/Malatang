@@ -10,6 +10,9 @@ function db_fail(string $message): void {
     exit;
 }
 
+// 0. 日本時間 (受け取り時間・注文番号の日付がずれないように)
+date_default_timezone_set('Asia/Tokyo');
+
 // 1. Session စတယ် (user_id, role, guest_token)
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
