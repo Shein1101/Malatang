@@ -11,7 +11,8 @@ include '../includes/admin_header.php';
 
 <main class="container">
   <h1>具材・在庫</h1>
-  <p class="caption">お客さんが注文すると「残り」が自動で減ります。「売れた」= 週の在庫 − 残り。残りが 0 になると自動で品切れになります。</p>
+  <p class="caption">お客さんが注文すると「残り」が自動で減ります（メニューに最初から入っている具材も）。「売れた」= 週の在庫 − 残り。残りが 0 になると自動で品切れになります。
+    この表は 30 秒ごとに自動で新しくなります（入力中は止まります）。<span id="updatedAt"></span></p>
   <p id="message"></p>
 
   <!-- 具材を追加 -->
@@ -140,7 +141,10 @@ async function loadList() {
       </tr>`;
   }
   document.getElementById('list').innerHTML = rows;
+  dirty = false;
   filterList();   // 保存して表を作り直しても、しぼりこみ・検索はそのまま
+  document.getElementById('updatedAt').textContent =
+    `（最終更新 ${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}）`;
 
   // カテゴリの選択肢を作る (同じカテゴリは1回だけ)
   const select = document.querySelector('#addForm [name=category_id]');
@@ -261,6 +265,15 @@ document.getElementById('restockYes').addEventListener('click', async () => {
   say(res.success ? `${res.data.restocked} 件の具材の残りを週の在庫にセットしました` : res.error, res.success);
   loadList();
 });
+
+// 7. 自動で新しくする: お客さんの注文で減った 残り / 売れた を 30 秒ごとに読み直す
+//    (表の数字を書きかけ・確認ボックスが出ているときは、消さないように待つ)
+let dirty = false;
+document.getElementById('list').addEventListener('input', () => { dirty = true; });
+setInterval(() => {
+  const typing = document.activeElement && document.activeElement.matches('#list input[type=number]');
+  if (!dirty && !typing && restockConfirm.hidden && !document.hidden) loadList();
+}, 30000);
 
 window.addEventListener('load', loadList);
 </script>
