@@ -2,9 +2,12 @@
 // S15 新規登録 — Owner: Lin (FEAT-16). Screen only, no SQL.
 require_once '../includes/auth.php';
 
+// login ပြီးရင် သွားမယ့်နေရာ (login.php?redirect=history.php)。 ကိုယ့် site ထဲက .php ပဲ ခွင့်ပြု
+$redirect = safe_redirect($_GET['redirect'] ?? '');
+
 // ログイン済みなら来なくていい
 if (current_user_id() !== null) {
-    header('Location: menu.php');
+    header('Location: ' . $redirect);
     exit;
 }
 
@@ -53,7 +56,7 @@ include '../includes/header.php';
 
     <div class="divider">または</div>
 
-    <a class="btn btn-outline btn-block" href="login.php">ログインはこちら</a>
+    <a class="btn btn-outline btn-block" href="login.php<?= $redirect !== 'menu.php' ? '?redirect=' . urlencode($redirect) : '' ?>">ログインはこちら</a>
   </div>
 </main>
 
@@ -109,7 +112,7 @@ document.getElementById('signupForm').addEventListener('submit', async function 
     return;
   }
 
-  window.location.href = 'menu.php';
+  window.location.href = <?= json_encode($redirect) ?>;
 });
 </script>
 

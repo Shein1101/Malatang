@@ -4,6 +4,11 @@
 require_once __DIR__ . '/auth.php';   // starts the session, gives current_user_id()
 $pageTitle = $pageTitle ?? 'Chilli 鍋';
 $loggedIn  = current_user_id() !== null;
+// tabbar: 今のページのタブを赤くする
+$current   = basename($_SERVER['SCRIPT_NAME']);
+$tab = function (array $pages) use ($current) {
+    return in_array($current, $pages, true) ? ' class="is-active"' : '';
+};
 ?>
 <!doctype html>
 <html lang="ja">
@@ -38,7 +43,7 @@ $loggedIn  = current_user_id() !== null;
 </svg>
 <header class="site-header">
   <div class="container">
-    <a class="logo" href="index.php"><svg><use href="#i-flame"></use></svg><span class="logo-name">Chilli 鍋<span class="logo-sub">麻辣香鍋・麻辣湯</span></span></a>
+    <a class="logo" href="store.php"><svg><use href="#i-flame"></use></svg><span class="logo-name">Chilli 鍋<span class="logo-sub">麻辣香鍋・麻辣湯</span></span></a>
     <div class="header-icons">
       <a href="cart.php" aria-label="カート"><svg><use href="#i-cart"></use></svg><span class="cart-count">2</span></a>
       <?php if ($loggedIn): ?>
@@ -56,13 +61,13 @@ $loggedIn  = current_user_id() !== null;
 <div style="height:140px"></div>
 <nav class="tabbar" aria-label="タブ">
   <ul>
-    <li><a class="is-active" href="index.php"><svg><use href="#i-home"></use></svg>ホーム</a></li>
-    <li><a href="menu.php"><svg><use href="#i-menu"></use></svg>メニュー</a></li>
-    <li><a href="cart.php"><svg><use href="#i-cart"></use></svg>カート</a></li>
+    <li><a<?= $tab(['store.php']) ?> href="store.php"><svg><use href="#i-home"></use></svg>ホーム</a></li>
+    <li><a<?= $tab(['menu.php', 'customize.php']) ?> href="menu.php"><svg><use href="#i-menu"></use></svg>メニュー</a></li>
+    <li><a<?= $tab(['cart.php', 'checkout.php', 'payment.php']) ?> href="cart.php"><svg><use href="#i-cart"></use></svg>カート</a></li>
     <?php if ($loggedIn): ?>
-    <li><a href="mypage.php"><svg><use href="#i-user"></use></svg>マイページ</a></li>
+    <li><a<?= $tab(['mypage.php', 'history.php', 'favorites.php', 'friends.php']) ?> href="mypage.php"><svg><use href="#i-user"></use></svg>マイページ</a></li>
     <?php else: ?>
-    <li><a href="login.php"><svg><use href="#i-user"></use></svg>ログイン</a></li>
+    <li><a<?= $tab(['login.php', 'signup.php']) ?> href="login.php"><svg><use href="#i-user"></use></svg>ログイン</a></li>
     <?php endif; ?>
   </ul>
 </nav>

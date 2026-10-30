@@ -2,9 +2,12 @@
 // S14 ログイン — Owner: Lin (FEAT-16). Screen only, no SQL.
 require_once '../includes/auth.php';
 
+// login ပြီးရင် သွားမယ့်နေရာ (login.php?redirect=history.php)。 ကိုယ့် site ထဲက .php ပဲ ခွင့်ပြု
+$redirect = safe_redirect($_GET['redirect'] ?? '');
+
 // ログイン済みなら来なくていい
 if (current_user_id() !== null) {
-    header('Location: menu.php');
+    header('Location: ' . $redirect);
     exit;
 }
 
@@ -39,7 +42,7 @@ include '../includes/header.php';
     <div class="divider">または</div>
 
     <div class="stack-sm">
-      <a class="btn btn-outline btn-block" href="signup.php">新規会員登録</a>
+      <a class="btn btn-outline btn-block" href="signup.php<?= $redirect !== 'menu.php' ? '?redirect=' . urlencode($redirect) : '' ?>">新規会員登録</a>
       <a class="btn btn-ghost btn-block" href="menu.php">ゲストとして注文する <span class="arrow"></span></a>
     </div>
   </div>
@@ -83,7 +86,7 @@ document.getElementById('loginForm').addEventListener('submit', async function (
     return;
   }
 
-  window.location.href = 'menu.php';
+  window.location.href = <?= json_encode($redirect) ?>;
 });
 </script>
 

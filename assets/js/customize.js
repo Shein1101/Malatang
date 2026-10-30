@@ -177,6 +177,7 @@ function renderStatic() {
   $('recipeBox').classList.toggle('d-none', !state.loggedIn || state.recipes.length === 0);
   $('saveRecipe').classList.toggle('d-none', !state.loggedIn);
   $('loginHint').classList.toggle('d-none', state.loggedIn);
+  $('loginHint').querySelector('a').href = 'login.php?redirect=' + encodeURIComponent('customize.php' + location.search);
   renderRecipes();
 
   renderExtras();

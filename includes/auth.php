@@ -25,10 +25,25 @@ function require_login(){
         if(is_api_request()){
             send_error('ログインしてください', 401);
         }
+        // login ပြီးရင် ဒီစာမျက်နှာကို ပြန်လာဖို့ ?redirect= (Team Rules hand-off #7)
+        $here = basename($_SERVER['SCRIPT_NAME']);
+        if(!empty($_SERVER['QUERY_STRING'])){
+            $here .= '?' . $_SERVER['QUERY_STRING'];
+        }
         // public/ ကနေရော admin/ ကနေရော သွားလို့ရအောင် ../public/
-        header('Location: ../public/login.php');
+        header('Location: ../public/login.php?redirect=' . urlencode(safe_redirect($here)));
         exit;
     }
+}
+
+// login / signup ပြီးရင် သွားမယ့်စာမျက်နှာ: ကိုယ့် site ရဲ့ public/ ထဲက .php နာမည်ပဲ ခွင့်ပြု
+// ဥပမာ 'history.php', 'customize.php?favorite_id=3' → OK / 'https://evil.com', '../admin/x.php' → 'menu.php'
+function safe_redirect($v){
+    $v = (string) $v;
+    if(preg_match('/^[a-z_]+\.php(\?[A-Za-z0-9_=&%-]*)?$/', $v) && is_file(__DIR__ . '/../public/' . strtok($v, '?'))){
+        return $v;
+    }
+    return 'menu.php';
 }
 
 function guest_token(){
