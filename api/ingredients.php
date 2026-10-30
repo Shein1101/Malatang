@@ -101,9 +101,10 @@ if ($method === 'PUT') {
     }
 
     // 2. အဲဒီ ingredient ရှိလား စစ်မယ်
-    $find = $pdo->prepare('SELECT id FROM ingredients WHERE id = ? AND is_deleted = 0');
+    $find = $pdo->prepare('SELECT id, stock FROM ingredients WHERE id = ? AND is_deleted = 0');
     $find->execute([$id]);
-    if (!$find->fetch()) {
+    $current = $find->fetch();
+    if (!$current) {
         send_error('Ingredient not found', 404);
     }
 
@@ -141,6 +142,11 @@ if ($method === 'PUT') {
         $values[] = $weekly;
     }
     if (isset($in['is_available'])) {
+        // 🆕 残り 0 のままでは 販売 ON にできない (DB trigger も 0 なら必ず 品切れ にする)
+        $stockAfter = $stock ?? (int) $current['stock'];
+        if ($in['is_available'] && $stockAfter <= 0) {
+            send_error('残りが 0 なので販売できません。先に「残り」を増やして保存してください', 400);
+        }
         $sets[] = 'is_available = ?';
         $values[] = $in['is_available'] ? 1 : 0;
     }
