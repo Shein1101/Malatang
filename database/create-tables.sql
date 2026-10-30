@@ -109,6 +109,7 @@ CREATE TABLE ingredients (
     name VARCHAR(100) NOT NULL,
     price INT NOT NULL CHECK (price >= 0),
     stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0),
+    weekly_stock INT NOT NULL DEFAULT 100 CHECK (weekly_stock >= 0),  -- 週の在庫. 売れた数 = weekly_stock - stock
     is_available BOOLEAN NOT NULL DEFAULT TRUE,   -- FALSE = sold out
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,    -- TRUE = removed from shop
     image_url VARCHAR(500),
