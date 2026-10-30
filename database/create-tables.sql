@@ -108,8 +108,9 @@ CREATE TABLE ingredients (
     category_id INT NOT NULL,
     name VARCHAR(100) NOT NULL,
     price INT NOT NULL CHECK (price >= 0),
+    portion VARCHAR(20) NULL,                     -- 1つの量 (例: 50g, 3枚, 2個). customer sees it
     stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0),
-    weekly_stock INT NOT NULL DEFAULT 100 CHECK (weekly_stock >= 0),  -- 週の在庫. 売れた数 = weekly_stock - stock
+    weekly_stock INT NOT NULL DEFAULT 100 CHECK (weekly_stock >= 0),  -- 在庫 (用意した数). 売れた数 = weekly_stock - stock
     is_available BOOLEAN NOT NULL DEFAULT TRUE,   -- FALSE = sold out
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,    -- TRUE = removed from shop
     image_url VARCHAR(500),

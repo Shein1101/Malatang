@@ -7,7 +7,7 @@
 --  stock        = how many are left now (goes down when customers order,
 --                 by trigger trg_order_items_reduce_stock)
 --  売れた数     = weekly_stock - stock   (shown on admin/stock.php)
---  New week → admin/stock.php 「今週の在庫をセット」 makes stock = weekly_stock
+--  New week → the owner types the new 残り on admin/stock.php
 -- =====================================================================
 USE malatang_ec;
 
