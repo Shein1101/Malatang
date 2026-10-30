@@ -5,6 +5,7 @@
 
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/api.php';
+require __DIR__ . '/../includes/auth.php';   // require_admin() → 401 / 403
 
 $method = require_method('GET', 'POST', 'PUT', 'DELETE');   // 🆕
 
@@ -88,11 +89,7 @@ if ($method === 'GET') {
 }  
 
 // ========== 🆕 ここから下は admin だけ ==========
-$isAdmin  = ($_SESSION['role'] ?? '') === 'admin';
-$devAdmin = ($env['DEV_ADMIN'] ?? '0') === '1';   // .env の DEV_ADMIN=1 (テスト用)
-if (!$isAdmin && !$devAdmin) {
-    send_error('Admin only', 403);
-}
+require_admin();
 
 // 値段は 0 以上の整数か
 function check_price($value): int {

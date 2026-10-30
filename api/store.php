@@ -9,15 +9,15 @@
 
 require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/api.php';
+require __DIR__ . '/../includes/auth.php';   // require_admin() → 401 / 403
 
 $method  = require_method('GET', 'POST', 'PUT', 'DELETE');
-$isAdmin = (($_SESSION['role'] ?? '') === 'admin') || (($env['DEV_ADMIN'] ?? '0') === '1');
 
 // ========== GET ==========
 if ($method === 'GET') {
     $all = isset($_GET['all']);
-    if ($all && !$isAdmin) {
-        send_error('Admin only', 403);
+    if ($all) {
+        require_admin();
     }
 
     // 1. お店の情報 (1行だけ)
@@ -70,9 +70,7 @@ if ($method === 'GET') {
 }
 
 // ========== ここから下は admin だけ ==========
-if (!$isAdmin) {
-    send_error('Admin only', 403);
-}
+require_admin();
 $in   = read_json();
 $type = $_GET['type'] ?? '';          // '' = お店の情報 / 'photo' / 'announcement'
 $id   = (int) ($_GET['id'] ?? 0);

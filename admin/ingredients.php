@@ -7,6 +7,7 @@ include '../includes/admin_header.php';
  
 <main class="container">
   <h1>具材管理</h1>
+  <p class="caption">具材の追加・値段の変更・削除をします。在庫の数や品切れは <a href="stock.php">在庫</a> ページで変えてください。</p>
   <p id="error" class="text-danger d-none"></p>
  
   <!-- 🆕 具材を追加するフォーム -->
@@ -38,6 +39,13 @@ include '../includes/admin_header.php';
  
   <!-- 具材の一覧 (JavaScript がここに表を作る) -->
   <p id="listMessage"></p>   <!-- 🆕 保存・削除のメッセージ -->
+
+  <!-- 🆕 検索: 名前かカテゴリで、打つとすぐ表をしぼる (ひらがな → カタカナも OK) -->
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <input id="search" type="search" class="form-control" style="max-width:320px"
+           placeholder="具材を検索 (例: えび、きのこ)" autocomplete="off">
+    <span id="searchCount" class="text-muted small"></span>
+  </div>
   <table class="table align-middle">
     <thead>
       <tr>
@@ -61,6 +69,37 @@ function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
  
+// 🆕 検索用に文字をそろえる: 小文字にする / ひらがな → カタカナ / 前後の空白をとる
+function normalize(s) {
+  return String(s ?? '').toLowerCase().trim()
+    .replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
+}
+
+// 🆕 検索欄の文字が入っている行だけ見せる
+function filterList() {
+  const word = normalize(document.getElementById('search').value);
+  const rows = document.querySelectorAll('#list tr[data-search]');
+  let shown = 0;
+  rows.forEach(tr => {
+    const hit = word === '' || tr.dataset.search.includes(word);
+    tr.hidden = !hit;
+    if (hit) shown++;
+  });
+
+  // 見つからないときのメッセージ行
+  let empty = document.getElementById('noResult');
+  if (shown === 0 && rows.length > 0) {
+    if (!empty) {
+      document.getElementById('list').insertAdjacentHTML('beforeend',
+        '<tr id="noResult"><td colspan="6" class="text-muted">見つかりませんでした</td></tr>');
+    }
+  } else if (empty) {
+    empty.remove();
+  }
+  document.getElementById('searchCount').textContent = word === '' ? '' : `${shown} / ${rows.length} 件`;
+}
+document.getElementById('search').addEventListener('input', filterList);
+
 // API から具材を全部もらって、表に並べる
 async function loadList() {
   const res = await callApi('GET', '../api/ingredients.php');
@@ -71,15 +110,17 @@ async function loadList() {
  
   let rows = '';
   for (const item of res.data) {
+    // 🆕 在庫が 5 以下なら赤くして目立たせる (stock.php と同じ)
+    const low = item.stock <= 5 ? 'text-danger fw-bold' : '';
     rows += `
-      <tr>
+      <tr data-search="${esc(normalize(item.name + ' ' + item.category_name))}">
         <td>${esc(item.category_name)}</td>
         <td>${esc(item.name)}</td>
-        <!-- 🆕 値段と在庫は、その場で書きかえられる入力欄にする -->
+        <!-- 🆕 値段は、その場で書きかえられる入力欄にする -->
         <td><input type="number" min="0" class="form-control form-control-sm" style="width:90px"
                    id="price-${item.id}" value="${item.price}"></td>
-        <td><input type="number" min="0" class="form-control form-control-sm" style="width:80px"
-                   id="stock-${item.id}" value="${item.stock}"></td>
+        <!-- 在庫は見るだけ。変えるのは 在庫 ページ (stock.php) -->
+        <td class="${low}">${item.stock}</td>
         <td>${item.is_available ? '販売中' : '<span class="badge badge-soldout">品切れ</span>'}</td>
         <!-- 🆕 ボタン: data-id で「どの具材か」、data-action で「何をするか」を覚えておく -->
         <td class="text-nowrap">
@@ -90,7 +131,8 @@ async function loadList() {
       </tr>`;
   }
   document.getElementById('list').innerHTML = rows;
- 
+  filterList();   // 🆕 保存・削除で表を作り直しても、検索の文字はそのまま
+
   // 🆕 カテゴリの選択肢を作る (同じカテゴリは1回だけ)
   const select = document.querySelector('#addForm [name=category_id]');
   if (select.options.length === 0) {
@@ -139,10 +181,9 @@ document.getElementById('list').addEventListener('click', async (e) => {
   let res;
  
   if (btn.dataset.action === 'save') {
-    // 値段と在庫を PUT で送る
+    // 値段を PUT で送る (在庫は stock.php で変える)
     res = await callApi('PUT', `../api/ingredients.php?id=${id}`, {
-      price: Number(document.getElementById(`price-${id}`).value),
-      stock: Number(document.getElementById(`stock-${id}`).value)
+      price: Number(document.getElementById(`price-${id}`).value)
     });
     if (res.success) {
       msg.className = 'text-success';
@@ -171,7 +212,7 @@ document.getElementById('list').addEventListener('click', async (e) => {
 window.addEventListener('load', loadList);
 </script>
  
-<?php include '../includes/footer.php'; ?>
- 
-Claude finished the response
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>
