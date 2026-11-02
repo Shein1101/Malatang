@@ -1,6 +1,6 @@
 <?php
-// public/history.php — 注文履歴 + 再注文 + マイレシピに保存. Owner: Lin
-// Screen only, NO SQL. Data comes from ../api/history.php and ../api/favorites.php
+// public/history.php — 注文履歴 + 再注文 + マイレシピに保存 + 友達にシェア. Owner: Lin (FEAT-17)
+// Screen only, NO SQL. Data comes from ../api/history.php, ../api/favorites.php and ../api/shares.php
 require_once '../includes/auth.php';
 require_login();
 
@@ -10,7 +10,7 @@ include '../includes/header.php';
 
 <main class="container page">
   <h1 class="title">注文履歴</h1>
-  <p class="caption">再注文は今の値段でカートに入ります。</p>
+  <p class="caption">再注文は今の値段でカートに入ります。「友達にシェア」で送ったレシピは <a href="friends.php">ファミリー&フレンズ</a> で見られます。</p>
 
   <div id="error" class="alert alert-danger d-none"></div>
   <div id="done" class="alert alert-success d-none"></div>
@@ -40,18 +40,30 @@ function dateText(s) {
 }
 
 function bowlRow(b) {
-  const lines = [`<b>${esc(b.menu_name)}</b>（${esc(b.soup_name)}・${b.has_soup ? 'スープあり' : 'スープなし'}）×${b.quantity}`];
+  const gift  = b.from_shared_recipe ? ' <span class="badge badge-cooking">友達のレシピ</span>' : '';
+  const lines = [`<b>${esc(b.menu_name)}</b>（${esc(b.soup_name)}・${b.has_soup ? 'スープあり' : 'スープなし'}）×${b.quantity}${gift}`];
   if (b.spice_name)          lines.push('辛さ: ' + esc(b.spice_name));
   if (b.added_ingredients)   lines.push('追加: ' + esc(b.added_ingredients));
   if (b.removed_ingredients) lines.push('抜き: ' + esc(b.removed_ingredients));
+  lines.push(yen(b.bowl_total));
   return `
-    <li>
+    <li class="flex-wrap">
       <div class="caption">${lines.join('<br>')}</div>
-      <div class="d-flex gap-1 flex-shrink-0">
+      <div class="d-flex flex-wrap justify-content-end gap-1 ms-auto">
         <button class="btn btn-ghost btn-sm" data-favorite="${b.order_bowl_id}">♡ マイレシピに保存</button>
+        <button class="btn btn-ghost btn-sm" data-share="${b.order_bowl_id}" data-label="${esc(b.menu_name)}">友達にシェア</button>
         <button class="btn btn-outline btn-sm" data-reorder-bowl="${b.order_bowl_id}">再注文</button>
       </div>
     </li>`;
+}
+
+// 受け取り時間 + 支払い (未払いならお支払いへ)
+function pickupLine(o) {
+  let pay = '';
+  if (o.payment_status === 'paid')          pay = ' ・ 支払い済み';
+  else if (o.payment_status === 'refunded') pay = ' ・ 返金済み';
+  else if (o.status !== 'cancelled')        pay = ` ・ <a href="payment.php?order_id=${o.order_id}">未払い（お支払いへ）</a>`;
+  return `<div class="caption">受け取り ${dateText(o.pickup_time)}${pay}</div>`;
 }
 
 function orderCard(o) {
@@ -59,7 +71,7 @@ function orderCard(o) {
   return `
     <div class="card order-card">
       <div class="order-top">
-        <div><b>注文番号：${esc(o.order_number)}</b><div class="caption">${dateText(o.ordered_at)}</div></div>
+        <div><b>注文番号：${esc(o.order_number)}</b><div class="caption">注文 ${dateText(o.ordered_at)}</div>${pickupLine(o)}</div>
         <span class="badge ${cls}">${label}</span>
       </div>
       <ul class="list">${o.bowls.map(bowlRow).join('')}</ul>
@@ -98,6 +110,11 @@ document.getElementById('list').addEventListener('click', async function (e) {
   errorBox.classList.add('d-none');
   doneBox.classList.add('d-none');
 
+  if (btn.dataset.share) {
+    openShareDialog({ order_bowl_id: Number(btn.dataset.share) }, btn.dataset.label);
+    return;
+  }
+
   let res, message;
   btn.disabled = true;
   if (btn.dataset.favorite) {
@@ -121,6 +138,7 @@ document.getElementById('list').addEventListener('click', async function (e) {
   }
   if (res.data && res.data.price !== undefined) {
     message = `カートに入れました（今の値段 ${yen(res.data.price)}）。<a href="cart.php">カートを見る →</a>`;
+    refreshCartCount();
   }
   doneBox.innerHTML = message;
   doneBox.classList.remove('d-none');
@@ -128,5 +146,6 @@ document.getElementById('list').addEventListener('click', async function (e) {
 
 window.addEventListener('load', loadHistory);
 </script>
+<script src="../assets/js/share.js"></script>
 
 <?php include '../includes/footer.php'; ?>

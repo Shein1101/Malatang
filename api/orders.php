@@ -232,10 +232,10 @@ if ($method === 'POST') {
         $getSoup  = $pdo->prepare('SELECT name, price FROM soups WHERE id = ?');
         $getSpice = $pdo->prepare('SELECT name, extra_price FROM spice_levels WHERE id = ?');
         $addBowl  = $pdo->prepare(
-            'INSERT INTO order_bowls (order_id, menu_id, menu_name, menu_price, has_soup, soup_id, soup_name, soup_price,
+            'INSERT INTO order_bowls (order_id, shared_recipe_id, menu_id, menu_name, menu_price, has_soup, soup_id, soup_name, soup_price,
                                       spice_level_id, spice_name, spice_price, quantity, bowl_total)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        );
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        );   // shared_recipe_id があると trigger (trg_order_bowls_share_ordered) がシェアを「注文済み」にする
         $addItem  = $pdo->prepare(
             'INSERT INTO order_items (order_bowl_id, ingredient_id, ingredient_name, action, unit_price, quantity)
              VALUES (?, ?, ?, ?, ?, ?)'
@@ -253,7 +253,7 @@ if ($method === 'POST') {
             }
 
             $addBowl->execute([
-                $order_id, $b['menu_id'], $menu['name'], $menu['price'], $b['has_soup'] ? 1 : 0,
+                $order_id, $b['shared_recipe_id'], $b['menu_id'], $menu['name'], $menu['price'], $b['has_soup'] ? 1 : 0,
                 $b['soup_id'], $soup['name'], $soup['price'],
                 $b['spice_level_id'], $spice['name'], $spice['extra_price'],
                 $b['quantity'], $b['price'],

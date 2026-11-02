@@ -31,7 +31,7 @@ include '../includes/header.php';
   <!-- ========== 2. マイレシピ ========== -->
   <section>
     <h2 class="heading">マイレシピ</h2>
-    <p class="caption">いつものカスタムを、ワンタップでカートに入れられます。</p>
+    <p class="caption">いつものカスタムを、ワンタップでカートに入れられます。友達や家族にもシェアできます（<a href="friends.php">ファミリー&フレンズ</a>）。</p>
     <div id="recipeList" class="stack"><p>読み込み中…</p></div>
   </section>
 </main>
@@ -148,6 +148,7 @@ function recipeCard(f) {
       <div class="order-top">
         <b>${esc(f.nickname || f.menu_name)}</b>
         <div>
+          <button class="icon-btn" data-share="${f.id}" aria-label="友達にシェア" title="友達にシェア"><svg><use href="#i-users"></use></svg></button>
           <button class="icon-btn" data-rename="${f.id}" aria-label="名前を変える" title="名前を変える">✎</button>
           <button class="icon-btn" data-delete="${f.id}" aria-label="削除" title="削除"><svg><use href="#i-trash"></use></svg></button>
         </div>
@@ -189,12 +190,17 @@ document.getElementById('recipeList').addEventListener('click', async function (
   hideMessages();
 
   let res;
-  if (btn.dataset.cart) {
+  if (btn.dataset.share) {
+    const f = recipes.find(x => x.id === Number(btn.dataset.share));
+    openShareDialog({ favorite_id: f.id }, f.nickname || f.menu_name);
+    return;
+  } else if (btn.dataset.cart) {
     btn.disabled = true;
     res = await callApi('POST', '../api/favorites.php?action=cart&id=' + btn.dataset.cart);
     btn.disabled = false;
     if (res.success) {
       document.getElementById('done').classList.remove('d-none');
+      refreshCartCount();
       return;
     }
   } else if (btn.dataset.rename) {
@@ -220,5 +226,6 @@ window.addEventListener('load', function () {
   loadRecipes();
 });
 </script>
+<script src="../assets/js/share.js"></script>
 
 <?php include '../includes/footer.php'; ?>

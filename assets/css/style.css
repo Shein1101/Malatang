@@ -444,3 +444,5 @@ a:hover { text-decoration: underline; }
 .cz-between { justify-content: space-between; align-items: center; }
 .cz-qty { justify-content: space-between; align-items: center; }
 .cz-soldout { opacity: .55; }
+/* Page-level error line (not inside a .field): visible unless .d-none, so showError() works */
+:not(.field) > .field-error { display: block; }
