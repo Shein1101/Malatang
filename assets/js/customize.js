@@ -26,6 +26,7 @@ const state = {
   spiceId: null,
   removed: new Set(),  // 外した具材の id
   added: new Map(),    // 追加した具材 id → 個数
+  extraCat: null,      // 見ている具材のカテゴリ (タブ)。'all' = 全部
   quantity: 1,
   loggedIn: false,     // お気に入りの API が使えたら true
   picks: new Set(),    // お気に入りの具材の id
@@ -46,6 +47,11 @@ function esc(s) {
 // 検索用: ひらがな → カタカナ、英字は小文字 (「えび」で「エビ」が見つかる)
 function normalize(s) {
   return String(s ?? '').toLowerCase().replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60)).trim();
+}
+
+// 1つの量 (お店が 具材・在庫 で書いたもの。例: 50g) → 「（1つ 50g）」。書いてなければ何も出さない [Myat]
+function portionText(p) {
+  return p ? ` <small class="text-muted">（1つ ${esc(p)}）</small>` : '';
 }
 
 // ---------- 2. データを読む ----------
@@ -168,7 +174,7 @@ function renderStatic() {
     <li>
       <label class="check">
         <input type="checkbox" data-default="${i.ingredient_id}" ${state.removed.has(i.ingredient_id) ? '' : 'checked'} ${i.is_removable ? '' : 'disabled'}>
-        ${esc(i.name)}${i.quantity > 1 ? ' ×' + i.quantity : ''}
+        ${esc(i.name)}${i.quantity > 1 ? ' ×' + i.quantity : ''}${portionText(i.portion)}
       </label>
       <span class="caption">${i.is_removable ? '外せます' : '外せません'}</span>
     </li>`).join('');
@@ -205,7 +211,7 @@ function extraRow(i) {
     : '';
   return `
     <li class="${soldOut ? 'cz-soldout' : ''}" data-name="${esc(normalize(i.name + ' ' + i.category_name))}">
-      <div class="d-flex align-items-center gap-1">${heart}<div>${esc(i.name)}<div class="caption">+${yen(i.price)}</div></div></div>
+      <div class="d-flex align-items-center gap-1">${heart}<div>${esc(i.name)}${portionText(i.portion)}<div class="caption">+${yen(i.price)}</div></div></div>
       ${soldOut
         ? '<span class="badge badge-soldout">売り切れ</span>'
         : `<div class="stepper">
@@ -227,9 +233,18 @@ function renderExtras() {
     if (!groups.has(i.category_name)) groups.set(i.category_name, []);
     groups.get(i.category_name).push(i);
   }
-  let html = '';
+  // カテゴリのタブ (野菜・肉・麺…)。押したカテゴリだけ見せる (長いスクロールをなくす) [Myat]
+  // タブの数字 = そのカテゴリで追加した個数
+  const cats = [...groups.keys()];
+  if (!cats.includes(state.extraCat)) state.extraCat = cats[0] ?? 'all';
+  let html = cats.length > 1
+    ? `<div class="tabs" role="tablist" aria-label="具材のカテゴリ">
+         ${cats.map(c => `<button type="button" class="tab" role="tab" data-cat="${esc(c)}">${esc(c)}<b class="cz-cat-count" data-cat-count="${esc(c)}"></b></button>`).join('')}
+         <button type="button" class="tab" role="tab" data-cat="all">全部</button>
+       </div>`
+    : '';
   for (const [cat, items] of groups) {
-    html += `<div data-group><p class="caption"><b>${esc(cat)}</b></p><ul class="list">${items.map(extraRow).join('')}</ul></div>`;
+    html += `<div data-cat-group="${esc(cat)}"><p class="caption"><b>${esc(cat)}</b></p><ul class="list">${items.map(extraRow).join('')}</ul></div>`;
   }
   $('extraList').innerHTML = html || '<p class="caption">追加できる具材はありません</p>';
   applySearch();
@@ -245,7 +260,7 @@ function applySearch() {
     if (show) hits++;
   });
   // 1つも見えないカテゴリ・お気に入りの見出しは隠す
-  document.querySelectorAll('#extraList [data-group]').forEach(g => {
+  document.querySelectorAll('#extraList [data-cat-group]').forEach(g => {
     g.classList.toggle('d-none', !g.querySelector('li:not(.d-none)'));
   });
   const favVisible = $('favList').querySelector('li:not(.d-none)');
@@ -253,6 +268,7 @@ function applySearch() {
 
   $('noHitWord').textContent = $('ingSearch').value;
   $('noHit').classList.toggle('d-none', q === '' || hits > 0);
+  renderCatTabs();
 }
 
 // 選ぶたびに変わる部分 (チップの選択・個数・料金)
@@ -270,9 +286,34 @@ function render() {
   document.querySelectorAll('[data-out]').forEach(out => {
     out.textContent = state.added.get(Number(out.dataset.out)) || 0;
   });
+  renderCatTabs();
   $('qty').textContent = state.quantity;
 
   renderPrice();
+}
+
+// 具材のカテゴリタブ: 選んだタブを赤く、そのカテゴリだけ見せる、追加した個数を出す [Myat]
+// 検索中はタブを隠して、全部のカテゴリから探す (野菜タブのままでも エビ が見つかるように) [Lin]
+function renderCatTabs() {
+  const searching = normalize($('ingSearch').value) !== '';
+  const tabs = document.querySelector('#extraList .tabs');
+  if (tabs) tabs.classList.toggle('d-none', searching);
+  document.querySelectorAll('#extraList [data-cat]').forEach(t => {
+    const on = t.dataset.cat === state.extraCat;
+    t.classList.toggle('is-active', on);
+    t.setAttribute('aria-selected', on);
+  });
+  document.querySelectorAll('#extraList [data-cat-group]').forEach(g => {
+    g.hidden = !searching && state.extraCat !== 'all' && g.dataset.catGroup !== state.extraCat;
+  });
+  document.querySelectorAll('#extraList [data-cat-count]').forEach(el => {
+    let n = 0;
+    for (const [id, qty] of state.added) {
+      const ing = state.extras.find(i => i.id === id);
+      if (ing && ing.category_name === el.dataset.catCount) n += qty;
+    }
+    el.textContent = n > 0 ? ` ${n}` : '';
+  });
 }
 
 // チップ1つ (選択中なら is-selected)
@@ -332,6 +373,7 @@ document.addEventListener('click', (e) => {
   if (b.dataset.soup)  state.soupId  = Number(b.dataset.soup);
   if (b.dataset.spice) state.spiceId = Number(b.dataset.spice);
   if (b.dataset.broth) state.hasSoup = b.dataset.broth === '1';
+  if (b.dataset.cat)   state.extraCat = b.dataset.cat;   // 具材のカテゴリタブ
 
   if (b.dataset.extra) {
     const id = Number(b.dataset.extra);

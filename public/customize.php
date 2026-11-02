@@ -63,7 +63,7 @@ include '../includes/header.php';
       <!-- 6. 追加する具材 (カテゴリごと) -->
       <section>
         <p class="caption">具材を追加する</p>
-        <input type="search" id="ingSearch" class="input mb-3" placeholder="具材をさがす（例: えび、とうふ）" aria-label="具材をさがす">
+        <input type="search" id="ingSearch" class="input mb-3" placeholder="具材をさがす（例: えび、豆腐）" aria-label="具材をさがす">
         <div id="favBox" class="d-none mb-3">
           <p class="caption"><b>♥ お気に入りの具材</b></p>
           <ul id="favList" class="list"></ul>

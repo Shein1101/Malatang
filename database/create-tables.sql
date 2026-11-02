@@ -108,8 +108,9 @@ CREATE TABLE ingredients (
     category_id INT NOT NULL,
     name VARCHAR(100) NOT NULL,
     price INT NOT NULL CHECK (price >= 0),
+    portion VARCHAR(20) NULL,                     -- 1つの量 (例: 50g, 3枚, 2個). customer sees it
     stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0),
-    weekly_stock INT NOT NULL DEFAULT 100 CHECK (weekly_stock >= 0),  -- 週の在庫. 売れた数 = weekly_stock - stock
+    weekly_stock INT NOT NULL DEFAULT 100 CHECK (weekly_stock >= 0),  -- 在庫 (用意した数). 売れた数 = weekly_stock - stock
     is_available BOOLEAN NOT NULL DEFAULT TRUE,   -- FALSE = sold out
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,    -- TRUE = removed from shop
     image_url VARCHAR(500),
@@ -963,7 +964,7 @@ INSERT INTO ingredients (category_id, name, price, stock, sort_order) VALUES
 (5, '湯葉',       150, 30, 2);
  
 INSERT INTO menus (name, description, price, sort_order, is_custom) VALUES
-('自分で作る麻辣湯',   '味・辛さ・具材をぜんぶ自分で選ぶ一杯', 500, 1, TRUE),
+('自分で作る麻辣湯',   '春雨とスープから、好きな具材を自由に選んで作る', 300, 1, TRUE),
 ('お肉たっぷり麻辣湯', '豚バラと牛肉入り',                     800, 2, FALSE);
  
 -- Default ingredients (春雨 cannot be removed: it's the noodle base)
