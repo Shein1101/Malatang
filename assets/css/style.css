@@ -7,41 +7,77 @@
    (load Bootstrap first, then this file).
    ========================================================= */
 
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@500;700;900&display=swap");
 
-/* ---------- 1. Design tokens (change colors here only) ---------- */
+/* ---------- 1. Design tokens (change colors here only) ----------
+   Dark + gold premium theme is the default. Put <html data-theme="light">
+   to switch to the light theme (values overridden further down).
+   The toggle button lives in includes/header.php. ---------- */
 :root {
-  /* colors */
+  /* colors — dark (default) */
   --chili: #C8261B;        /* main red: buttons, active, prices */
   --chili-dark: #A51E15;   /* hover / pressed */
-  --chili-soft: #FDECEA;   /* selected option background */
-  --bg: #FAF6F2;           /* page background */
-  --surface: #FFFFFF;      /* cards, inputs */
-  --ink: #2A1F1D;          /* main text */
-  --muted: #7A6E68;        /* secondary text */
-  --line: #EDE5E0;         /* borders */
-  --line-strong: #D9CFC9;  /* input borders */
-  --orange: #E07A1F;       /* status: cooking */
-  --orange-soft: #FDF0E3;
-  --green: #2E8B57;        /* status: done, wallet + */
-  --green-soft: #E6F4EC;
-  --dark: #1E1513;         /* hero / dark sections */
+  --chili-soft: rgba(200, 38, 27, .22); /* selected option background */
+  --bg: #15100F;           /* page background */
+  --surface: #231A18;      /* cards, inputs */
+  --surface-2: #2B201D;    /* nested / alt surface */
+  --ink: #EDE4DA;          /* main text */
+  --muted: #A9958A;        /* secondary text */
+  --line: #3A2E2B;         /* borders */
+  --line-strong: #4A3A35;  /* input borders */
+  --orange: #E2954A;       /* status: cooking */
+  --orange-soft: rgba(224, 122, 31, .2);
+  --green: #7FB06B;        /* status: done, wallet + */
+  --green-soft: rgba(110, 155, 92, .2);
+  --dark: #0D0908;         /* photo placeholder / hero bg (always dark) */
+  --gold: #C9A05C;         /* premium accent: section labels, selection ring */
+  --gold-dark: #A9833F;
+  --disabled-bg: #3A2E2B;
+  --disabled-ink: #756259;
+  --error-bg: rgba(200, 38, 27, .12);
+  --placeholder: #6B5A52;
 
   /* type */
   --font: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --font-serif: "Noto Serif JP", "Hiragino Mincho ProN", serif;
   --fs-title: 32px;
   --fs-heading: 20px;
   --fs-body: 14px;
   --fs-caption: 12px;
+  --fs-label: 17px;        /* section labels: 味を選ぶ / 具材を選ぶ … */
 
   /* shape & space */
   --radius: 8px;
   --radius-lg: 12px;
   --radius-pill: 999px;
-  --shadow: 0 1px 2px rgba(42, 31, 29, .04), 0 4px 12px rgba(42, 31, 29, .05);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 20px rgba(0, 0, 0, .35);
   --header-h: 64px;
   --tabbar-h: 64px;
   --container: 1120px;
+}
+
+/* light theme — <html data-theme="light"> */
+[data-theme="light"] {
+  --chili-soft: #FDECEA;
+  --bg: #FAF6F2;
+  --surface: #FFFFFF;
+  --surface-2: #F4EEE8;
+  --ink: #2A1F1D;
+  --muted: #7A6E68;
+  --line: #EDE5E0;
+  --line-strong: #D9CFC9;
+  --orange: #E07A1F;
+  --orange-soft: #FDF0E3;
+  --green: #2E8B57;
+  --green-soft: #E6F4EC;
+  --dark: #1E1513;
+  --gold: #B8860B;
+  --gold-dark: #8B6914;
+  --disabled-bg: #E4DEDA;
+  --disabled-ink: #A39A95;
+  --error-bg: #FFF8F7;
+  --placeholder: #B5ABA6;
+  --shadow: 0 1px 2px rgba(42, 31, 29, .04), 0 4px 12px rgba(42, 31, 29, .05);
 }
 
 /* ---------- 2. Base ---------- */
@@ -70,13 +106,24 @@ a:hover { text-decoration: underline; }
 .page { padding-block: 32px 48px; }
 
 /* ---------- 3. Typography ---------- */
-.title   { font-size: var(--fs-title);   font-weight: 700; line-height: 1.35; margin: 0 0 8px; }
+.title   { font-family: var(--font-serif); font-size: var(--fs-title); font-weight: 700; line-height: 1.35; margin: 0 0 8px; }
 .heading { font-size: var(--fs-heading); font-weight: 700; line-height: 1.4;  margin: 0 0 12px; }
 .caption { font-size: var(--fs-caption); color: var(--muted); }
 .muted   { color: var(--muted); }
 .price   { font-weight: 700; font-variant-numeric: tabular-nums; }
 .price-lg { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .text-chili { color: var(--chili); }
+
+/* section label — bigger, gold accent bar. Use for things like 味を選ぶ / 具材を選ぶ */
+.section-label {
+  display: flex; align-items: center; gap: 10px;
+  font-size: var(--fs-label); font-weight: 700; color: var(--ink);
+  margin: 0 0 14px; letter-spacing: .02em;
+}
+.section-label::before {
+  content: ""; width: 4px; height: 18px; border-radius: 2px;
+  background: var(--gold); flex-shrink: 0;
+}
 
 /* "おすすめメニュー  すべて見る →" row */
 .section-head {
@@ -103,7 +150,7 @@ a:hover { text-decoration: underline; }
 .btn-ghost   { background: transparent; color: var(--chili); }
 .btn-ghost:hover { background: var(--chili-soft); }
 .btn:disabled, .btn.is-disabled {
-  background: #E4DEDA; color: #A39A95; border-color: transparent; cursor: not-allowed;
+  background: var(--disabled-bg); color: var(--disabled-ink); border-color: transparent; cursor: not-allowed;
 }
 .btn-sm    { min-height: 32px; padding: 0 12px; font-size: var(--fs-caption); }
 .btn-block { display: flex; width: 100%; }
@@ -133,9 +180,9 @@ a:hover { text-decoration: underline; }
   background: var(--surface);
   border: 1px solid var(--line-strong); border-radius: var(--radius);
 }
-.input::placeholder { color: #B5ABA6; }
+.input::placeholder { color: var(--placeholder); }
 .input:focus { outline: none; border-color: var(--chili); box-shadow: 0 0 0 3px var(--chili-soft); }
-.field.is-error .input { border-color: var(--chili); background: #FFF8F7; }
+.field.is-error .input { border-color: var(--chili); background: var(--error-bg); }
 .field-error {
   display: none; font-size: var(--fs-caption); color: var(--chili);
 }
@@ -206,6 +253,34 @@ a:hover { text-decoration: underline; }
   font: 500 var(--fs-body) var(--font); font-variant-numeric: tabular-nums;
 }
 
+/* ---------- 6b. Ingredient photo tiles (具材を選ぶ) ---------- */
+.ing-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 10px;
+  list-style: none; margin: 0; padding: 0;
+}
+.ing-tile {
+  position: relative; display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
+  overflow: hidden; transition: border-color .15s;
+}
+.ing-tile.is-added { border: 2px solid var(--gold); }
+.ing-tile.is-soldout { opacity: .5; }
+.ing-photo { position: relative; aspect-ratio: 1; background: var(--dark); display: grid; place-items: center; }
+.ing-photo img { width: 100%; height: 100%; object-fit: cover; }
+.ing-photo-fallback { color: var(--gold); opacity: .7; }
+.ing-photo-fallback svg { width: 30px; height: 30px; }
+.ing-tile .icon-btn {
+  position: absolute; top: 4px; right: 4px; width: 28px; height: 28px;
+  background: rgba(0, 0, 0, .45); border: 0; color: #fff;
+}
+.ing-tile .icon-btn:hover { background: rgba(0, 0, 0, .6); }
+.ing-badge { position: absolute; bottom: 4px; left: 4px; }
+.ing-info { padding: 8px; display: grid; gap: 2px; }
+.ing-name { font-size: var(--fs-caption); font-weight: 500; line-height: 1.3; }
+.ing-tile .stepper { margin: 0 8px 8px; width: auto; justify-content: space-between; }
+.ing-tile .stepper button { width: 30px; height: 30px; }
+.ing-tile .stepper output { flex: 1; }
+
 /* ---------- 7. Badges ---------- */
 .badge {
   display: inline-flex; align-items: center;
@@ -216,7 +291,7 @@ a:hover { text-decoration: underline; }
 .badge-cooking  { background: var(--orange-soft); color: var(--orange); } /* 調理中 */
 .badge-done     { background: var(--green-soft);  color: var(--green); }  /* 受取済 */
 .badge-label    { background: var(--chili); color: #fff; border-radius: 4px; } /* 人気No.1 */
-.badge-soldout  { background: #E4DEDA; color: var(--muted); }             /* 品切れ */
+.badge-soldout  { background: var(--disabled-bg); color: var(--muted); }  /* 品切れ */
 
 /* ---------- 8. Cards ---------- */
 .card {
@@ -322,7 +397,7 @@ a:hover { text-decoration: underline; }
 .toast {
   display: inline-flex; align-items: center; gap: 12px;
   padding: 12px 16px; border-radius: var(--radius);
-  background: var(--ink); color: #fff; font-size: var(--fs-body);
+  background: #1E1513; color: #fff; font-size: var(--fs-body);
   box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
 }
 .toast .toast-close { background: none; border: 0; color: #fff; opacity: .7; cursor: pointer; font-size: 16px; }
@@ -343,8 +418,8 @@ a:hover { text-decoration: underline; }
 .logo { display: flex; align-items: center; gap: 8px; color: var(--ink); }
 .logo:hover { text-decoration: none; }
 .logo svg { width: 28px; height: 28px; color: var(--chili); }
-.logo-name { font-weight: 700; font-size: 16px; line-height: 1.1; }
-.logo-sub  { display: block; font-size: 10px; font-weight: 500; color: var(--muted); }
+.logo-name { font-family: var(--font-serif); font-weight: 700; font-size: 17px; line-height: 1.1; letter-spacing: .02em; }
+.logo-sub  { display: block; font-size: 10px; font-weight: 500; color: var(--gold); }
 .main-nav { display: flex; gap: 28px; }
 .main-nav a { color: var(--ink); font-size: var(--fs-caption); font-weight: 500; }
 .main-nav a.is-active, .main-nav a:hover { color: var(--chili); text-decoration: none; }
@@ -353,6 +428,10 @@ a:hover { text-decoration: underline; }
   position: relative; display: grid; place-items: center;
   width: 40px; height: 40px; color: var(--ink); background: none; border: 0; cursor: pointer;
 }
+.theme-toggle svg { width: 20px; height: 20px; }
+.theme-toggle .i-moon { display: none; }
+[data-theme="light"] .theme-toggle .i-sun { display: none; }
+[data-theme="light"] .theme-toggle .i-moon { display: block; }
 .header-icons svg { width: 20px; height: 20px; }
 .cart-count {
   position: absolute; top: 4px; right: 2px;

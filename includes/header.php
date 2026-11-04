@@ -16,6 +16,13 @@ $tab = function (array $pages) use ($current) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= htmlspecialchars($pageTitle) ?></title>
+  <!-- dark/light theme: set before paint so there's no flash. default = dark. -->
+  <script>
+    (function () {
+      var t = localStorage.getItem('theme');
+      if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    })();
+  </script>
   <!-- Bootstrap 5 (shared design) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <!-- Our own styles -->
@@ -40,6 +47,8 @@ $tab = function (array $pages) use ($current) {
   <symbol id="i-logout" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></g></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></g></symbol>
   <symbol id="i-bowl" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 11h18a9 9 0 0 1-18 0Z"/><path d="M8 7c0-2 1.5-2 1.5-4M12.5 7c0-2 1.5-2 1.5-4"/></g></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v3M12 18.5v3M3.5 12h3M17.5 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></g></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></symbol>
 </svg>
 <header class="site-header">
   <div class="container">
@@ -54,10 +63,26 @@ $tab = function (array $pages) use ($current) {
       <?php else: ?>
       <a href="login.php" aria-label="ログイン"><svg><use href="#i-user"></use></svg></a>
       <?php endif; ?>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="表示モードを切り替える">
+        <svg class="i-sun"><use href="#i-sun"></use></svg>
+        <svg class="i-moon"><use href="#i-moon"></use></svg>
+      </button>
       <button class="menu-toggle" aria-label="メニューを開く"><svg><use href="#i-burger"></use></svg></button>
     </div>
   </div>
 </header>
+<script>
+  document.getElementById('themeToggle').addEventListener('click', function () {
+    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('theme', 'light');
+    }
+  });
+</script>
 <div style="height:140px"></div>
 <nav class="tabbar" aria-label="タブ">
   <ul>
