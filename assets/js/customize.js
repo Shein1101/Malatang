@@ -386,16 +386,9 @@ function renderPrice() {
   $('priceLines').innerHTML = html;
   if ($('total').textContent !== yen(p.total)) {   // 金額が変わったら ぴょんと動く
     bump($('total'));
-    bump($('barTotal'));
   }
   $('total').textContent = yen(p.total);
-  $('barTotal').textContent = yen(p.total);
-  // 下のバー: 何点・どの辛さ
-  let count = 0;
-  for (const qty of state.added.values()) count += qty;
-  const spice = state.spices.find(s => s.id === state.spiceId);
-  $('barNote').textContent = (count > 0 ? `具材 ${count}点` : '追加なし') + (spice ? `・${spice.name}` : '');
-  setAddDisabled(state.soupId === null);
+  $('addToCart').disabled = state.soupId === null;
 }
 
 // ---------- 5. クリックをまとめて受け取る ----------
@@ -429,7 +422,7 @@ document.addEventListener('click', (e) => {
   if (b.id === 'qtyMinus') state.quantity = Math.max(1, state.quantity - 1);
   if (b.id === 'qtyPlus')  state.quantity = Math.min(MAX_BOWLS, state.quantity + 1);
 
-  if (b.id === 'addToCart' || b.id === 'barAdd') {
+  if (b.id === 'addToCart') {
     addToCart();
     return;
   }
@@ -507,12 +500,6 @@ function bowlItems() {
   ];
 }
 
-// カートに追加ボタンは 料金の欄 と スマホの下のバー の2つ
-function setAddDisabled(off) {
-  $('addToCart').disabled = off;
-  $('barAdd').disabled = off;
-}
-
 // Team Rules の Cart format と同じ形で送る。値段は送らない。
 async function addToCart() {
   const bowl = {
@@ -524,9 +511,10 @@ async function addToCart() {
     ingredients: bowlItems(),
   };
 
-  setAddDisabled(true);                        // 2回押し防止
+  const btn = $('addToCart');
+  btn.disabled = true;                         // 2回押し防止
   const res = await callApi('POST', '../api/cart.php', bowl);
-  setAddDisabled(false);
+  btn.disabled = false;
 
   if (!res.success) {
     showError($('error'), res.error);

@@ -10,7 +10,7 @@ $pageTitle = 'カスタマイズ | Chilli 鍋';
 include '../includes/header.php';
 ?>
 
-<main class="container page cz-page">
+<main class="container page">
   <p id="error" class="field-error d-none"></p>
 
   <!-- 読み込み中に見せる -->
@@ -88,14 +88,6 @@ include '../includes/header.php';
       <p class="caption">※ 金額は注文のときにお店でもう一度計算します</p>
     </aside>
 
-    <!-- スクロールしても いつでも 合計が見えて カートに追加できる -->
-    <div class="cz-bar">
-      <span id="barNote" class="cz-bar-note"></span>
-      <div class="cz-bar-right">
-        <span id="barTotal" class="cz-bar-total">¥0</span>
-        <button type="button" id="barAdd" class="btn btn-chili">カートに追加</button>
-      </div>
-    </div>
   </div>
 
   <div class="toast-area" id="toastArea"></div>
