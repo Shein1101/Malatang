@@ -3,7 +3,7 @@
   <div class="container">
     <div class="logo"><svg><use href="#i-flame"/></svg><span class="logo-name">Chilli 鍋</span></div>
     <nav class="footer-links">
-      <a href="about.php">こだわり</a><a href="faq.php">よくある質問</a><a href="terms.php">利用規約</a><a href="privacy.php">プライバシーポリシー</a>
+      <a href="store.php">ホーム</a><a href="menu.php">メニュー</a><a href="customize.php">自分で作る</a><a href="info.php">店舗情報</a><a href="cart.php">カート</a>
     </nav>
     <span>© 2026 Chilli 鍋</span>
   </div>

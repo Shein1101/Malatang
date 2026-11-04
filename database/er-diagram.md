@@ -1,6 +1,6 @@
 # Malatang EC - ER Diagram
 
-24 tables · 40 relationships (malatang_ec, version 4 — Oct 20, 2026)
+25 tables · 40 relationships (malatang_ec, version 4 — Oct 20, 2026)
 
 ```mermaid
 erDiagram
@@ -132,6 +132,22 @@ erDiagram
         int sort_order
         boolean is_visible
         timestamp created_at
+    }
+
+    HOME_BLOCKS {
+        int id PK
+        enum type
+        varchar title
+        text body
+        varchar badge
+        varchar image_url
+        varchar link_label
+        varchar link_url
+        int sort_order
+        boolean is_visible
+        date start_date
+        date end_date
+        timestamp updated_at
     }
 
     ANNOUNCEMENTS {

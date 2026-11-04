@@ -7,8 +7,9 @@ $pageTitle = 'メニュー | Chilli 鍋';
 include '../includes/header.php';
 ?>
 
-<main class="container">
-  <h1>メニュー</h1>
+<main class="container page">
+  <h1 class="title">メニュー</h1>
+  <p class="muted">お好きな一杯を選んで、スープ・辛さ・具材をカスタマイズできます。</p>
   <p id="error" class="text-danger d-none"></p>
 
   <!-- 自分で作る (一から具材・味を選ぶ) → customize.php -->
@@ -29,7 +30,7 @@ function esc(s) {
 // menu 1つ分のカードを作る
 function menuCard(m) {
   // 写真があれば <img>、なければ空 (背景色だけ)
-  const img = m.image_url ? `<img src="${esc(m.image_url)}" alt="${esc(m.name)}">` : '';
+  const img = m.image_url ? `<img src="${esc(m.image_url)}" alt="${esc(m.name)}" onerror="this.remove()">` : '';
 
   // 売り切れ: グレーのカード、リンクなし (押せない)
   if (!m.is_available) {
@@ -52,7 +53,7 @@ function menuCard(m) {
       <div class="card-info">
         <div>
           <div class="card-name">${esc(m.name)}</div>
-          <div class="caption">${esc(m.description)}</div>
+          <div class="caption card-desc">${esc(m.description)}</div>
           <div class="price">${yen(m.price)}</div>
         </div>
         <span class="text-chili">→</span>
@@ -64,8 +65,9 @@ function menuCard(m) {
 function customCta(m) {
   if (!m || !m.is_available) return '';
   return `
-    <a class="card card-body d-flex flex-row align-items-center justify-content-between gap-3 mb-4 text-reset" href="customize.php">
+    <a class="custom-cta" href="customize.php">
       <div>
+        <p class="eyebrow">具材を一から選ぶ</p>
         <div class="heading m-0">${esc(m.name)}</div>
         <div class="caption">${esc(m.description)}</div>
       </div>

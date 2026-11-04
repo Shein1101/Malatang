@@ -53,8 +53,14 @@ $tab = function (array $pages) use ($current) {
 <header class="site-header">
   <div class="container">
     <a class="logo" href="store.php"><svg><use href="#i-flame"></use></svg><span class="logo-name">Chilli 鍋<span class="logo-sub">麻辣香鍋・麻辣湯</span></span></a>
+    <nav class="main-nav" aria-label="メインメニュー">
+      <a<?= $tab(['store.php']) ?> href="store.php">ホーム</a>
+      <a<?= $tab(['menu.php']) ?> href="menu.php">メニュー</a>
+      <a<?= $tab(['customize.php']) ?> href="customize.php">自分で作る</a>
+      <a<?= $tab(['info.php']) ?> href="info.php">店舗情報</a>
+    </nav>
     <div class="header-icons">
-      <a href="cart.php" aria-label="カート"><svg><use href="#i-cart"></use></svg><span class="cart-count">2</span></a>
+      <a href="cart.php" aria-label="カート"><svg><use href="#i-cart"></use></svg><span class="cart-count" style="display:none"></span></a>
       <?php if ($loggedIn): ?>
       <a href="favorites.php" aria-label="お気に入り"><svg><use href="#i-heart"></use></svg></a>
       <a href="history.php" aria-label="注文履歴"><svg><use href="#i-receipt"></use></svg></a>
@@ -67,7 +73,6 @@ $tab = function (array $pages) use ($current) {
         <svg class="i-sun"><use href="#i-sun"></use></svg>
         <svg class="i-moon"><use href="#i-moon"></use></svg>
       </button>
-      <button class="menu-toggle" aria-label="メニューを開く"><svg><use href="#i-burger"></use></svg></button>
     </div>
   </div>
 </header>
@@ -83,7 +88,6 @@ $tab = function (array $pages) use ($current) {
     }
   });
 </script>
-<div style="height:140px"></div>
 <nav class="tabbar" aria-label="タブ">
   <ul>
     <li><a<?= $tab(['store.php']) ?> href="store.php"><svg><use href="#i-home"></use></svg>ホーム</a></li>

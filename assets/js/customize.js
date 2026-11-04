@@ -32,6 +32,7 @@ const state = {
   picks: new Set(),    // お気に入りの具材の id
   recipes: [],         // マイレシピ (GET favorites.php)
   recipeId: null,      // マイレシピから始めたとき、その id
+  favOpen: false,      // お気に入りのドロップダウンを お客さんが開いたか
 };
 
 const MAX_EXTRA = 10;  // 具材1つの最大個数 (api/cart.php と同じ)
@@ -191,6 +192,8 @@ function renderStatic() {
 
 // マイレシピのチップ (押すと そのレシピで作り直す)
 function renderRecipes() {
+  const current = state.recipes.find(r => r.id === state.recipeId);
+  $('recipeCount').textContent = current ? (current.nickname || current.menu_name) + ' を選択中' : state.recipes.length + '件';
   $('recipeChips').innerHTML = state.recipes.map(r => {
     const name = esc(r.nickname || r.menu_name);
     const selected = r.id === state.recipeId;
@@ -273,8 +276,10 @@ function applySearch() {
   document.querySelectorAll('#extraList [data-cat-group]').forEach(g => {
     g.classList.toggle('d-none', !g.querySelector('li:not(.d-none)'));
   });
+  // お気に入りはドロップダウン。検索で見つかったときだけ自動で開く
   const favVisible = $('favList').querySelector('li:not(.d-none)');
   $('favBox').classList.toggle('d-none', !favVisible);
+  $('favBox').open = q !== '' ? Boolean(favVisible) : state.favOpen;
 
   $('noHitWord').textContent = $('ingSearch').value;
   $('noHit').classList.toggle('d-none', q === '' || hits > 0);
@@ -300,9 +305,18 @@ function render() {
     if (tile) tile.classList.toggle('is-added', qty > 0);
   });
   renderCatTabs();
+  renderFavCount();
   $('qty').textContent = state.quantity;
 
   renderPrice();
+}
+
+// 閉じていても 何件あって 何個入れたか わかるように
+function renderFavCount() {
+  let inBowl = 0;
+  for (const id of state.picks) inBowl += state.added.get(id) || 0;
+  const count = state.extras.filter(i => state.picks.has(i.id)).length;
+  $('favCount').textContent = count + '件' + (inBowl > 0 ? ` ・ ${inBowl}個 追加中` : '');
 }
 
 // 具材のカテゴリタブ: 選んだタブを赤く、そのカテゴリだけ見せる、追加した個数を出す [Myat]
@@ -356,13 +370,24 @@ function calcPrice() {
   return { lines, unit, total: unit * state.quantity };
 }
 
+function bump(el) {
+  el.classList.remove('is-bump');
+  void el.offsetWidth;                         // アニメーションをもう一度始めるため
+  el.classList.add('is-bump');
+}
+
 function renderPrice() {
   const p = calcPrice();
   let html = p.lines.map(([name, price]) => `<li><span>${esc(name)}</span><span>${yen(price)}</span></li>`).join('');
   html += `<li><b>1杯</b><b>${yen(p.unit)}</b></li>`;
   $('priceLines').innerHTML = html;
+  if ($('total').textContent !== yen(p.total)) {   // 金額が変わったら ぴょんと動く
+    bump($('total'));
+    bump($('barTotal'));
+  }
   $('total').textContent = yen(p.total);
-  $('addToCart').disabled = state.soupId === null;
+  $('barTotal').textContent = yen(p.total);
+  setAddDisabled(state.soupId === null);
 }
 
 // ---------- 5. クリックをまとめて受け取る ----------
@@ -396,7 +421,7 @@ document.addEventListener('click', (e) => {
   if (b.id === 'qtyMinus') state.quantity = Math.max(1, state.quantity - 1);
   if (b.id === 'qtyPlus')  state.quantity = Math.min(MAX_BOWLS, state.quantity + 1);
 
-  if (b.id === 'addToCart') {
+  if (b.id === 'addToCart' || b.id === 'barAdd') {
     addToCart();
     return;
   }
@@ -413,6 +438,9 @@ document.addEventListener('change', (e) => {
 
 // 具材の検索 (打つたびに絞り込む)
 $('ingSearch').addEventListener('input', applySearch);
+
+// お客さんが開け閉めした状態を覚える (検索が終わったら元に戻す)
+$('favBox').querySelector('summary').addEventListener('click', () => { state.favOpen = !$('favBox').open; });
 
 // ---------- 6. お気に入り (Lin) ----------
 // ♡ / ♥ : お気に入りの具材に入れる・外す (api/favorites.php?type=ingredient)
@@ -471,6 +499,12 @@ function bowlItems() {
   ];
 }
 
+// カートに追加ボタンは 料金の欄 と スマホの下のバー の2つ
+function setAddDisabled(off) {
+  $('addToCart').disabled = off;
+  $('barAdd').disabled = off;
+}
+
 // Team Rules の Cart format と同じ形で送る。値段は送らない。
 async function addToCart() {
   const bowl = {
@@ -482,10 +516,9 @@ async function addToCart() {
     ingredients: bowlItems(),
   };
 
-  const btn = $('addToCart');
-  btn.disabled = true;                         // 2回押し防止
+  setAddDisabled(true);                        // 2回押し防止
   const res = await callApi('POST', '../api/cart.php', bowl);
-  btn.disabled = false;
+  setAddDisabled(false);
 
   if (!res.success) {
     showError($('error'), res.error);

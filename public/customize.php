@@ -10,7 +10,7 @@ $pageTitle = 'カスタマイズ | Chilli 鍋';
 include '../includes/header.php';
 ?>
 
-<main class="container page">
+<main class="container page cz-page">
   <p id="error" class="field-error d-none"></p>
 
   <!-- 読み込み中に見せる -->
@@ -27,20 +27,20 @@ include '../includes/header.php';
       </section>
 
       <!-- マイレシピから選ぶ (login している人) -->
-      <section id="recipeBox" class="d-none">
-        <p class="section-label">マイレシピから選ぶ</p>
-        <div id="recipeChips" class="chip-group" role="group" aria-label="マイレシピ"></div>
-      </section>
+      <details id="recipeBox" class="cz-fold d-none">
+        <summary><b>♥ マイレシピから選ぶ</b><span id="recipeCount" class="caption"></span></summary>
+        <div id="recipeChips" class="chip-group cz-fold-body" role="group" aria-label="マイレシピ"></div>
+      </details>
       <p id="notice" class="caption text-chili d-none"></p>
 
       <!-- 2. 味 (必ず1つ) -->
-      <section>
+      <section class="cz-section">
         <p class="section-label">味を選ぶ</p>
         <div id="soupChips" class="chip-group" role="group" aria-label="味"></div>
       </section>
 
       <!-- 3. スープ あり / なし -->
-      <section>
+      <section class="cz-section">
         <p class="section-label">スープ</p>
         <div id="brothChips" class="chip-group" role="group" aria-label="スープ">
           <button type="button" class="chip is-selected" data-broth="1" aria-pressed="true">スープあり</button>
@@ -49,25 +49,25 @@ include '../includes/header.php';
       </section>
 
       <!-- 4. 辛さ -->
-      <section>
+      <section class="cz-section">
         <p class="section-label">辛さを選ぶ</p>
         <div id="spiceChips" class="chip-group" role="group" aria-label="辛さ"></div>
       </section>
 
       <!-- 5. 最初から入っている具材 (外せるものだけチェックを外せる) -->
-      <section id="defaultsBox">
+      <section id="defaultsBox" class="cz-section">
         <p class="section-label">最初から入っている具材</p>
         <ul id="defaultList" class="list"></ul>
       </section>
 
       <!-- 6. 追加する具材 (カテゴリごと) -->
-      <section>
+      <section class="cz-section">
         <p class="section-label">具材を追加する</p>
         <input type="search" id="ingSearch" class="input mb-3" placeholder="具材をさがす（例: えび、豆腐）" aria-label="具材をさがす">
-        <div id="favBox" class="d-none mb-3">
-          <p class="caption"><b>♥ お気に入りの具材</b></p>
-          <ul id="favList" class="ing-grid"></ul>
-        </div>
+        <details id="favBox" class="cz-fold d-none mb-3">
+          <summary><b>♥ お気に入りの具材</b><span id="favCount" class="caption"></span></summary>
+          <ul id="favList" class="ing-grid cz-fold-body"></ul>
+        </details>
         <div id="extraList" class="stack"></div>
         <p id="noHit" class="caption d-none">「<span id="noHitWord"></span>」に合う具材はありません</p>
       </section>
@@ -91,6 +91,12 @@ include '../includes/header.php';
       <p id="loginHint" class="caption d-none"><a href="login.php">ログイン</a>すると、お気に入りの具材やマイレシピが使えます</p>
       <p class="caption">※ 金額は注文のときにお店でもう一度計算します</p>
     </aside>
+
+    <!-- スマホ: スクロールしなくても いつでも カートに追加できる -->
+    <div class="cz-bar">
+      <div><span class="caption">合計</span><div id="barTotal" class="price-lg">¥0</div></div>
+      <button type="button" id="barAdd" class="btn btn-chili">カートに追加 <span class="arrow"></span></button>
+    </div>
   </div>
 
   <div class="toast-area" id="toastArea"></div>

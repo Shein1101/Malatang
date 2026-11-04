@@ -10,6 +10,7 @@ $pageTitle = $pageTitle ?? '管理画面 | Chilli 鍋';
 $current   = basename($_SERVER['PHP_SELF']);
 $adminNav  = [
     'orders.php'      => '注文',
+    'home.php'        => 'ホーム編集',
     'menus.php'       => 'メニュー',
     'options.php'     => '辛さ',
     'stock.php'       => '具材・在庫',
@@ -35,7 +36,7 @@ $adminNav  = [
   <symbol id="i-logout" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></g></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></g></symbol>
   </svg>
-<header class="site-header">
+<header class="site-header admin-header">
   <div class="container">
     <a class="logo" href="orders.php"><svg><use href="#i-flame"></use></svg><span class="logo-name">Chilli 鍋<span class="logo-sub">管理画面</span></span></a>
     <?php if (empty($isLoginPage)): ?>

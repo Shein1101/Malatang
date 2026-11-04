@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="麻辣湯のイラスト">
+  <defs>
+    <radialGradient id="soup" cx="45%" cy="40%" r="65%">
+      <stop offset="0" stop-color="#E4572E"/>
+      <stop offset=".7" stop-color="#B92D18"/>
+      <stop offset="1" stop-color="#7E1A0E"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F1ECE7"/>
+    </linearGradient>
+  </defs>
+  <circle cx="200" cy="200" r="186" fill="url(#rim)"/>
+  <circle cx="200" cy="200" r="186" fill="none" stroke="#E4DDD6" stroke-width="3"/>
+  <circle cx="200" cy="200" r="158" fill="url(#soup)"/>
+  <!-- 春雨 -->
+  <g fill="none" stroke="#F6E3B8" stroke-width="5" stroke-linecap="round" opacity=".9">
+    <path d="M92 214c28-26 52 22 82-4s48 20 76-6"/>
+    <path d="M104 242c30-22 48 20 80-4s50 16 82-10"/>
+    <path d="M124 268c24-16 42 14 70-2s40 8 62-6"/>
+  </g>
+  <!-- チンゲン菜 -->
+  <g>
+    <path d="M118 150c-8-40 26-64 52-54 20 28-4 72-52 54Z" fill="#5E9B3F"/>
+    <path d="M120 150c12-20 26-36 48-52" stroke="#CFE6B4" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M292 268c22 34 2 66-26 64-26-22-18-72 26-64Z" fill="#6FAE4A"/>
+    <path d="M290 270c-8 22-14 42-26 60" stroke="#D9EDC1" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- きのこ・豆腐 -->
+  <g>
+    <path d="M226 104c0-16 40-22 54-2 4 8-4 14-14 12l-2 24c0 6-12 6-13 0l-2-26c-10 4-23 2-23-8Z" fill="#E9CFA6"/>
+    <rect x="268" y="150" width="46" height="46" rx="7" transform="rotate(14 291 173)" fill="#FBF3DF"/>
+    <rect x="88" y="262" width="42" height="42" rx="7" transform="rotate(-18 109 283)" fill="#FBF3DF"/>
+  </g>
+  <!-- 団子・えび -->
+  <circle cx="186" cy="146" r="20" fill="#C9A06B"/>
+  <circle cx="180" cy="140" r="5" fill="#fff" opacity=".35"/>
+  <path d="M206 306c-26-4-34-34-16-48 8 16 26 22 44 18-2 18-14 32-28 30Z" fill="#F2926B"/>
+  <!-- 唐辛子・ごま -->
+  <g fill="#FFD36B">
+    <circle cx="232" cy="176" r="3"/><circle cx="156" cy="196" r="3"/><circle cx="256" cy="226" r="3"/>
+    <circle cx="214" cy="232" r="3"/><circle cx="142" cy="130" r="3"/><circle cx="310" cy="222" r="3"/>
+  </g>
+  <g fill="#7E1A0E">
+    <circle cx="204" cy="196" r="5"/><circle cx="244" cy="146" r="4"/><circle cx="170" cy="238" r="4"/>
+  </g>
+</svg>
