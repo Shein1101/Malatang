@@ -24,6 +24,8 @@ $adminNav  = [
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= htmlspecialchars($pageTitle) ?></title>
+  <!-- light / dark: set before paint so there is no flash -->
+  <script src="../assets/js/theme.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="../assets/css/style.css">
 </head>
@@ -35,6 +37,8 @@ $adminNav  = [
   <symbol id="i-eye" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></g></symbol>
   <symbol id="i-logout" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></g></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></g></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v3M12 18.5v3M3.5 12h3M17.5 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></g></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></symbol>
   </svg>
 <header class="site-header admin-header">
   <div class="container">
@@ -45,9 +49,15 @@ $adminNav  = [
       <a href="<?= $file ?>"<?= $current === $file ? ' class="is-active"' : '' ?>><?= $label ?></a>
       <?php endforeach; ?>
     </nav>
-    <div class="header-icons">
-      <a href="../public/logout.php" aria-label="ログアウト"><svg><use href="#i-logout"></use></svg></a>
-    </div>
     <?php endif; ?>
+    <div class="header-icons">
+      <button class="theme-toggle" type="button" aria-label="ライトとダークを切り替える">
+        <svg class="i-sun"><use href="#i-sun"></use></svg>
+        <svg class="i-moon"><use href="#i-moon"></use></svg>
+      </button>
+      <?php if (empty($isLoginPage)): ?>
+      <a href="../public/logout.php" aria-label="ログアウト"><svg><use href="#i-logout"></use></svg></a>
+      <?php endif; ?>
+    </div>
   </div>
 </header>

@@ -205,7 +205,17 @@ function renderRecipes() {
   }).join('');
 }
 
-// 具材1枚 (写真タイル。お気に入りの所とカテゴリの所で同じものを使う)
+// 写真がないときの丸の色 (カテゴリで決まる)
+function ingArt(category) {
+  const name = String(category || '');
+  if (/野菜/.test(name)) return 'linear-gradient(135deg,#9bbf6b,#3c5a2e)';
+  if (/きのこ/.test(name)) return 'linear-gradient(135deg,#e7c08a,#b98a4a)';
+  if (/肉/.test(name)) return 'linear-gradient(135deg,#d99a6d,#8a4a2a)';
+  if (/海鮮|魚/.test(name)) return 'linear-gradient(135deg,#7fb0c4,#1d3a4a)';
+  return 'linear-gradient(135deg,#e2c98a,#a5802c)';
+}
+
+// 具材1枚 (丸い写真 + 名前 + 値段 + − 1 +。お気に入りの所とカテゴリの所で同じものを使う)
 function extraRow(i) {
   const soldOut = !i.is_available || i.stock <= 0;
   const qty = state.added.get(i.id) || 0;
@@ -213,21 +223,16 @@ function extraRow(i) {
     ? `<button type="button" class="icon-btn" data-pick="${i.id}" aria-pressed="${state.picks.has(i.id)}"
          aria-label="${esc(i.name)}をお気に入り${state.picks.has(i.id) ? 'から外す' : 'に追加'}">${state.picks.has(i.id) ? '♥' : '♡'}</button>`
     : '';
-  const photo = i.image_url
-    ? `<img src="${esc(i.image_url)}" alt="${esc(i.name)}" loading="lazy">`
-    : `<div class="ing-photo-fallback"><svg><use href="#i-bowl"></use></svg></div>`;
+  const photo = i.image_url ? `<img src="${esc(i.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : '';
   return `
     <li class="ing-tile ${soldOut ? 'is-soldout' : ''} ${qty > 0 ? 'is-added' : ''}" data-name="${esc(normalize(i.name + ' ' + i.category_name))}">
-      <div class="ing-photo">
-        ${photo}
-        ${heart}
-        ${soldOut ? '<span class="badge badge-soldout ing-badge">売り切れ</span>' : ''}
-      </div>
-      <div class="ing-info">
-        <span class="ing-name">${esc(i.name)}${portionText(i.portion)}</span>
-        <span class="caption">+${yen(i.price)}</span>
-      </div>
-      ${soldOut ? '' : `<div class="stepper">
+      ${heart}
+      <div class="ing-photo" style="background:${ingArt(i.category_name)}">${photo}</div>
+      <span class="ing-name">${esc(i.name)}${portionText(i.portion)}</span>
+      <span class="caption">+${yen(i.price)}</span>
+      ${soldOut
+        ? '<span class="badge badge-soldout">売り切れ</span>'
+        : `<div class="stepper">
              <button type="button" data-extra="${i.id}" data-step="-1" aria-label="${esc(i.name)}を減らす">−</button>
              <output data-out="${i.id}">${qty}</output>
              <button type="button" data-extra="${i.id}" data-step="1" aria-label="${esc(i.name)}を増やす">+</button>
@@ -387,6 +392,11 @@ function renderPrice() {
   }
   $('total').textContent = yen(p.total);
   $('barTotal').textContent = yen(p.total);
+  // 下のバー: 何点・どの辛さ
+  let count = 0;
+  for (const qty of state.added.values()) count += qty;
+  const spice = state.spices.find(s => s.id === state.spiceId);
+  $('barNote').textContent = (count > 0 ? `具材 ${count}点` : '追加なし') + (spice ? `・${spice.name}` : '');
   setAddDisabled(state.soupId === null);
 }
 

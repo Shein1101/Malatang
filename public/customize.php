@@ -75,7 +75,7 @@ include '../includes/header.php';
 
     <!-- 7. 料金 (選ぶたびに変わる) + カートに追加 -->
     <aside class="card card-body cz-price">
-      <h2 class="heading">料金</h2>
+      <h2 class="heading">ご注文内容</h2>
       <ul id="priceLines" class="list"></ul>
       <div class="row cz-qty">
         <span>杯数</span>
@@ -92,10 +92,13 @@ include '../includes/header.php';
       <p class="caption">※ 金額は注文のときにお店でもう一度計算します</p>
     </aside>
 
-    <!-- スマホ: スクロールしなくても いつでも カートに追加できる -->
+    <!-- スクロールしても いつでも 合計が見えて カートに追加できる -->
     <div class="cz-bar">
-      <div><span class="caption">合計</span><div id="barTotal" class="price-lg">¥0</div></div>
-      <button type="button" id="barAdd" class="btn btn-chili">カートに追加 <span class="arrow"></span></button>
+      <span id="barNote" class="cz-bar-note"></span>
+      <div class="cz-bar-right">
+        <span id="barTotal" class="cz-bar-total">¥0</span>
+        <button type="button" id="barAdd" class="btn btn-chili">カートに追加</button>
+      </div>
     </div>
   </div>
 

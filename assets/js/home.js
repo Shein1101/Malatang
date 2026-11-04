@@ -20,21 +20,29 @@ const render = {
   hero(b, d) {
     const s = d.store;
     const image = b.image_url || (s && s.banner_url);
+    const action = linkBtn(b, 'btn-chili');
+    const dishes = d.menus.filter(m => !m.is_custom).slice(0, 8);
     return `
-      <section class="h-hero container">
-        <div class="h-hero-copy">
-          ${s ? `<p class="h-status"><span class="${s.is_open ? 'is-open' : ''}">${s.is_open ? '営業中' : '本日はお休み'}</span>${s.opening_hours ? ' · ' + esc(s.opening_hours) : ''}</p>` : ''}
-          <h1 class="h-title">${lines(b.title)}</h1>
-          <p class="h-lead">${lines(b.body)}</p>
-          <div class="h-actions">
-            ${linkBtn(b, 'btn-chili')}
-            <a class="btn btn-outline" href="customize.php">自分で作る</a>
+      <section class="hero">
+        <div class="container h-hero-grid ${image ? 'has-image' : ''}">
+          <div>
+            ${s ? `<p class="h-status"><span class="${s.is_open ? 'is-open' : ''}">${s.is_open ? '営業中' : '本日はお休み'}</span>${s.opening_hours ? ' · ' + esc(s.opening_hours) : ''}</p>` : ''}
+            <h1 class="title">${lines(b.title)}</h1>
+            <p>${lines(b.body)}</p>
+            ${action ? `<div class="h-actions">${action}</div>` : ''}
+            ${menuChips(d.menus, null)}
           </div>
+          ${image ? `<img src="${esc(image)}" alt="" onerror="this.parentElement.classList.remove('has-image');this.remove()">` : ''}
         </div>
-        <div class="h-hero-media ${image ? 'has-image' : ''}">
-          <img src="${esc(image || '../assets/img/bowl.svg')}" alt="" onerror="this.onerror=null;this.src='../assets/img/bowl.svg';this.parentElement.classList.remove('has-image')">
+      </section>
+      ${dishes.length ? `
+      <section class="h-section container">
+        <div class="section-head">
+          <h2 class="heading">おすすめのメニュー 🔥</h2>
+          <a class="link-more" href="menu.php">すべて見る →</a>
         </div>
-      </section>`;
+        <div class="grid-4">${dishes.map(menuCard).join('')}</div>
+      </section>` : ''}`;
   },
 
   notices(b, d) {
@@ -54,7 +62,7 @@ const render = {
         <div class="h-promos">
           ${list.map(b => `
             <article class="h-promo">
-              ${b.badge ? `<p class="h-promo-badge">${esc(b.badge)}</p>` : ''}
+              ${b.badge ? `<span class="badge badge-label">${esc(b.badge)}</span>` : ''}
               <h2 class="h-promo-title">${esc(b.title)}</h2>
               ${b.body ? `<p class="muted">${lines(b.body)}</p>` : ''}
               ${b.end_date ? `<p class="caption">${esc(b.end_date.replace(/-/g, '/'))} まで</p>` : ''}
@@ -70,7 +78,7 @@ const render = {
         <article class="h-ad ${b.image_url ? 'has-image' : ''}">
           <div class="h-ad-copy">
             <p class="caption">PR</p>
-            <h2 class="h-heading">${esc(b.title)}</h2>
+            <h2 class="heading">${esc(b.title)}</h2>
             ${b.body ? `<p class="muted">${lines(b.body)}</p>` : ''}
             ${linkBtn(b, 'btn-chili')}
           </div>
@@ -86,7 +94,7 @@ const render = {
       <section class="h-section container">
         <div class="h-head">
           <div>
-            <h2 class="h-heading">${esc(b.title)}</h2>
+            <h2 class="heading">${esc(b.title)}</h2>
             <p class="muted">${lines(b.body)}</p>
           </div>
           <div class="h-head-action">
@@ -134,6 +142,7 @@ async function loadHome() {
   document.getElementById('blocks').innerHTML = renderBlocks(homeRes.data, {
     store: storeRes.data.store,
     announcements: storeRes.data.announcements,
+    menus: menuRes.data,
     customMenu: menuRes.data.find(m => m.is_custom),
     soups: optRes.data.soups,
     spices: optRes.data.spice_levels,

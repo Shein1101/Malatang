@@ -19,7 +19,7 @@ $method = require_method('GET', 'POST', 'PUT', 'DELETE');
 // 基本デザイン。割引・広告は見本なので表示 OFF (お店が本当の内容を書いてから ON にする)
 function seed_blocks(PDO $pdo): void {
     $rows = [
-        ['hero', "自分だけの一杯を、\n好きな辛さで。", '30種類以上の具材とスープから選べる、できたての麻辣湯。', null, 'メニューを見る', 'menu.php', 1],
+        ['hero', '今日はどの麻辣湯にする？', 'スープ・辛さ・具材を選んで、最短3分で注文完了。', null, null, null, 1],
         ['notices', 'お知らせ', null, null, null, null, 1],
         ['promo', 'トッピング1品無料', 'ご来店のお客さまに、お好きなトッピングを1品サービス。', 'SAMPLE', 'メニューを見る', 'menu.php', 0],
         ['promo', 'お友だち紹介キャンペーン', 'ファミリー&フレンズでレシピをシェアしよう。', 'SAMPLE', 'くわしく見る', 'friends.php', 0],

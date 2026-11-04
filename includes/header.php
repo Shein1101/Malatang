@@ -6,6 +6,8 @@ $pageTitle = $pageTitle ?? 'Chilli 鍋';
 $loggedIn  = current_user_id() !== null;
 // tabbar: 今のページのタブを赤くする
 $current   = basename($_SERVER['SCRIPT_NAME']);
+// ヘッダーの検索欄: 今の検索語を残す
+$searchWord = htmlspecialchars(is_string($_GET['q'] ?? null) ? $_GET['q'] : '');
 $tab = function (array $pages) use ($current) {
     return in_array($current, $pages, true) ? ' class="is-active"' : '';
 };
@@ -16,13 +18,8 @@ $tab = function (array $pages) use ($current) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= htmlspecialchars($pageTitle) ?></title>
-  <!-- dark/light theme: set before paint so there's no flash. default = dark. -->
-  <script>
-    (function () {
-      var t = localStorage.getItem('theme');
-      if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
-    })();
-  </script>
+  <!-- light / dark: set before paint so there is no flash -->
+  <script src="../assets/js/theme.js"></script>
   <!-- Bootstrap 5 (shared design) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <!-- Our own styles -->
@@ -49,49 +46,38 @@ $tab = function (array $pages) use ($current) {
   <symbol id="i-bowl" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 11h18a9 9 0 0 1-18 0Z"/><path d="M8 7c0-2 1.5-2 1.5-4M12.5 7c0-2 1.5-2 1.5-4"/></g></symbol>
   <symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v3M12 18.5v3M3.5 12h3M17.5 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></g></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></g></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v10h16V10M3 10l2-6h14l2 6M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0M10 20v-5h4v5"/></g></symbol>
 </svg>
 <header class="site-header">
   <div class="container">
-    <a class="logo" href="store.php"><svg><use href="#i-flame"></use></svg><span class="logo-name">Chilli 鍋<span class="logo-sub">麻辣香鍋・麻辣湯</span></span></a>
-    <nav class="main-nav" aria-label="メインメニュー">
-      <a<?= $tab(['store.php']) ?> href="store.php">ホーム</a>
-      <a<?= $tab(['menu.php']) ?> href="menu.php">メニュー</a>
-      <a<?= $tab(['customize.php']) ?> href="customize.php">自分で作る</a>
-      <a<?= $tab(['info.php']) ?> href="info.php">店舗情報</a>
-    </nav>
+    <a class="logo" href="store.php"><svg><use href="#i-flame"></use></svg><span class="logo-name">Chilli 鍋</span></a>
+    <form class="site-search" action="menu.php" role="search">
+      <svg aria-hidden="true"><use href="#i-search"></use></svg>
+      <input type="search" name="q" value="<?= $searchWord ?>" placeholder="メニューや具材を検索" aria-label="メニューや具材を検索">
+    </form>
+    <a class="cart-btn" href="cart.php" aria-label="カート"><svg><use href="#i-cart"></use></svg><span class="cart-btn-label">カート</span><span class="cart-count" style="display:none"></span></a>
     <div class="header-icons">
-      <a href="cart.php" aria-label="カート"><svg><use href="#i-cart"></use></svg><span class="cart-count" style="display:none"></span></a>
       <?php if ($loggedIn): ?>
-      <a href="favorites.php" aria-label="お気に入り"><svg><use href="#i-heart"></use></svg></a>
-      <a href="history.php" aria-label="注文履歴"><svg><use href="#i-receipt"></use></svg></a>
-      <a class="d-none d-sm-grid" href="friends.php" aria-label="ファミリー&フレンズ"><svg><use href="#i-users"></use></svg></a>
-      <a href="logout.php" aria-label="ログアウト"><svg><use href="#i-logout"></use></svg></a>
+      <a class="hide-phone" href="favorites.php" aria-label="お気に入り"><svg><use href="#i-heart"></use></svg></a>
+      <a class="hide-phone" href="history.php" aria-label="注文履歴"><svg><use href="#i-receipt"></use></svg></a>
+      <a class="hide-phone" href="friends.php" aria-label="ファミリー&フレンズ"><svg><use href="#i-users"></use></svg></a>
+      <a class="hide-phone" href="logout.php" aria-label="ログアウト"><svg><use href="#i-logout"></use></svg></a>
       <?php else: ?>
-      <a href="login.php" aria-label="ログイン"><svg><use href="#i-user"></use></svg></a>
+      <a class="hide-phone" href="login.php" aria-label="ログイン"><svg><use href="#i-user"></use></svg></a>
       <?php endif; ?>
-      <button class="theme-toggle" id="themeToggle" type="button" aria-label="表示モードを切り替える">
+      <button class="theme-toggle" type="button" aria-label="ライトとダークを切り替える">
         <svg class="i-sun"><use href="#i-sun"></use></svg>
         <svg class="i-moon"><use href="#i-moon"></use></svg>
       </button>
     </div>
   </div>
 </header>
-<script>
-  document.getElementById('themeToggle').addEventListener('click', function () {
-    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
-    if (isLight) {
-      document.documentElement.removeAttribute('data-theme');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-      localStorage.setItem('theme', 'light');
-    }
-  });
-</script>
 <nav class="tabbar" aria-label="タブ">
   <ul>
     <li><a<?= $tab(['store.php']) ?> href="store.php"><svg><use href="#i-home"></use></svg>ホーム</a></li>
     <li><a<?= $tab(['menu.php', 'customize.php']) ?> href="menu.php"><svg><use href="#i-menu"></use></svg>メニュー</a></li>
+    <li><a<?= $tab(['info.php']) ?> href="info.php"><svg><use href="#i-store"></use></svg>店舗情報</a></li>
     <li><a<?= $tab(['cart.php', 'checkout.php', 'payment.php']) ?> href="cart.php"><svg><use href="#i-cart"></use></svg>カート</a></li>
     <?php if ($loggedIn): ?>
     <li><a<?= $tab(['mypage.php', 'history.php', 'favorites.php', 'friends.php']) ?> href="mypage.php"><svg><use href="#i-user"></use></svg>マイページ</a></li>
