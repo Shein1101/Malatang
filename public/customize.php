@@ -28,20 +28,20 @@ include '../includes/header.php';
 
       <!-- マイレシピから選ぶ (login している人) -->
       <section id="recipeBox" class="d-none">
-        <p class="caption">マイレシピから選ぶ</p>
+        <p class="section-label">マイレシピから選ぶ</p>
         <div id="recipeChips" class="chip-group" role="group" aria-label="マイレシピ"></div>
       </section>
       <p id="notice" class="caption text-chili d-none"></p>
 
       <!-- 2. 味 (必ず1つ) -->
       <section>
-        <p class="caption">味を選ぶ</p>
+        <p class="section-label">味を選ぶ</p>
         <div id="soupChips" class="chip-group" role="group" aria-label="味"></div>
       </section>
 
       <!-- 3. スープ あり / なし -->
       <section>
-        <p class="caption">スープ</p>
+        <p class="section-label">スープ</p>
         <div id="brothChips" class="chip-group" role="group" aria-label="スープ">
           <button type="button" class="chip is-selected" data-broth="1" aria-pressed="true">スープあり</button>
           <button type="button" class="chip" data-broth="0" aria-pressed="false">スープなし（汁なし）</button>
@@ -50,23 +50,23 @@ include '../includes/header.php';
 
       <!-- 4. 辛さ -->
       <section>
-        <p class="caption">辛さを選ぶ</p>
+        <p class="section-label">辛さを選ぶ</p>
         <div id="spiceChips" class="chip-group" role="group" aria-label="辛さ"></div>
       </section>
 
       <!-- 5. 最初から入っている具材 (外せるものだけチェックを外せる) -->
       <section id="defaultsBox">
-        <p class="caption">最初から入っている具材</p>
+        <p class="section-label">最初から入っている具材</p>
         <ul id="defaultList" class="list"></ul>
       </section>
 
       <!-- 6. 追加する具材 (カテゴリごと) -->
       <section>
-        <p class="caption">具材を追加する</p>
+        <p class="section-label">具材を追加する</p>
         <input type="search" id="ingSearch" class="input mb-3" placeholder="具材をさがす（例: えび、豆腐）" aria-label="具材をさがす">
         <div id="favBox" class="d-none mb-3">
           <p class="caption"><b>♥ お気に入りの具材</b></p>
-          <ul id="favList" class="list"></ul>
+          <ul id="favList" class="ing-grid"></ul>
         </div>
         <div id="extraList" class="stack"></div>
         <p id="noHit" class="caption d-none">「<span id="noHitWord"></span>」に合う具材はありません</p>

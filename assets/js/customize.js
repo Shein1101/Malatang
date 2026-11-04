@@ -202,21 +202,31 @@ function renderRecipes() {
   }).join('');
 }
 
-// 具材1行 (お気に入りの所とカテゴリの所で同じものを使う)
+// 具材1枚 (写真タイル。お気に入りの所とカテゴリの所で同じものを使う)
 function extraRow(i) {
   const soldOut = !i.is_available || i.stock <= 0;
+  const qty = state.added.get(i.id) || 0;
   const heart = state.loggedIn
     ? `<button type="button" class="icon-btn" data-pick="${i.id}" aria-pressed="${state.picks.has(i.id)}"
          aria-label="${esc(i.name)}をお気に入り${state.picks.has(i.id) ? 'から外す' : 'に追加'}">${state.picks.has(i.id) ? '♥' : '♡'}</button>`
     : '';
+  const photo = i.image_url
+    ? `<img src="${esc(i.image_url)}" alt="${esc(i.name)}" loading="lazy">`
+    : `<div class="ing-photo-fallback"><svg><use href="#i-bowl"></use></svg></div>`;
   return `
-    <li class="${soldOut ? 'cz-soldout' : ''}" data-name="${esc(normalize(i.name + ' ' + i.category_name))}">
-      <div class="d-flex align-items-center gap-1">${heart}<div>${esc(i.name)}${portionText(i.portion)}<div class="caption">+${yen(i.price)}</div></div></div>
-      ${soldOut
-        ? '<span class="badge badge-soldout">売り切れ</span>'
-        : `<div class="stepper">
+    <li class="ing-tile ${soldOut ? 'is-soldout' : ''} ${qty > 0 ? 'is-added' : ''}" data-name="${esc(normalize(i.name + ' ' + i.category_name))}">
+      <div class="ing-photo">
+        ${photo}
+        ${heart}
+        ${soldOut ? '<span class="badge badge-soldout ing-badge">売り切れ</span>' : ''}
+      </div>
+      <div class="ing-info">
+        <span class="ing-name">${esc(i.name)}${portionText(i.portion)}</span>
+        <span class="caption">+${yen(i.price)}</span>
+      </div>
+      ${soldOut ? '' : `<div class="stepper">
              <button type="button" data-extra="${i.id}" data-step="-1" aria-label="${esc(i.name)}を減らす">−</button>
-             <output data-out="${i.id}">0</output>
+             <output data-out="${i.id}">${qty}</output>
              <button type="button" data-extra="${i.id}" data-step="1" aria-label="${esc(i.name)}を増やす">+</button>
            </div>`}
     </li>`;
@@ -244,7 +254,7 @@ function renderExtras() {
        </div>`
     : '';
   for (const [cat, items] of groups) {
-    html += `<div data-cat-group="${esc(cat)}"><p class="caption"><b>${esc(cat)}</b></p><ul class="list">${items.map(extraRow).join('')}</ul></div>`;
+    html += `<div data-cat-group="${esc(cat)}"><p class="caption"><b>${esc(cat)}</b></p><ul class="ing-grid">${items.map(extraRow).join('')}</ul></div>`;
   }
   $('extraList').innerHTML = html || '<p class="caption">追加できる具材はありません</p>';
   applySearch();
@@ -284,7 +294,10 @@ function render() {
 
   // 同じ具材がお気に入りとカテゴリの2か所にあるので、両方の個数を変える
   document.querySelectorAll('[data-out]').forEach(out => {
-    out.textContent = state.added.get(Number(out.dataset.out)) || 0;
+    const qty = state.added.get(Number(out.dataset.out)) || 0;
+    out.textContent = qty;
+    const tile = out.closest('.ing-tile');
+    if (tile) tile.classList.toggle('is-added', qty > 0);
   });
   renderCatTabs();
   $('qty').textContent = state.quantity;
