@@ -180,6 +180,7 @@ function renderStatic() {
   // マイレシピ / guest への案内
   $('recipeBox').classList.toggle('d-none', !state.loggedIn || state.recipes.length === 0);
   $('saveRecipe').classList.toggle('d-none', !state.loggedIn);
+  $('shareRecipe').classList.toggle('d-none', !state.loggedIn);
   $('loginHint').classList.toggle('d-none', state.loggedIn);
   $('loginHint').querySelector('a').href = 'login.php?redirect=' + encodeURIComponent('customize.php' + location.search);
   renderRecipes();
@@ -389,6 +390,7 @@ function renderPrice() {
   }
   $('total').textContent = yen(p.total);
   $('addToCart').disabled = state.soupId === null;
+  $('shareRecipe').disabled = state.soupId === null;
 }
 
 // ---------- 5. クリックをまとめて受け取る ----------
@@ -406,6 +408,18 @@ document.addEventListener('click', (e) => {
   }
   if (b.id === 'saveRecipe') {
     saveRecipe();
+    return;
+  }
+
+  // 今の bowl を友達に送る (ダイアログは share.js)
+  if (b.id === 'shareRecipe') {
+    openShareDialog({
+      menu_id: state.menu.id,
+      has_soup: state.hasSoup,
+      soup_id: state.soupId,
+      spice_level_id: state.spiceId,
+      items: bowlItems(),
+    }, state.menu.name);
     return;
   }
 

@@ -84,6 +84,7 @@ include '../includes/header.php';
       <div class="total-row"><span>合計</span><span id="total" class="price-lg">¥0</span></div>
       <button type="button" id="addToCart" class="btn btn-chili btn-block">カートに追加 <span class="arrow"></span></button>
       <button type="button" id="saveRecipe" class="btn btn-outline btn-block d-none">♡ マイレシピに保存</button>
+      <button type="button" id="shareRecipe" class="btn btn-outline btn-block d-none"><svg width="18" height="18" aria-hidden="true"><use href="#i-users"></use></svg>友達にシェア</button>
       <p id="loginHint" class="caption d-none"><a href="login.php">ログイン</a>すると、お気に入りの具材やマイレシピが使えます</p>
       <p class="caption">※ 金額は注文のときにお店でもう一度計算します</p>
     </aside>
@@ -94,5 +95,6 @@ include '../includes/header.php';
 </main>
 
 <!-- app.js (callApi, yen) は footer で読み込まれる → customize.js は window の load で動き始める -->
+<script src="<?= asset_url('assets/js/share.js') ?>"></script>
 <script src="<?= asset_url('assets/js/customize.js') ?>"></script>
 <?php include '../includes/footer.php'; ?>

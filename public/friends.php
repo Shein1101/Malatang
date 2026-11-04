@@ -6,7 +6,7 @@
 //   送ったレシピ: 相手が見たか・注文したか
 //   友達を追加:   メールアドレスで追加。レシピを送れるのは友達リストの人だけ
 //   友達リスト:   呼び名を変える・外す
-// レシピを送るのは お気に入り / 注文履歴 の「友達にシェア」から (assets/js/share.js)
+// レシピを送るのは カスタマイズ / お気に入り / 注文履歴 の「友達にシェア」から (assets/js/share.js)
 // friends.php?share=5 → そのレシピを目立たせる (届いたレシピのリンク用)
 require_once '../includes/auth.php';
 require_login();
@@ -45,7 +45,7 @@ include '../includes/header.php';
   <!-- ========== ☰ 送ったレシピ ========== -->
   <section data-view="sent" hidden>
     <h2 class="heading">送ったレシピ</h2>
-    <p class="caption">お気に入りや注文履歴の「友達にシェア」から送れます。</p>
+    <p class="caption">カスタマイズ画面・お気に入り・注文履歴の「友達にシェア」から送れます。</p>
     <div id="sentList" class="stack"><p class="muted">読み込み中…</p></div>
   </section>
 

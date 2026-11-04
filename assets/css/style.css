@@ -589,6 +589,7 @@ body.has-tabbar { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bot
 #priceLines > li { padding: 6px 0; border: 0; font-size: 13px; color: var(--muted); }
 #priceLines > li:last-child { color: var(--ink); }
 .cz-price .btn-block { min-height: 50px; }
+.cz-price .btn-block svg { flex: none; }
 
 /* ingredient tiles: thumbnail, name, price, − 1 +  */
 .ing-grid {

@@ -89,6 +89,39 @@ function add_bowl_to_cart(PDO $pdo, int $user_id, array $bowl, array $items, int
 }
 
 // DB の行 → $bowl の形 (int / bool / null をそろえる)
+// カスタマイズ画面から送られた bowl をチェックする (保存・シェアで同じ)
+// 返す値: [$bowl, $items]。買えるかどうかは bowl_price で見る
+function bowl_from_input(array $in): array {
+    require_fields($in, ['menu_id', 'soup_id']);
+    $bowl = [
+        'menu_id'        => (int) $in['menu_id'],
+        'has_soup'       => !array_key_exists('has_soup', $in) || (bool) $in['has_soup'],
+        'soup_id'        => (int) $in['soup_id'],
+        'spice_level_id' => empty($in['spice_level_id']) ? null : (int) $in['spice_level_id'],
+    ];
+
+    $list = $in['items'] ?? [];
+    if (!is_array($list)) {
+        send_error('Invalid items', 400);
+    }
+    $items = [];
+    $seen  = [];
+    foreach ($list as $it) {
+        if (!is_array($it)) {
+            send_error('Invalid items', 400);
+        }
+        $iid    = (int) ($it['ingredient_id'] ?? 0);
+        $action = $it['action'] ?? 'added';
+        $qty    = (int) ($it['quantity'] ?? 1);
+        if ($iid < 1 || !in_array($action, ['added', 'removed'], true) || $qty < 1 || isset($seen[$iid])) {
+            send_error('Invalid items', 400);
+        }
+        $seen[$iid] = true;
+        $items[] = ['ingredient_id' => $iid, 'action' => $action, 'quantity' => $qty];
+    }
+    return [$bowl, $items];
+}
+
 function bowl_from_row(array $r): array {
     return [
         'menu_id'        => $r['menu_id'] === null ? null : (int) $r['menu_id'],

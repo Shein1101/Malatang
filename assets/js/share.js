@@ -1,9 +1,10 @@
 // 「友達にシェア」ダイアログ. Owner: Lin (FEAT-20)
-// favorites.php と history.php で使う。callApi() / bootstrap は footer.php で読み込まれる。
+// favorites.php, history.php, customize.php で使う。callApi() / bootstrap は footer.php で読み込まれる。
 // 使い方: openShareDialog({ favorite_id: 3 }, 'いつもの')
 //         openShareDialog({ order_bowl_id: 7 }, '基本の麻辣湯')
+//         openShareDialog({ menu_id: 1, soup_id: 2, items: [...] }, '自分で作る麻辣湯')
 
-let shareSource = null;   // { favorite_id } or { order_bowl_id }
+let shareSource = null;   // { favorite_id } / { order_bowl_id } / カスタマイズ中の bowl
 let shareModal  = null;
 
 function shareDialogHtml() {
