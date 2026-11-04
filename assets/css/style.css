@@ -708,7 +708,47 @@ body.has-tabbar { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bot
   .he-preview { display: block; position: sticky; top: calc(var(--header-h) + 16px); }
 }
 
-/* ---------- 18. Responsive ---------- */
+/* ---------- 18. Admin: category tabs (stock, supplies) ---------- */
+.adm-filter { display: grid; gap: 10px; margin-bottom: 12px; padding-block: 8px; background: var(--bg); }
+.adm-filter .tabs { margin: 0; }
+.adm-filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tab-count { margin-left: 4px; font-weight: 500; opacity: .7; }
+.tab-alert {
+  display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 5px;
+  border-radius: var(--radius-pill); background: var(--yellow); color: var(--on-yellow);
+  font-size: 11px; font-weight: 900; line-height: 18px; text-align: center;
+}
+.cat-row th { padding-block: 10px; background: var(--soft); font-size: 13px; font-weight: 900; }
+@media (min-width: 901px) {
+  .adm-filter { position: sticky; top: var(--header-h); z-index: 20; }
+}
+
+/* ---------- 19. Family & Friends: ☰ menu ---------- */
+.ff-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.ff-head .title { margin: 0; min-width: 0; }
+.ff-menu { position: relative; flex: none; }
+.ff-menu-btn {
+  display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
+  background: var(--soft); color: var(--ink); border: 0; border-radius: 50%; cursor: pointer;
+}
+.ff-menu-btn:hover, .ff-menu-btn[aria-expanded="true"] { background: var(--chili-soft); color: var(--chili); }
+.ff-menu-btn svg { width: 22px; height: 22px; }
+.ff-menu-list {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 40;
+  display: grid; width: 220px; padding: 8px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow);
+}
+.ff-menu-list[hidden] { display: none; }
+.ff-menu-list a {
+  display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 12px;
+  border-radius: var(--radius); color: var(--ink); font-weight: 700;
+}
+.ff-menu-list a:hover { background: var(--soft); text-decoration: none; }
+.ff-menu-list a[aria-current="page"] { color: var(--chili); }
+.ff-menu-list svg { width: 20px; height: 20px; flex: none; }
+#backBtn[hidden] { display: none; }
+
+/* ---------- 20. Responsive ---------- */
 @media (min-width: 900px) {
   .cz-layout { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
   .cz-price { position: sticky; top: calc(var(--header-h) + 20px); }

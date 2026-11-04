@@ -31,7 +31,7 @@ function shareDialogHtml() {
           </div>
           <div id="shareNoFriends" class="d-none">
             <p>まだ友達がいません。先に友達を追加してください。</p>
-            <a class="btn btn-outline btn-sm" href="friends.php#friends">友達を追加する</a>
+            <a class="btn btn-outline btn-sm" href="friends.php#add">友達を追加する</a>
           </div>
         </div>
         <div class="modal-footer">
