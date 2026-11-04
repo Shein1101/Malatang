@@ -32,7 +32,7 @@ include '../includes/header.php';
   </div>
 </main>
 
-<script src="../assets/js/menus.js"></script>
+<script src="<?= asset_url('assets/js/menus.js') ?>"></script>
 <script>
 // 文字を安全に HTML に入れる
 function esc(s) {

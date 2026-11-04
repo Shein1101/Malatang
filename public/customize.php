@@ -18,13 +18,9 @@ include '../includes/header.php';
 
   <div id="builder" class="cz-layout d-none">
     <div class="stack">
-      <!-- 1. メニュー -->
-      <section class="card card-body">
-        <h1 id="menuName" class="heading"></h1>
-        <p id="menuDesc" class="caption"></p>
-        <div class="price" id="menuPrice"></div>
-        <p id="modeLink" class="caption mb-0 mt-2"></p>
-      </section>
+      <!-- 1. ほかのページへ (今のページ名は見ればわかるので、大きな箱は出さない) -->
+      <h1 id="menuName" class="visually-hidden"></h1>
+      <nav id="modeLink" class="cz-nav" aria-label="ほかのページへ"></nav>
 
       <!-- マイレシピから選ぶ (login している人) -->
       <details id="recipeBox" class="cz-fold d-none">
@@ -106,5 +102,5 @@ include '../includes/header.php';
 </main>
 
 <!-- app.js (callApi, yen) は footer で読み込まれる → customize.js は window の load で動き始める -->
-<script src="../assets/js/customize.js"></script>
+<script src="<?= asset_url('assets/js/customize.js') ?>"></script>
 <?php include '../includes/footer.php'; ?>

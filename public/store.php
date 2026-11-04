@@ -11,7 +11,7 @@ include '../includes/header.php';
   <div id="blocks"></div>
 </main>
 
-<script src="../assets/js/menus.js"></script>
-<script src="../assets/js/home.js"></script>
+<script src="<?= asset_url('assets/js/menus.js') ?>"></script>
+<script src="<?= asset_url('assets/js/home.js') ?>"></script>
 
 <?php include '../includes/footer.php'; ?>

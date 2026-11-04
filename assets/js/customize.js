@@ -158,14 +158,11 @@ function applyRecipe(r) {
 function renderStatic() {
   const m = state.menu;
   $('menuName').textContent = m.name;
-  $('menuDesc').textContent = m.description || '';
-  $('menuPrice').textContent = yen(m.price);
   document.title = m.name + ' | Chilli 鍋';
 
-  // 自分で作る ⇔ メニューから選ぶ
-  $('modeLink').innerHTML = m.is_custom
-    ? 'おすすめの組み合わせから始めるなら → <a href="menu.php">メニューから選ぶ</a>'
-    : '一から全部選びたいなら → <a href="customize.php">自分で作る</a>';
+  // 行き先がわかるボタン (自分で作る ⇔ メニュー)
+  $('modeLink').innerHTML = '<a class="btn btn-outline btn-sm" href="menu.php">← メニュー一覧へ</a>'
+    + (m.is_custom ? '' : '<a class="btn btn-outline btn-sm" href="customize.php">一から自分で作る →</a>');
 
   // 最初から入っている具材
   if (m.ingredients.length === 0) {
@@ -228,7 +225,8 @@ function extraRow(i) {
     <li class="ing-tile ${soldOut ? 'is-soldout' : ''} ${qty > 0 ? 'is-added' : ''}" data-name="${esc(normalize(i.name + ' ' + i.category_name))}">
       ${heart}
       <div class="ing-photo" style="background:${ingArt(i.category_name)}">${photo}</div>
-      <span class="ing-name">${esc(i.name)}${portionText(i.portion)}</span>
+      <span class="ing-name">${esc(i.name)}</span>
+      ${i.portion ? `<span class="ing-portion">1つ ${esc(i.portion)}</span>` : ''}
       <span class="caption">+${yen(i.price)}</span>
       ${soldOut
         ? '<span class="badge badge-soldout">売り切れ</span>'

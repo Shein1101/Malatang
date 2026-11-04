@@ -2,6 +2,7 @@
 // Shared admin header: every admin/ page includes this first. Owner: Lin
 // It runs require_admin(), so non-admins are sent to admin/login.php.
 // admin/login.php sets $isLoginPage = true before including (no check, no nav).
+require_once __DIR__ . '/asset.php';  // asset_url(): CSS / JS の URL
 require_once __DIR__ . '/auth.php';
 if (empty($isLoginPage)) {
     require_admin();
@@ -25,9 +26,9 @@ $adminNav  = [
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= htmlspecialchars($pageTitle) ?></title>
   <!-- light / dark: set before paint so there is no flash -->
-  <script src="../assets/js/theme.js"></script>
+  <script src="<?= asset_url('assets/js/theme.js') ?>"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="<?= asset_url('assets/css/style.css') ?>">
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
