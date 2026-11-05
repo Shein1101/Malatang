@@ -226,26 +226,7 @@ if ($method === 'POST') {
         $items = $stmt->fetchAll();
     } else {
         // --- カスタマイズ画面から ---
-        require_fields($in, ['menu_id', 'soup_id']);
-        $bowl = [
-            'menu_id'        => (int) $in['menu_id'],
-            'has_soup'       => !array_key_exists('has_soup', $in) || (bool) $in['has_soup'],
-            'soup_id'        => (int) $in['soup_id'],
-            'spice_level_id' => empty($in['spice_level_id']) ? null : (int) $in['spice_level_id'],
-        ];
-
-        $items = [];
-        $seen  = [];
-        foreach ($in['items'] ?? [] as $it) {
-            $iid    = (int) ($it['ingredient_id'] ?? 0);
-            $action = $it['action'] ?? 'added';
-            $qty    = (int) ($it['quantity'] ?? 1);
-            if ($iid < 1 || !in_array($action, ['added', 'removed'], true) || $qty < 1 || isset($seen[$iid])) {
-                send_error('Invalid items', 400);
-            }
-            $seen[$iid] = true;
-            $items[] = ['ingredient_id' => $iid, 'action' => $action, 'quantity' => $qty];
-        }
+        [$bowl, $items] = bowl_from_input($in);
 
         // 存在しない menu・具材などはここで止める
         $check = bowl_price($pdo, $bowl, $items);

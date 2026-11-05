@@ -5,7 +5,7 @@
 --  Chilli 鍋 / 麻辣湯 EC site
 --  Sauce removed. 4 soups. Prices are INT in yen (円).
 --
---  Version 4 (Oct 20): 24 tables, 39 relationships. Payment = mock card only.
+--  Version 4 (Oct 20): 25 tables (+ home_blocks), 39 relationships. Payment = mock card only.
 --   * Wallet removed (can come back in M4)
 --   * Family & Friends = recipe sharing (as in the demo, slide 9):
 --     a customer shares a custom bowl with a friend or family member,
@@ -92,6 +92,25 @@ CREATE TABLE announcements (
 );
  
  
+-- Blocks on the home page (banner, discounts, ads, order) — edited on admin/home.php
+-- The base design is added by api/home.php when this table is empty
+CREATE TABLE home_blocks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    type ENUM('hero', 'notices', 'promo', 'ad', 'custom') NOT NULL,
+    title VARCHAR(100),
+    body TEXT,
+    badge VARCHAR(30),                        -- promo: e.g. '20% OFF'
+    image_url VARCHAR(500),
+    link_label VARCHAR(30),
+    link_url VARCHAR(500),
+    sort_order INT NOT NULL DEFAULT 0,
+    is_visible BOOLEAN NOT NULL DEFAULT TRUE,
+    start_date DATE NULL,                     -- NULL = show from now
+    end_date DATE NULL,                       -- NULL = show until turned off
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
 -- =====================================================================
 -- 3. CATEGORIES & INGREDIENTS                           [Myat]
 --    → Add / remove ingredients, Stock & sold-out switch,

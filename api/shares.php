@@ -5,6 +5,8 @@
 //   GET                         → 届いたレシピ (新しい順、今の値段つき)。読んだら new → seen
 //   GET    ?box=sent            → 送ったレシピ (相手が見たか・注文したか分かる)
 //   POST   { friend_id, favorite_id | order_bowl_id, message? }  → 友達にシェア
+//   POST   { friend_id, menu_id, has_soup, soup_id, spice_level_id, items, message? }
+//                               → カスタマイズ画面の bowl をそのままシェア (マイレシピには入らない)
 //   POST   ?action=cart&id=5    → 届いたレシピをカートに入れる (同じ内容で注文)
 //                                  注文すると order_bowls.shared_recipe_id が入り、trigger で status = ordered
 //   DELETE ?id=5                → 削除 (送った人・受け取った人どちらでも)
@@ -183,11 +185,16 @@ if (isset($in['favorite_id'])) {
         GROUP BY ingredient_id, action'
     );
     $stmt->execute([(int) $in['order_bowl_id']]);
+} elseif (isset($in['menu_id'])) {
+    // --- カスタマイズ画面から ---
+    [$bowl, $items] = bowl_from_input($in);
 } else {
-    send_error('Missing field: favorite_id or order_bowl_id', 400);
+    send_error('Missing field: favorite_id, order_bowl_id or menu_id', 400);
 }
-$items = $stmt->fetchAll();
-$bowl  = bowl_from_row($row);
+if (!isset($bowl)) {
+    $items = $stmt->fetchAll();
+    $bowl  = bowl_from_row($row);
+}
 
 // 相手が注文できない内容 (販売終了・売り切れなど) は送らない
 $check = bowl_price($pdo, $bowl, $items);

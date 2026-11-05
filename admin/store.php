@@ -8,7 +8,7 @@ include '../includes/admin_header.php';
 
 <main class="container">
   <h1>店舗ページ編集</h1>
-  <p class="caption">ここで変えた内容は、お客さんの <a href="../public/store.php" target="_blank">店舗ページ</a> にすぐ出ます。</p>
+  <p class="caption">ここで変えた内容は、お客さんの <a href="../public/info.php" target="_blank">店舗情報</a> にすぐ出ます。ホームのバナーや並び順は <a href="home.php">ホーム編集</a> で変えられます。</p>
   <p id="message"></p>
 
   <!-- ========== 1. お店の情報 ========== -->
@@ -194,6 +194,6 @@ window.addEventListener('load', loadAll);
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="../assets/js/app.js"></script>
+<script src="<?= asset_url('assets/js/app.js') ?>"></script>
 </body>
 </html>

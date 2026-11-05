@@ -226,6 +226,6 @@ window.addEventListener('load', function () {
   loadRecipes();
 });
 </script>
-<script src="../assets/js/share.js"></script>
+<script src="<?= asset_url('assets/js/share.js') ?>"></script>
 
 <?php include '../includes/footer.php'; ?>

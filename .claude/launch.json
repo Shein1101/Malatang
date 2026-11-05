@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "design-concepts-preview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8090", "--directory", "design-concepts"],
+      "port": 8090
+    },
+    {
+      "name": "malatang-site",
+      "runtimeExecutable": "php",
+      "runtimeArgs": ["-S", "localhost:8099", "-t", "."],
+      "port": 8099
+    }
+  ]
+}
