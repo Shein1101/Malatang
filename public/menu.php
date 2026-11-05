@@ -73,25 +73,44 @@ function customCta(m) {
     </a>`;
 }
 
+// いま画面に出している HTML (null = まだ一度も出していない)
+let shownHtml = null;
+
 // API から menu をもらって、カードを並べる
 async function loadMenus() {
   const res = await callApi('GET', '../api/menus.php');
   const list = document.getElementById('menuList');
   if (!res.success) {
+    if (shownHtml !== null) return;   // 自動更新の失敗: いまのカードを消さない (次の更新でまた読む)
     list.innerHTML = '';
     showError(document.getElementById('error'), res.error);
     return;
   }
-  document.getElementById('customCta').innerHTML = customCta(res.data.find(m => m.is_custom));
+  const cta = customCta(res.data.find(m => m.is_custom));
   let html = '';
   for (const m of res.data.filter(m => !m.is_custom)) {   // ready-made dish だけ
     html += menuCard(m);
   }
+  if (cta + html === shownHtml) return;   // 変わっていなければ作り直さない (写真がちらつかない)
+  shownHtml = cta + html;
+  document.getElementById('customCta').innerHTML = cta;
   list.innerHTML = html;
 }
 
 // app.js (callApi, yen) はフッターで読み込まれるので、ページを全部読んでから動かす
 window.addEventListener('load', loadMenus);
+
+// 自動で新しくする: owner が 残り を補充したら、再読み込みなしで 売り切れ が消える
+//   5 秒ごと (別のタブを見ているあいだは止める) / タブに戻ったとき / 「戻る」で来たとき
+setInterval(() => {
+  if (!document.hidden) loadMenus();
+}, 5000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) loadMenus();
+});
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) loadMenus();
+});
 </script>
 
 <?php include '../includes/footer.php'; ?>
