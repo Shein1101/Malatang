@@ -1,10 +1,12 @@
 <?php
 // public/friends.php — ファミリー&フレンズ. Owner: Lin (FEAT-20)
 // Screen only, NO SQL. Data comes from ../api/shares.php and ../api/friends.php
-// 1. 届いたレシピ: 友達・家族から届いた bowl → 同じ内容で注文 (カートへ)
-// 2. 友達リスト:   メールアドレスで追加。レシピを送れるのはこのリストの人だけ
-// 3. 送ったレシピ: 相手が見たか・注文したか
-// レシピを送るのは お気に入り / 注文履歴 の「友達にシェア」から (assets/js/share.js)
+// 最初に見えるのは 届いたレシピ: 友達・家族から届いた bowl → 同じ内容で注文 (カートへ)
+// ほかは右上の ☰ から (friends.php#sent / #add / #friends):
+//   送ったレシピ: 相手が見たか・注文したか
+//   友達を追加:   メールアドレスで追加。レシピを送れるのは友達リストの人だけ
+//   友達リスト:   呼び名を変える・外す
+// レシピを送るのは カスタマイズ / お気に入り / 注文履歴 の「友達にシェア」から (assets/js/share.js)
 // friends.php?share=5 → そのレシピを目立たせる (届いたレシピのリンク用)
 require_once '../includes/auth.php';
 require_login();
@@ -14,24 +16,43 @@ include '../includes/header.php';
 ?>
 
 <main class="container page">
-  <h1 class="title">ファミリー&フレンズ</h1>
-  <p class="caption">自分のカスタムを大切な人にシェア。届いたレシピは同じ内容でそのまま注文できます。</p>
+  <div class="ff-head">
+    <h1 class="title">ファミリー&フレンズ</h1>
+    <div class="ff-menu" id="ffMenu">
+      <button type="button" class="ff-menu-btn" id="ffMenuBtn" aria-label="メニューを開く" aria-expanded="false" aria-controls="ffMenuList">
+        <svg><use href="#i-burger"></use></svg>
+      </button>
+      <nav class="ff-menu-list" id="ffMenuList" aria-label="ファミリー&フレンズのメニュー" hidden>
+        <a href="#sent"><svg><use href="#i-receipt"></use></svg>送ったレシピ</a>
+        <a href="#add"><svg><use href="#i-mail"></use></svg>友達を追加</a>
+        <a href="#friends"><svg><use href="#i-users"></use></svg>友達リスト</a>
+      </nav>
+    </div>
+  </div>
 
   <div id="error" class="alert alert-danger d-none"></div>
   <div id="done" class="alert alert-success d-none">カートに入れました。<a href="cart.php">カートを見る →</a></div>
+  <div id="added" class="alert alert-success d-none"></div>
 
-  <!-- ========== 1. 届いたレシピ ========== -->
-  <section class="mb-5" id="inbox">
+  <a id="backBtn" class="btn btn-outline btn-sm mb-3" href="#" hidden>← 届いたレシピへ</a>
+
+  <!-- ========== 最初の画面: 届いたレシピ ========== -->
+  <section data-view="inbox">
     <h2 class="heading">届いたレシピ</h2>
-    <div id="inboxList" class="stack"><p>読み込み中…</p></div>
+    <div id="inboxList" class="stack"><p class="muted">読み込み中…</p></div>
   </section>
 
-  <!-- ========== 2. 友達リスト ========== -->
-  <section class="mb-5" id="friends">
-    <h2 class="heading">友達リスト</h2>
-    <p class="caption">相手の登録メールアドレスで追加します。レシピを送れるのは、このリストにいる人だけです。</p>
-    <ul id="friendList" class="list card px-3 mb-3"><li>読み込み中…</li></ul>
+  <!-- ========== ☰ 送ったレシピ ========== -->
+  <section data-view="sent" hidden>
+    <h2 class="heading">送ったレシピ</h2>
+    <p class="caption">カスタマイズ画面・お気に入り・注文履歴の「友達にシェア」から送れます。</p>
+    <div id="sentList" class="stack"><p class="muted">読み込み中…</p></div>
+  </section>
 
+  <!-- ========== ☰ 友達を追加 ========== -->
+  <section data-view="add" hidden>
+    <h2 class="heading">友達を追加</h2>
+    <p class="caption">相手の登録メールアドレスで追加します。レシピを送れるのは、友達リストにいる人だけです。</p>
     <form id="addForm" class="card card-body">
       <div class="grid-2">
         <div class="field">
@@ -53,11 +74,10 @@ include '../includes/header.php';
     </form>
   </section>
 
-  <!-- ========== 3. 送ったレシピ ========== -->
-  <section id="sent">
-    <h2 class="heading">送ったレシピ</h2>
-    <p class="caption">お気に入りや注文履歴の「友達にシェア」から送れます。</p>
-    <div id="sentList" class="stack"><p>読み込み中…</p></div>
+  <!-- ========== ☰ 友達リスト ========== -->
+  <section data-view="friends" hidden>
+    <h2 class="heading">友達リスト</h2>
+    <ul id="friendList" class="list card px-3"><li class="muted">読み込み中…</li></ul>
   </section>
 </main>
 
@@ -69,7 +89,53 @@ function esc(s) {
 function hideMessages() {
   document.getElementById('error').classList.add('d-none');
   document.getElementById('done').classList.add('d-none');
+  document.getElementById('added').classList.add('d-none');
 }
+
+// ==================== 画面の切り替え (URL の # で決まる。戻るボタンも使える) ====================
+const VIEWS = { '#sent': 'sent', '#add': 'add', '#friends': 'friends' };
+const menuBtn  = document.getElementById('ffMenuBtn');
+const menuList = document.getElementById('ffMenuList');
+
+function setMenu(open) {
+  menuList.hidden = !open;
+  menuBtn.setAttribute('aria-expanded', open);
+}
+
+function showView() {
+  const view = VIEWS[location.hash] || 'inbox';
+  document.querySelectorAll('[data-view]').forEach(s => { s.hidden = s.dataset.view !== view; });
+  document.getElementById('backBtn').hidden = view === 'inbox';
+  menuList.querySelectorAll('a').forEach(a => {
+    if (a.getAttribute('href') === location.hash) a.setAttribute('aria-current', 'page');
+    else a.removeAttribute('aria-current');
+  });
+  setMenu(false);
+}
+
+window.addEventListener('hashchange', () => {
+  showView();
+  window.scrollTo(0, 0);
+});
+menuBtn.addEventListener('click', () => setMenu(menuList.hidden));
+// 外を押す / Esc で閉じる
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#ffMenu')) setMenu(false);
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !menuList.hidden) {
+    setMenu(false);
+    menuBtn.focus();
+  }
+});
+// 「← 届いたレシピへ」: # を消す
+document.getElementById('backBtn').addEventListener('click', (e) => {
+  e.preventDefault();
+  hideMessages();
+  history.pushState(null, '', location.pathname + location.search);
+  showView();
+  window.scrollTo(0, 0);
+});
 
 function dateText(s) {
   return String(s).slice(0, 16).replace(/-/g, '/');
@@ -132,6 +198,7 @@ async function loadInbox() {
       <div class="empty">
         <svg><use href="#i-users"></use></svg>
         <p>まだ届いたレシピはありません。<br>友達にあなたのメールアドレスを教えて、追加してもらいましょう。</p>
+        <a class="btn btn-outline btn-sm" href="#add">友達を追加する</a>
       </div>`;
     return;
   }
@@ -198,7 +265,7 @@ async function loadFriends() {
   friends = res.data;
   list.innerHTML = friends.length
     ? friends.map(friendRow).join('')
-    : '<li class="caption">まだいません。下のフォームから追加できます。</li>';
+    : '<li class="caption">まだいません。<a href="#add">友達を追加する →</a></li>';
 }
 
 document.getElementById('addForm').addEventListener('submit', async function (e) {
@@ -217,7 +284,12 @@ document.getElementById('addForm').addEventListener('submit', async function (e)
     return;
   }
   this.reset();
-  loadFriends();
+  await loadFriends();
+  // 追加できたら リストで確かめられるように
+  location.hash = '#friends';
+  const added = document.getElementById('added');
+  added.textContent = '友達リストに追加しました。';
+  added.classList.remove('d-none');
 });
 
 document.getElementById('friendList').addEventListener('click', async function (e) {
@@ -294,6 +366,7 @@ document.getElementById('sentList').addEventListener('click', async function (e)
 });
 
 window.addEventListener('load', function () {
+  showView();
   loadInbox();
   loadFriends();
   loadSent();

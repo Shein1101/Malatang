@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Concepts — Chilli 鍋</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box} body{margin:0;background:#F4F1EE;color:#222;font-family:"Noto Sans JP",sans-serif;padding:48px 24px}
+  .wrap{max-width:980px;margin:0 auto}
+  h1{font-size:26px;margin:0 0 6px}
+  p.lead{color:#666;margin:0 0 36px;font-size:14px;max-width:46em}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+  a.card{display:block;background:#fff;border-radius:16px;padding:24px;text-decoration:none;color:#222;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid #eee;transition:transform .15s}
+  a.card:hover{transform:translateY(-3px)}
+  .swatch{display:flex;gap:6px;margin-bottom:14px}
+  .swatch span{width:28px;height:28px;border-radius:6px}
+  .label{font-size:11px;letter-spacing:.1em;color:#999;margin-bottom:6px}
+  h2{font-size:17px;margin:0 0 8px}
+  .card p{font-size:13px;color:#666;margin:0}
+  @media(max-width:700px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Chilli 鍋 — デザインコンセプト比較</h1>
+  <p class="lead">4つの方向性のプロトタイプです。既存サイトのコード・DBには一切触れていません。
+  各カードを開いて比較してください。詳しい説明は <code>concepts.md</code> を参照。</p>
+  <div class="grid">
+    <a class="card" href="a-japanese-modern.html">
+      <div class="swatch"><span style="background:#C8261B"></span><span style="background:#B8860B"></span><span style="background:#FAF6F2;border:1px solid #ddd"></span></div>
+      <div class="label">CONCEPT A</div>
+      <h2>Japanese Modern（和モダン）</h2>
+      <p>落ち着いた本格派レストラン。現在のテイストを上質に洗練。</p>
+    </a>
+    <a class="card" href="b-food-delivery.html">
+      <div class="swatch"><span style="background:#FF4B3E"></span><span style="background:#FFC700"></span><span style="background:#F7F7F8;border:1px solid #ddd"></span></div>
+      <div class="label">CONCEPT B</div>
+      <h2>Modern Food Delivery</h2>
+      <p>Uber Eats的な速さ・使いやすさ。常連のモバイル注文に最適。</p>
+    </a>
+    <a class="card" href="c-premium-asian.html">
+      <div class="swatch"><span style="background:#8B1E1E"></span><span style="background:#C9A05C"></span><span style="background:#15100F"></span></div>
+      <div class="label">CONCEPT C</div>
+      <h2>Premium Asian Restaurant</h2>
+      <p>ダークで重厚、ブランド重視。アプリではなく「店」の佇まい。</p>
+    </a>
+    <a class="card" href="d-friendly-casual.html">
+      <div class="swatch"><span style="background:#FF8A3D"></span><span style="background:#5BA85B"></span><span style="background:#FFF8EC;border:1px solid #ddd"></span></div>
+      <div class="label">CONCEPT D</div>
+      <h2>Friendly Japanese Casual</h2>
+      <p>明るく親しみやすい。はじめての方にも分かりやすいガイド付き。</p>
+    </a>
+  </div>
+</div>
+</body>
+</html>

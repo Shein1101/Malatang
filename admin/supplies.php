@@ -58,23 +58,28 @@ include '../includes/admin_header.php';
 
   <!-- しぼりこみ (全部 / 残りわずか / なくなった) + 検索 -->
   <h2 class="h5" id="listTitle">一覧</h2>
-  <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-    <div class="tabs">
-      <button type="button" class="tab is-active" data-filter="all">全部</button>
-      <button type="button" class="tab" data-filter="low">残りわずか</button>
-      <button type="button" class="tab" data-filter="out">なくなった</button>
+  <div class="adm-filter">
+    <div class="tabs" id="catTabs" aria-label="カテゴリ"></div>
+    <div class="adm-filter-row">
+      <div class="tabs">
+        <button type="button" class="tab is-active" data-filter="all">状態: すべて</button>
+        <button type="button" class="tab" data-filter="low">残りわずか</button>
+        <button type="button" class="tab" data-filter="out">なくなった</button>
+      </div>
+      <input id="search" type="search" class="form-control" style="max-width:260px"
+             placeholder="検索 (例: しお、すぷーん)" autocomplete="off">
+      <span id="searchCount" class="text-muted small"></span>
     </div>
-    <input id="search" type="search" class="form-control" style="max-width:260px"
-           placeholder="検索 (例: しお、すぷーん)" autocomplete="off">
-    <span id="searchCount" class="text-muted small"></span>
   </div>
 
-  <table class="table align-middle">
-    <thead>
-      <tr><th>カテゴリ</th><th>名前</th><th>数</th><th>最低数</th><th>メモ</th><th></th></tr>
-    </thead>
-    <tbody id="list"><tr><td colspan="6">読み込み中…</td></tr></tbody>
-  </table>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr><th>名前</th><th>数</th><th>最低数</th><th>メモ</th><th></th></tr>
+      </thead>
+      <tbody id="list"><tr><td colspan="5">読み込み中…</td></tr></tbody>
+    </table>
+  </div>
 </main>
 
 <script>
@@ -108,16 +113,26 @@ async function loadList() {
     return;
   }
 
+  // カテゴリごとにまとめて並べる
+  const cats = [...new Set(res.data.map(s => s.category))];
+  const sorted = cats.flatMap(c => res.data.filter(s => s.category === c));
+  const alerts = {};
+
   let rows = '';
+  let lastCat = null;
   let countLow = 0, countOut = 0;
-  for (const s of res.data) {
+  for (const s of sorted) {
+    if (s.category !== lastCat) {
+      lastCat = s.category;
+      rows += `<tr class="cat-row" data-cat="${esc(lastCat)}"><th colspan="5">${esc(lastCat)}</th></tr>`;
+    }
     const state = stateOf(s);
     if (state === 'out') countOut++;
     if (state === 'low') countLow++;
+    if (state !== 'ok') alerts[s.category] = (alerts[s.category] || 0) + 1;
     const red = state === 'ok' ? '' : 'border-danger text-danger';
     rows += `
-      <tr data-state="${state}" data-search="${esc(normalize(s.name + ' ' + s.category + ' ' + (s.note ?? '')))}">
-        <td>${esc(s.category)}</td>
+      <tr data-state="${state}" data-cat="${esc(s.category)}" data-search="${esc(normalize(s.name + ' ' + s.category + ' ' + (s.note ?? '')))}">
         <td>${esc(s.name)}</td>
         <td class="text-nowrap">
           <input type="number" min="0" step="0.1" class="form-control form-control-sm d-inline-block ${red}" style="width:90px"
@@ -132,13 +147,53 @@ async function loadList() {
         <td><button class="btn btn-sm btn-ghost" data-delete="${s.id}" data-name="${esc(s.name)}">削除</button></td>
       </tr>`;
   }
-  document.getElementById('list').innerHTML = rows || '<tr><td colspan="6" class="text-muted">まだありません</td></tr>';
+  document.getElementById('list').innerHTML = rows || '<tr><td colspan="5" class="text-muted">まだありません</td></tr>';
   document.getElementById('countLow').textContent = countLow;
   document.getElementById('countOut').textContent = countOut;
+  catList = cats.map(name => ({
+    name,
+    count: res.data.filter(s => s.category === name).length,
+    alerts: alerts[name] || 0,
+  }));
+  if (category !== 'all' && !cats.includes(category)) setCategory(cats[0] ?? 'all');
   filterList();   // 保存して表を作り直しても、しぼりこみ・検索はそのまま
 }
 
-// 2. 今のしぼりこみ (all / low / out) と検索の文字に合う行だけ見せる
+// 2. カテゴリのタブ。今のカテゴリは覚えておく (ページを開き直しても同じ所)
+let catList = [];
+let category = savedCategory();
+function savedCategory() {
+  try {
+    return sessionStorage.getItem('suppliesCategory') || '';
+  } catch (e) {
+    return '';
+  }
+}
+function setCategory(name) {
+  category = name;
+  try {
+    sessionStorage.setItem('suppliesCategory', name);
+  } catch (e) {
+    // 覚えられなくても 切り替えは動く
+  }
+}
+function renderCatTabs(searching) {
+  const tab = (key, label, count, alerts) => `
+    <button type="button" class="tab ${!searching && category === key ? 'is-active' : ''}" data-cat="${esc(key)}">${esc(label)}<span class="tab-count">${count}</span>${alerts ? `<span class="tab-alert" title="残りわずか・なくなった">${alerts}</span>` : ''}</button>`;
+  document.getElementById('catTabs').innerHTML =
+    catList.map(c => tab(c.name, c.name, c.count, c.alerts)).join('')
+    + tab('all', '全部', catList.reduce((n, c) => n + c.count, 0), catList.reduce((n, c) => n + c.alerts, 0));
+}
+document.getElementById('catTabs').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-cat]');
+  if (!btn) return;
+  setCategory(btn.dataset.cat);
+  document.getElementById('search').value = '';
+  filterList();
+});
+
+// 今のカテゴリ・しぼりこみ (all / low / out)・検索の文字に合う行だけ見せる
+// 検索しているときは 全部のカテゴリから探す
 let filter = 'all';
 function filterList() {
   const word = normalize(document.getElementById('search').value);
@@ -146,16 +201,22 @@ function filterList() {
   let shown = 0;
   rows.forEach(tr => {
     const hit = (filter === 'all' || tr.dataset.state === filter)
-             && (word === '' || tr.dataset.search.includes(word));
+             && (word !== '' ? tr.dataset.search.includes(word) : (category === 'all' || tr.dataset.cat === category));
     tr.hidden = !hit;
     if (hit) shown++;
   });
+  // カテゴリの見出し: 2つ以上のカテゴリが見えるときだけ
+  document.querySelectorAll('#list .cat-row').forEach(head => {
+    const any = [...rows].some(tr => !tr.hidden && tr.dataset.cat === head.dataset.cat);
+    head.hidden = !any || (word === '' && category !== 'all');
+  });
+  renderCatTabs(word !== '');
 
   const empty = document.getElementById('noResult');
   if (shown === 0 && rows.length > 0) {
     if (!empty) {
       document.getElementById('list').insertAdjacentHTML('beforeend',
-        '<tr id="noResult"><td colspan="6" class="text-muted">該当する物はありません</td></tr>');
+        '<tr id="noResult"><td colspan="5" class="text-muted">該当する物はありません</td></tr>');
     }
   } else if (empty) {
     empty.remove();
@@ -171,6 +232,8 @@ document.querySelectorAll('[data-filter]').forEach(btn => {
     filter = btn.dataset.filter;
     document.querySelectorAll('.tab[data-filter]').forEach(t =>
       t.classList.toggle('is-active', t.dataset.filter === filter));
+    // 残りわずか・なくなった は 全部のカテゴリから見る
+    if (filter !== 'all') setCategory('all');
     filterList();
     if (!btn.classList.contains('tab')) {
       document.getElementById('listTitle').scrollIntoView({ behavior: 'smooth' });
@@ -211,6 +274,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   });
   if (res.success) {
     say(`「${form.name.value}」を追加しました`, true);
+    setCategory(form.category.value);   // 追加した物が見えるように
     form.name.value = '';
     form.quantity.value = 0;
     form.min_quantity.value = 0;
@@ -224,6 +288,6 @@ window.addEventListener('load', loadList);
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="../assets/js/app.js"></script>
+<script src="<?= asset_url('assets/js/app.js') ?>"></script>
 </body>
 </html>

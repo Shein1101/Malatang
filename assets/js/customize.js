@@ -32,6 +32,7 @@ const state = {
   picks: new Set(),    // お気に入りの具材の id
   recipes: [],         // マイレシピ (GET favorites.php)
   recipeId: null,      // マイレシピから始めたとき、その id
+  favOpen: false,      // お気に入りのドロップダウンを お客さんが開いたか
 };
 
 const MAX_EXTRA = 10;  // 具材1つの最大個数 (api/cart.php と同じ)
@@ -157,14 +158,11 @@ function applyRecipe(r) {
 function renderStatic() {
   const m = state.menu;
   $('menuName').textContent = m.name;
-  $('menuDesc').textContent = m.description || '';
-  $('menuPrice').textContent = yen(m.price);
   document.title = m.name + ' | Chilli 鍋';
 
-  // 自分で作る ⇔ メニューから選ぶ
-  $('modeLink').innerHTML = m.is_custom
-    ? 'おすすめの組み合わせから始めるなら → <a href="menu.php">メニューから選ぶ</a>'
-    : '一から全部選びたいなら → <a href="customize.php">自分で作る</a>';
+  // 行き先がわかるボタン (自分で作る ⇔ メニュー)
+  $('modeLink').innerHTML = '<a class="btn btn-outline btn-sm" href="menu.php">← メニュー一覧へ</a>'
+    + (m.is_custom ? '' : '<a class="btn btn-outline btn-sm" href="customize.php">一から自分で作る →</a>');
 
   // 最初から入っている具材
   if (m.ingredients.length === 0) {
@@ -182,6 +180,7 @@ function renderStatic() {
   // マイレシピ / guest への案内
   $('recipeBox').classList.toggle('d-none', !state.loggedIn || state.recipes.length === 0);
   $('saveRecipe').classList.toggle('d-none', !state.loggedIn);
+  $('shareRecipe').classList.toggle('d-none', !state.loggedIn);
   $('loginHint').classList.toggle('d-none', state.loggedIn);
   $('loginHint').querySelector('a').href = 'login.php?redirect=' + encodeURIComponent('customize.php' + location.search);
   renderRecipes();
@@ -191,6 +190,8 @@ function renderStatic() {
 
 // マイレシピのチップ (押すと そのレシピで作り直す)
 function renderRecipes() {
+  const current = state.recipes.find(r => r.id === state.recipeId);
+  $('recipeCount').textContent = current ? (current.nickname || current.menu_name) + ' を選択中' : state.recipes.length + '件';
   $('recipeChips').innerHTML = state.recipes.map(r => {
     const name = esc(r.nickname || r.menu_name);
     const selected = r.id === state.recipeId;
@@ -202,21 +203,37 @@ function renderRecipes() {
   }).join('');
 }
 
-// 具材1行 (お気に入りの所とカテゴリの所で同じものを使う)
+// 写真がないときの丸の色 (カテゴリで決まる)
+function ingArt(category) {
+  const name = String(category || '');
+  if (/野菜/.test(name)) return 'linear-gradient(135deg,#9bbf6b,#3c5a2e)';
+  if (/きのこ/.test(name)) return 'linear-gradient(135deg,#e7c08a,#b98a4a)';
+  if (/肉/.test(name)) return 'linear-gradient(135deg,#d99a6d,#8a4a2a)';
+  if (/海鮮|魚/.test(name)) return 'linear-gradient(135deg,#7fb0c4,#1d3a4a)';
+  return 'linear-gradient(135deg,#e2c98a,#a5802c)';
+}
+
+// 具材1枚 (丸い写真 + 名前 + 値段 + − 1 +。お気に入りの所とカテゴリの所で同じものを使う)
 function extraRow(i) {
   const soldOut = !i.is_available || i.stock <= 0;
+  const qty = state.added.get(i.id) || 0;
   const heart = state.loggedIn
     ? `<button type="button" class="icon-btn" data-pick="${i.id}" aria-pressed="${state.picks.has(i.id)}"
          aria-label="${esc(i.name)}をお気に入り${state.picks.has(i.id) ? 'から外す' : 'に追加'}">${state.picks.has(i.id) ? '♥' : '♡'}</button>`
     : '';
+  const photo = i.image_url ? `<img src="${esc(i.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : '';
   return `
-    <li class="${soldOut ? 'cz-soldout' : ''}" data-name="${esc(normalize(i.name + ' ' + i.category_name))}">
-      <div class="d-flex align-items-center gap-1">${heart}<div>${esc(i.name)}${portionText(i.portion)}<div class="caption">+${yen(i.price)}</div></div></div>
+    <li class="ing-tile ${soldOut ? 'is-soldout' : ''} ${qty > 0 ? 'is-added' : ''}" data-name="${esc(normalize(i.name + ' ' + i.category_name))}">
+      ${heart}
+      <div class="ing-photo" style="background:${ingArt(i.category_name)}">${photo}</div>
+      <span class="ing-name">${esc(i.name)}</span>
+      ${i.portion ? `<span class="ing-portion">1つ ${esc(i.portion)}</span>` : ''}
+      <span class="caption">+${yen(i.price)}</span>
       ${soldOut
         ? '<span class="badge badge-soldout">売り切れ</span>'
         : `<div class="stepper">
              <button type="button" data-extra="${i.id}" data-step="-1" aria-label="${esc(i.name)}を減らす">−</button>
-             <output data-out="${i.id}">0</output>
+             <output data-out="${i.id}">${qty}</output>
              <button type="button" data-extra="${i.id}" data-step="1" aria-label="${esc(i.name)}を増やす">+</button>
            </div>`}
     </li>`;
@@ -244,7 +261,7 @@ function renderExtras() {
        </div>`
     : '';
   for (const [cat, items] of groups) {
-    html += `<div data-cat-group="${esc(cat)}"><p class="caption"><b>${esc(cat)}</b></p><ul class="list">${items.map(extraRow).join('')}</ul></div>`;
+    html += `<div data-cat-group="${esc(cat)}"><p class="caption"><b>${esc(cat)}</b></p><ul class="ing-grid">${items.map(extraRow).join('')}</ul></div>`;
   }
   $('extraList').innerHTML = html || '<p class="caption">追加できる具材はありません</p>';
   applySearch();
@@ -263,8 +280,10 @@ function applySearch() {
   document.querySelectorAll('#extraList [data-cat-group]').forEach(g => {
     g.classList.toggle('d-none', !g.querySelector('li:not(.d-none)'));
   });
+  // お気に入りはドロップダウン。検索で見つかったときだけ自動で開く
   const favVisible = $('favList').querySelector('li:not(.d-none)');
   $('favBox').classList.toggle('d-none', !favVisible);
+  $('favBox').open = q !== '' ? Boolean(favVisible) : state.favOpen;
 
   $('noHitWord').textContent = $('ingSearch').value;
   $('noHit').classList.toggle('d-none', q === '' || hits > 0);
@@ -284,12 +303,24 @@ function render() {
 
   // 同じ具材がお気に入りとカテゴリの2か所にあるので、両方の個数を変える
   document.querySelectorAll('[data-out]').forEach(out => {
-    out.textContent = state.added.get(Number(out.dataset.out)) || 0;
+    const qty = state.added.get(Number(out.dataset.out)) || 0;
+    out.textContent = qty;
+    const tile = out.closest('.ing-tile');
+    if (tile) tile.classList.toggle('is-added', qty > 0);
   });
   renderCatTabs();
+  renderFavCount();
   $('qty').textContent = state.quantity;
 
   renderPrice();
+}
+
+// 閉じていても 何件あって 何個入れたか わかるように
+function renderFavCount() {
+  let inBowl = 0;
+  for (const id of state.picks) inBowl += state.added.get(id) || 0;
+  const count = state.extras.filter(i => state.picks.has(i.id)).length;
+  $('favCount').textContent = count + '件' + (inBowl > 0 ? ` ・ ${inBowl}個 追加中` : '');
 }
 
 // 具材のカテゴリタブ: 選んだタブを赤く、そのカテゴリだけ見せる、追加した個数を出す [Myat]
@@ -343,13 +374,23 @@ function calcPrice() {
   return { lines, unit, total: unit * state.quantity };
 }
 
+function bump(el) {
+  el.classList.remove('is-bump');
+  void el.offsetWidth;                         // アニメーションをもう一度始めるため
+  el.classList.add('is-bump');
+}
+
 function renderPrice() {
   const p = calcPrice();
   let html = p.lines.map(([name, price]) => `<li><span>${esc(name)}</span><span>${yen(price)}</span></li>`).join('');
   html += `<li><b>1杯</b><b>${yen(p.unit)}</b></li>`;
   $('priceLines').innerHTML = html;
+  if ($('total').textContent !== yen(p.total)) {   // 金額が変わったら ぴょんと動く
+    bump($('total'));
+  }
   $('total').textContent = yen(p.total);
   $('addToCart').disabled = state.soupId === null;
+  $('shareRecipe').disabled = state.soupId === null;
 }
 
 // ---------- 5. クリックをまとめて受け取る ----------
@@ -367,6 +408,18 @@ document.addEventListener('click', (e) => {
   }
   if (b.id === 'saveRecipe') {
     saveRecipe();
+    return;
+  }
+
+  // 今の bowl を友達に送る (ダイアログは share.js)
+  if (b.id === 'shareRecipe') {
+    openShareDialog({
+      menu_id: state.menu.id,
+      has_soup: state.hasSoup,
+      soup_id: state.soupId,
+      spice_level_id: state.spiceId,
+      items: bowlItems(),
+    }, state.menu.name);
     return;
   }
 
@@ -400,6 +453,9 @@ document.addEventListener('change', (e) => {
 
 // 具材の検索 (打つたびに絞り込む)
 $('ingSearch').addEventListener('input', applySearch);
+
+// お客さんが開け閉めした状態を覚える (検索が終わったら元に戻す)
+$('favBox').querySelector('summary').addEventListener('click', () => { state.favOpen = !$('favBox').open; });
 
 // ---------- 6. お気に入り (Lin) ----------
 // ♡ / ♥ : お気に入りの具材に入れる・外す (api/favorites.php?type=ingredient)
