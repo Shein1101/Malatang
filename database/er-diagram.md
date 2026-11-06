@@ -1,6 +1,6 @@
 # Malatang EC - ER Diagram
 
-25 tables · 40 relationships (malatang_ec, version 4 — Oct 20, 2026)
+26 tables · 41 relationships (malatang_ec, version 4 — Oct 20, 2026)
 
 ```mermaid
 erDiagram
@@ -18,6 +18,7 @@ erDiagram
     MENUS ||--o{ RECIPE_SHARES : chosen_in
     USERS ||--o{ RECIPE_SHARES : receives
     USERS ||--o{ RECIPE_SHARES : sends
+    USERS ||--o{ PASSWORD_RESETS : resets
     SOUPS ||--o{ RECIPE_SHARES : flavor_of
     SPICE_LEVELS |o--o{ RECIPE_SHARES : spice_of
     INGREDIENTS ||--o{ RECIPE_SHARE_INGREDIENTS : used_in
@@ -59,6 +60,15 @@ erDiagram
         enum role
         timestamp created_at
         timestamp updated_at
+    }
+
+    PASSWORD_RESETS {
+        int id PK
+        int user_id FK
+        char token_hash UK
+        datetime expires_at
+        datetime used_at
+        timestamp created_at
     }
 
     FAVORITES {

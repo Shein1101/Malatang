@@ -39,6 +39,8 @@ include '../includes/header.php';
       <button type="submit" class="btn btn-chili btn-block">ログイン <span class="arrow"></span></button>
     </form>
 
+    <p class="caption mt-2 text-center"><a href="forgot.php">パスワードをお忘れですか？</a></p>
+
     <div class="divider">または</div>
 
     <div class="stack-sm">
