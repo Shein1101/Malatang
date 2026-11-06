@@ -150,6 +150,82 @@ case 'me':
     send_json($user);
     break;
 
+case 'forgot':
+    // パスワードをお忘れですか: メールアドレス → 再設定リンクを作る
+    // option B: メールは送らず、画面にリンクを返す (ローカル・テスト用)
+    require_method('POST');
+    $in = read_json();
+    require_fields($in, ['email']);
+    $email = trim($in['email']);
+
+    $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
+    $stmt->execute([$email]);
+    $user = $stmt->fetch();
+
+    // 本物のメール送信なら「登録があるか」は隠すが、画面に出す方式なので
+    // 登録がなければ reset_path = null を返して画面でそれを伝える
+    if (!$user) {
+        send_json(['reset_path' => null]);
+    }
+
+    // 新しいリンクを作る前に、その人の未使用リンクを無効にする (有効なのは最新の1本だけ)
+    $stmt = $pdo->prepare('DELETE FROM password_resets WHERE user_id = ? AND used_at IS NULL');
+    $stmt->execute([(int)$user['id']]);
+
+    $token      = bin2hex(random_bytes(32));            // リンクに入る秘密 (64文字)
+    $token_hash = hash('sha256', $token);               // DB にはハッシュだけ保存 (元に戻せない)
+    $expires    = date('Y-m-d H:i:s', time() + 3600);   // 1時間で期限切れ
+
+    $stmt = $pdo->prepare('INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?, ?, ?)');
+    $stmt->execute([(int)$user['id'], $token_hash, $expires]);
+
+    send_json(['reset_path' => 'reset.php?token=' . $token]);
+    break;
+
+case 'reset':
+    // GET  ?token=   リンクがまだ有効か確かめる (reset.php がフォームを出す前)
+    // POST {token, password}   新しいパスワードに変える
+    $method = require_method('GET', 'POST');
+    $in = ($method === 'POST') ? read_json() : [];
+    $token = (string)($in['token'] ?? ($_GET['token'] ?? ''));
+    if ($token === '') {
+        send_error('リンクが正しくありません', 400);
+    }
+    $token_hash = hash('sha256', $token);
+
+    $stmt = $pdo->prepare(
+        'SELECT id, user_id FROM password_resets
+         WHERE token_hash = ? AND used_at IS NULL AND expires_at > NOW()'
+    );
+    $stmt->execute([$token_hash]);
+    $row = $stmt->fetch();
+
+    if (!$row) {
+        send_error('リンクが無効か、期限が切れています。もう一度やり直してください。', 400);
+    }
+
+    if ($method === 'GET') {
+        send_json(['valid' => true]);
+    }
+
+    // POST: 新しいパスワード
+    require_fields($in, ['password']);
+    if (strlen($in['password']) < 8) {
+        send_error('パスワードは8文字以上で入力してください', 400);
+    }
+    $new_hash = password_hash($in['password'], PASSWORD_DEFAULT);
+
+    $pdo->beginTransaction();
+    $stmt = $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
+    $stmt->execute([$new_hash, (int)$row['user_id']]);
+    // このリンクは使用済みにする (二度は使えない)
+    $stmt = $pdo->prepare('UPDATE password_resets SET used_at = NOW() WHERE id = ?');
+    $stmt->execute([(int)$row['id']]);
+    $pdo->commit();
+
+    send_json(['reset' => true]);
+    break;
+
 default:
     send_error('Invalid action', 400);
 }
