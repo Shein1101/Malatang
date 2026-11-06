@@ -712,29 +712,44 @@ body.has-tabbar { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bot
 }
 
 /* ---------- 19. Family & Friends: ☰ menu ---------- */
-.ff-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
-.ff-head .title { margin: 0; min-width: 0; }
-.ff-menu { position: relative; flex: none; }
-.ff-menu-btn {
-  display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
-  background: var(--soft); color: var(--ink); border: 0; border-radius: 50%; cursor: pointer;
-}
-.ff-menu-btn:hover, .ff-menu-btn[aria-expanded="true"] { background: var(--chili-soft); color: var(--chili); }
-.ff-menu-btn svg { width: 22px; height: 22px; }
-.ff-menu-list {
-  position: absolute; top: calc(100% + 8px); right: 0; z-index: 40;
-  display: grid; width: 220px; padding: 8px;
+/* Header account menu: one button holds お気に入り・注文履歴・ファミリー&フレンズ・ログアウト */
+.acct { position: relative; }
+.acct-list {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 60;
+  display: grid; width: 230px; padding: 8px;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow);
 }
-.ff-menu-list[hidden] { display: none; }
-.ff-menu-list a {
-  display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 12px;
+.acct-list[hidden] { display: none; }
+/* override the round 40px icon shape that .header-icons a forces */
+.acct-list a {
+  display: flex; align-items: center; justify-content: flex-start; gap: 12px;
+  width: 100%; height: auto; min-height: 44px; padding: 0 12px;
   border-radius: var(--radius); color: var(--ink); font-weight: 700;
 }
-.ff-menu-list a:hover { background: var(--soft); text-decoration: none; }
-.ff-menu-list a[aria-current="page"] { color: var(--chili); }
-.ff-menu-list svg { width: 20px; height: 20px; flex: none; }
-#backBtn[hidden] { display: none; }
+.acct-list a:hover { background: var(--soft); color: var(--ink); text-decoration: none; }
+.acct-list svg { width: 20px; height: 20px; flex: none; }
+
+/* Family & Friends: section tabs (replaced the old ☰ menu, so it never clashes with the header menu) */
+.ff-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 24px; }
+.ff-tabs a {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px;
+  background: var(--soft); color: var(--ink); border-radius: var(--radius-pill); font-weight: 700; font-size: 14px;
+}
+.ff-tabs a:hover { background: var(--chili-soft); color: var(--chili); text-decoration: none; }
+.ff-tabs a.is-active { background: var(--chili); color: #fff; }
+.ff-tabs svg { width: 18px; height: 18px; flex: none; }
+
+/* 通知バッジ: 友達から届いたレシピの数 (ヘッダーの人アイコン・マイページのタブ) */
+.share-count {
+  position: absolute; top: 2px; right: 2px; z-index: 1;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  place-items: center;
+  background: var(--chili); color: #fff;
+  border-radius: var(--radius-pill); font-size: 10px; font-weight: 700; line-height: 1;
+}
+.acct-btn { position: relative; }
+.tabbar a { position: relative; }
+.tabbar .share-count { top: 6px; left: 50%; right: auto; margin-left: 4px; }
 
 /* ---------- 20. Responsive ---------- */
 @media (min-width: 900px) {

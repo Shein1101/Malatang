@@ -60,10 +60,19 @@ $tab = function (array $pages) use ($current) {
     <a class="cart-btn" href="cart.php" aria-label="カート"><svg><use href="#i-cart"></use></svg><span class="cart-btn-label">カート</span><span class="cart-count" style="display:none"></span></a>
     <div class="header-icons">
       <?php if ($loggedIn): ?>
-      <a class="hide-phone" href="favorites.php" aria-label="お気に入り"><svg><use href="#i-heart"></use></svg></a>
-      <a class="hide-phone" href="history.php" aria-label="注文履歴"><svg><use href="#i-receipt"></use></svg></a>
-      <a class="hide-phone" href="friends.php" aria-label="ファミリー&フレンズ"><svg><use href="#i-users"></use></svg></a>
-      <a class="hide-phone" href="logout.php" aria-label="ログアウト"><svg><use href="#i-logout"></use></svg></a>
+      <!-- アカウントメニュー: お気に入り・注文履歴・ファミリー&フレンズ・ログアウトを1つにまとめる。開け閉めは app.js -->
+      <div class="acct hide-phone" id="acctMenu">
+        <button class="acct-btn" id="acctBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="acctList" aria-label="アカウントメニュー">
+          <svg><use href="#i-user"></use></svg>
+          <span class="share-count" style="display:none" aria-hidden="true"></span>
+        </button>
+        <nav class="acct-list" id="acctList" aria-label="アカウント" hidden>
+          <a href="favorites.php"><svg><use href="#i-heart"></use></svg>お気に入り</a>
+          <a href="history.php"><svg><use href="#i-receipt"></use></svg>注文履歴</a>
+          <a href="friends.php"><svg><use href="#i-users"></use></svg>ファミリー&フレンズ</a>
+          <a href="logout.php"><svg><use href="#i-logout"></use></svg>ログアウト</a>
+        </nav>
+      </div>
       <?php else: ?>
       <a class="hide-phone" href="login.php" aria-label="ログイン"><svg><use href="#i-user"></use></svg></a>
       <?php endif; ?>
@@ -81,7 +90,7 @@ $tab = function (array $pages) use ($current) {
     <li><a<?= $tab(['info.php']) ?> href="info.php"><svg><use href="#i-store"></use></svg>店舗情報</a></li>
     <li><a<?= $tab(['cart.php', 'checkout.php', 'payment.php']) ?> href="cart.php"><svg><use href="#i-cart"></use></svg>カート</a></li>
     <?php if ($loggedIn): ?>
-    <li><a<?= $tab(['mypage.php', 'history.php', 'favorites.php', 'friends.php']) ?> href="mypage.php"><svg><use href="#i-user"></use></svg>マイページ</a></li>
+    <li><a<?= $tab(['mypage.php', 'history.php', 'favorites.php', 'friends.php']) ?> href="mypage.php"><svg><use href="#i-user"></use></svg><span class="share-count" style="display:none" aria-hidden="true"></span>マイページ</a></li>
     <?php else: ?>
     <li><a<?= $tab(['login.php', 'signup.php']) ?> href="login.php"><svg><use href="#i-user"></use></svg>ログイン</a></li>
     <?php endif; ?>

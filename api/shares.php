@@ -49,6 +49,13 @@ function share_items(PDO $pdo, array $share_ids): array {
 
 // ========== GET: 届いたレシピ / 送ったレシピ ==========
 if ($method === 'GET') {
+    // 通知用: 届いたレシピの未読 (new) の数だけ返す。status は変えない (ポーリングで呼ぶため)
+    if (($_GET['action'] ?? '') === 'count') {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM recipe_shares WHERE receiver_id = ? AND status = 'new'");
+        $stmt->execute([$user_id]);
+        send_json(['count' => (int) $stmt->fetchColumn()]);
+    }
+
     $sent = ($_GET['box'] ?? '') === 'sent';
 
     // 相手の名前: 自分のリストで付けた呼び名があればそれ

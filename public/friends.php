@@ -16,25 +16,19 @@ include '../includes/header.php';
 ?>
 
 <main class="container page">
-  <div class="ff-head">
-    <h1 class="title">ファミリー&フレンズ</h1>
-    <div class="ff-menu" id="ffMenu">
-      <button type="button" class="ff-menu-btn" id="ffMenuBtn" aria-label="メニューを開く" aria-expanded="false" aria-controls="ffMenuList">
-        <svg><use href="#i-burger"></use></svg>
-      </button>
-      <nav class="ff-menu-list" id="ffMenuList" aria-label="ファミリー&フレンズのメニュー" hidden>
-        <a href="#sent"><svg><use href="#i-receipt"></use></svg>送ったレシピ</a>
-        <a href="#add"><svg><use href="#i-mail"></use></svg>友達を追加</a>
-        <a href="#friends"><svg><use href="#i-users"></use></svg>友達リスト</a>
-      </nav>
-    </div>
-  </div>
+  <h1 class="title">ファミリー&フレンズ</h1>
+  <!-- セクションの切り替え。前は ☰ だったが、タブにして常に見えるようにした (ヘッダーのアカウントメニューと ☰ が2つ重ならないように) -->
+  <nav class="ff-tabs" aria-label="ファミリー&フレンズ">
+    <a href="#inbox"><svg><use href="#i-bowl"></use></svg>届いたレシピ</a>
+    <a href="#sent"><svg><use href="#i-receipt"></use></svg>送ったレシピ</a>
+    <a href="#add"><svg><use href="#i-mail"></use></svg>友達を追加</a>
+    <a href="#friends"><svg><use href="#i-users"></use></svg>友達リスト</a>
+  </nav>
 
   <div id="error" class="alert alert-danger d-none"></div>
   <div id="done" class="alert alert-success d-none">カートに入れました。<a href="cart.php">カートを見る →</a></div>
   <div id="added" class="alert alert-success d-none"></div>
 
-  <a id="backBtn" class="btn btn-outline btn-sm mb-3" href="#" hidden>← 届いたレシピへ</a>
 
   <!-- ========== 最初の画面: 届いたレシピ ========== -->
   <section data-view="inbox">
@@ -93,47 +87,22 @@ function hideMessages() {
 }
 
 // ==================== 画面の切り替え (URL の # で決まる。戻るボタンも使える) ====================
-const VIEWS = { '#sent': 'sent', '#add': 'add', '#friends': 'friends' };
-const menuBtn  = document.getElementById('ffMenuBtn');
-const menuList = document.getElementById('ffMenuList');
-
-function setMenu(open) {
-  menuList.hidden = !open;
-  menuBtn.setAttribute('aria-expanded', open);
-}
+const VIEWS = { '#inbox': 'inbox', '#sent': 'sent', '#add': 'add', '#friends': 'friends' };
 
 function showView() {
   const view = VIEWS[location.hash] || 'inbox';
   document.querySelectorAll('[data-view]').forEach(s => { s.hidden = s.dataset.view !== view; });
-  document.getElementById('backBtn').hidden = view === 'inbox';
-  menuList.querySelectorAll('a').forEach(a => {
-    if (a.getAttribute('href') === location.hash) a.setAttribute('aria-current', 'page');
-    else a.removeAttribute('aria-current');
+  // 今のタブを赤くする (inbox は #inbox)
+  document.querySelectorAll('.ff-tabs a').forEach(a => {
+    const on = a.getAttribute('href') === '#' + view;
+    a.classList.toggle('is-active', on);
+    if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
   });
-  setMenu(false);
 }
 
 window.addEventListener('hashchange', () => {
   showView();
-  window.scrollTo(0, 0);
-});
-menuBtn.addEventListener('click', () => setMenu(menuList.hidden));
-// 外を押す / Esc で閉じる
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('#ffMenu')) setMenu(false);
-});
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !menuList.hidden) {
-    setMenu(false);
-    menuBtn.focus();
-  }
-});
-// 「← 届いたレシピへ」: # を消す
-document.getElementById('backBtn').addEventListener('click', (e) => {
-  e.preventDefault();
-  hideMessages();
-  history.pushState(null, '', location.pathname + location.search);
-  showView();
+  if ((VIEWS[location.hash] || 'inbox') === 'inbox') loadInbox();
   window.scrollTo(0, 0);
 });
 
@@ -203,6 +172,7 @@ async function loadInbox() {
     return;
   }
   list.innerHTML = res.data.map(inboxCard).join('');
+  if (typeof refreshShareCount === 'function') refreshShareCount();   // 開いて既読になったので通知バッジを消す
   const target = document.getElementById('share-' + highlight);
   if (target) target.scrollIntoView({ block: 'center' });
 }
@@ -371,6 +341,14 @@ window.addEventListener('load', function () {
   loadFriends();
   loadSent();
 });
+
+// 友達が送ったレシピを、ページを開いたまま自動で受け取る (10秒ごと)。
+// 見ていない時 (別タブ) は止める。戻ってきたら すぐ更新。届いたレシピを見ている時だけ。
+function pollInbox() {
+  if (!document.hidden && (VIEWS[location.hash] || 'inbox') === 'inbox') loadInbox();
+}
+setInterval(pollInbox, 10000);
+document.addEventListener('visibilitychange', pollInbox);
 </script>
 
 <?php include '../includes/footer.php'; ?>
