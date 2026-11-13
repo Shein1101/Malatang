@@ -19,6 +19,60 @@ if ($method === 'GET') {
     send_json(load_cart($pdo));
 }
 
+// ========== ドリンク (ジュース) ?type=drink ==========
+//   POST   ?type=drink            { juice_id, quantity }  追加 (同じものは数を足す)
+//   PUT    ?type=drink&id=5       { quantity }            数を変える
+//   DELETE ?type=drink&id=5                               消す
+if (($_GET['type'] ?? '') === 'drink') {
+
+    if ($method === 'POST') {
+        $in = read_json();
+        $juice_id = filter_var($in['juice_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $qty = filter_var($in['quantity'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 20]]);
+        if ($juice_id === false) send_error('ドリンクを選んでください', 400);
+        if ($qty === false)      send_error('数は1〜20で選んでください', 400);
+
+        $j = $pdo->prepare('SELECT id FROM juices WHERE id = ? AND is_available = 1');
+        $j->execute([$juice_id]);
+        if (!$j->fetch()) send_error('そのドリンクは今えらべません', 400);
+
+        $uid = $where === 'user_id = ?' ? $owner : null;
+        $gt  = $where === 'guest_token = ?' ? $owner : null;
+        $find = $pdo->prepare("SELECT id, quantity FROM cart_drinks WHERE juice_id = ? AND $where");
+        $find->execute([$juice_id, $owner]);
+        $existing = $find->fetch();
+        if ($existing) {                                   // 既にある → 数を足す (最大20)
+            $newQ = min(20, (int) $existing['quantity'] + $qty);
+            $pdo->prepare('UPDATE cart_drinks SET quantity = ? WHERE id = ?')->execute([$newQ, (int) $existing['id']]);
+        } else {
+            $pdo->prepare('INSERT INTO cart_drinks (user_id, guest_token, juice_id, quantity) VALUES (?, ?, ?, ?)')
+                ->execute([$uid, $gt, $juice_id, $qty]);
+        }
+        $cart = load_cart($pdo);
+        send_json(['count' => $cart['item_count']], 201);
+    }
+
+    // PUT / DELETE は ?id= が必要 + 自分のドリンクか確認
+    $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if ($id === false) send_error('id が必要です', 400);
+    $own = $pdo->prepare("SELECT id FROM cart_drinks WHERE id = ? AND $where");
+    $own->execute([$id, $owner]);
+    if (!$own->fetch()) send_error('カートにありません', 404);
+
+    if ($method === 'PUT') {
+        $in = read_json();
+        $qty = filter_var($in['quantity'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 20]]);
+        if ($qty === false) send_error('数は1〜20で選んでください', 400);
+        $pdo->prepare('UPDATE cart_drinks SET quantity = ? WHERE id = ?')->execute([$qty, $id]);
+        send_json(['id' => $id, 'quantity' => $qty]);
+    }
+    if ($method === 'DELETE') {
+        $pdo->prepare('DELETE FROM cart_drinks WHERE id = ?')->execute([$id]);
+        send_json(['id' => $id]);
+    }
+    send_error('Method not allowed', 405);
+}
+
 // ========== POST: bowl を追加 ==========
 if ($method === 'POST') {
     [$bowl, $items, $quantity] = read_bowl_input(read_json());

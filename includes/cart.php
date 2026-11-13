@@ -88,7 +88,7 @@ function load_cart(PDO $pdo, bool $forUpdate = false): array {
     [$where, $owner] = cart_owner();
 
     $stmt = $pdo->prepare(
-        "SELECT cb.id, cb.menu_id, m.name AS menu_name, cb.has_soup,
+        "SELECT cb.id, cb.menu_id, m.name AS menu_name, m.image_url AS menu_image, cb.has_soup,
                 cb.soup_id, s.name AS soup_name,
                 cb.spice_level_id, sp.name AS spice_name, cb.shared_recipe_id, cb.quantity
          FROM cart_bowls cb
@@ -128,7 +128,7 @@ function load_cart(PDO $pdo, bool $forUpdate = false): array {
     $bowls = [];
     $total = 0;
     $count = 0;
-    $canCheckout = count($rows) > 0;
+    $bowlError = false;
     foreach ($rows as $r) {
         $id    = (int) $r['id'];
         $items = $itemsByBowl[$id] ?? [];
@@ -137,7 +137,7 @@ function load_cart(PDO $pdo, bool $forUpdate = false): array {
         // 今の値段で買えるか (売り切れ・値段が変わった などもここで分かる)
         $check = bowl_price($pdo, bowl_from_row($r), $items, $qty);
         if ($check['error'] !== null) {
-            $canCheckout = false;
+            $bowlError = true;
         } else {
             $total += $check['price'];
         }
@@ -147,6 +147,7 @@ function load_cart(PDO $pdo, bool $forUpdate = false): array {
             'id'             => $id,
             'menu_id'        => (int) $r['menu_id'],
             'menu_name'      => $r['menu_name'],
+            'image_url'      => $r['menu_image'],
             'has_soup'       => (bool) $r['has_soup'],
             'soup_id'        => (int) $r['soup_id'],
             'soup_name'      => $r['soup_name'],
@@ -160,5 +161,48 @@ function load_cart(PDO $pdo, bool $forUpdate = false): array {
         ];
     }
 
-    return ['bowls' => $bowls, 'total' => $total, 'count' => $count, 'can_checkout' => $canCheckout];
+    // ── ドリンク (ジュース) ──────────────────────────────────
+    // 売り切れ (is_available=0) のドリンクはカートから外して見せる (買えない)
+    $dstmt = $pdo->prepare(
+        "SELECT cd.id, cd.juice_id, j.name, j.price, j.image_url, j.is_available, cd.quantity
+         FROM cart_drinks cd JOIN juices j ON j.id = cd.juice_id
+         WHERE cd.$where ORDER BY cd.id" . ($forUpdate ? ' FOR UPDATE' : '')
+    );
+    $dstmt->execute([$owner]);
+    $drinks = [];
+    $drinkCount = 0;
+    foreach ($dstmt->fetchAll() as $d) {
+        $q = (int) $d['quantity'];
+        $available = (bool) $d['is_available'];
+        $lineTotal = (int) $d['price'] * $q;
+        if ($available) {
+            $total += $lineTotal;
+            $drinkCount += $q;
+        } else {
+            $bowlError = true;   // 売り切れドリンクがあると、進めない
+        }
+        $drinks[] = [
+            'id'         => (int) $d['id'],
+            'juice_id'   => (int) $d['juice_id'],
+            'name'       => $d['name'],
+            'price'      => (int) $d['price'],
+            'image_url'  => $d['image_url'],
+            'quantity'   => $q,
+            'line_total' => $lineTotal,
+            'error'      => $available ? null : '販売を終了しました',
+        ];
+    }
+
+    $hasItems    = count($rows) > 0 || count($drinks) > 0;
+    $canCheckout = $hasItems && !$bowlError;
+
+    return [
+        'bowls'        => $bowls,
+        'drinks'       => $drinks,
+        'total'        => $total,
+        'count'        => $count,                 // 杯数 (bowl)
+        'drink_count'  => $drinkCount,
+        'item_count'   => $count + $drinkCount,   // ヘッダーのバッジ用
+        'can_checkout' => $canCheckout,
+    ];
 }

@@ -21,13 +21,17 @@ if ($method === 'GET') {
     }
 
     // 1. お店の情報 (1行だけ)
-    $s = $pdo->query('SELECT store_name, description, address, phone, opening_hours, is_open, banner_url
+    $s = $pdo->query('SELECT store_name, description, address, phone, line_url, instagram_url, x_url,
+                             opening_hours, is_open, banner_url
                       FROM store_settings WHERE id = 1')->fetch();
     $store = $s ? [
         'store_name'    => $s['store_name'],
         'description'   => $s['description'],
         'address'       => $s['address'],
         'phone'         => $s['phone'],
+        'line_url'      => $s['line_url'],
+        'instagram_url' => $s['instagram_url'],
+        'x_url'         => $s['x_url'],
         'opening_hours' => $s['opening_hours'],
         'is_open'       => (bool) $s['is_open'],
         'banner_url'    => $s['banner_url'],
@@ -131,6 +135,7 @@ if ($type === '') {
     }
     update_fields($pdo, 'store_settings', 1, $in, [
         'store_name' => 'text', 'description' => 'text', 'address' => 'text', 'phone' => 'text',
+        'line_url' => 'text', 'instagram_url' => 'text', 'x_url' => 'text',
         'opening_hours' => 'text', 'is_open' => 'bool', 'banner_url' => 'text',
     ]);
     send_json(['updated' => true]);

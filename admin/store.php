@@ -8,7 +8,7 @@ include '../includes/admin_header.php';
 
 <main class="container">
   <h1>店舗ページ編集</h1>
-  <p class="caption">ここで変えた内容は、お客さんの <a href="../public/info.php" target="_blank">店舗情報</a> にすぐ出ます。ホームのバナーや並び順は <a href="home.php">ホーム編集</a> で変えられます。</p>
+  <p class="caption">ここで変えた「お店の説明・住所・電話・営業時間・SNS（LINE / Instagram / X）」は、お客さんのホーム画面の下（フッターの「お店について」「アクセス」「SNS」）にすぐ出ます。ホームのバナーや並び順は <a href="home.php">ホーム編集</a> で変えられます。</p>
   <p id="message"></p>
 
   <!-- ========== 1. お店の情報 ========== -->
@@ -20,7 +20,10 @@ include '../includes/admin_header.php';
       <div class="col-md-4"><label class="form-label">営業時間</label><input name="opening_hours" class="form-control" placeholder="例: 11:00〜21:00 (火曜定休)"></div>
       <div class="col-md-8"><label class="form-label">住所</label><input name="address" class="form-control"></div>
       <div class="col-md-4"><label class="form-label">トップ写真の URL</label><input name="banner_url" class="form-control"></div>
-      <div class="col-12"><label class="form-label">説明</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+      <div class="col-md-4"><label class="form-label">LINE の URL</label><input name="line_url" class="form-control" placeholder="https://line.me/..."></div>
+      <div class="col-md-4"><label class="form-label">Instagram の URL</label><input name="instagram_url" class="form-control" placeholder="https://instagram.com/..."></div>
+      <div class="col-md-4"><label class="form-label">X (旧Twitter) の URL</label><input name="x_url" class="form-control" placeholder="https://x.com/..."></div>
+      <div class="col-12"><label class="form-label">説明（フッターの「お店について」）</label><textarea name="description" class="form-control" rows="2"></textarea></div>
       <div class="col-md-6 d-flex align-items-center">
         <div class="form-check form-switch">
           <input class="form-check-input" type="checkbox" role="switch" name="is_open" id="isOpen">
@@ -88,7 +91,7 @@ async function loadAll() {
 
   // 1. お店の情報をフォームに入れる
   const f = document.getElementById('storeForm');
-  for (const key of ['store_name', 'phone', 'opening_hours', 'address', 'banner_url', 'description']) {
+  for (const key of ['store_name', 'phone', 'opening_hours', 'address', 'banner_url', 'line_url', 'instagram_url', 'x_url', 'description']) {
     f[key].value = store[key] ?? '';
   }
   f.is_open.checked = store.is_open;
@@ -133,6 +136,7 @@ document.getElementById('storeForm').addEventListener('submit', async (e) => {
   const res = await callApi('PUT', API, {
     store_name: f.store_name.value, phone: f.phone.value, opening_hours: f.opening_hours.value,
     address: f.address.value, banner_url: f.banner_url.value, description: f.description.value,
+    line_url: f.line_url.value, instagram_url: f.instagram_url.value, x_url: f.x_url.value,
     is_open: f.is_open.checked
   });
   say(res.success ? 'お店の情報を保存しました' : res.error, res.success);

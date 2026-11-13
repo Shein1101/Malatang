@@ -8,14 +8,18 @@ include '../includes/header.php';
 ?>
 
 <main>
-  <section class="hero">
+  <section class="menu-head">
     <div class="container">
-      <h1 class="title">メニュー</h1>
-      <p>お好きな一杯を選んで、スープ・辛さ・具材をカスタマイズできます。</p>
-      <form class="site-search search-in-page" action="menu.php" role="search">
-        <svg aria-hidden="true"><use href="#i-search"></use></svg>
-        <input type="search" name="q" value="<?= $searchWord ?>" placeholder="メニューや具材を検索" aria-label="メニューや具材を検索">
-      </form>
+      <div class="menu-head-top">
+        <div>
+          <h1 class="title">メニュー</h1>
+          <p>お好きな一杯を選んで、スープ・辛さ・具材をカスタマイズできます。</p>
+        </div>
+        <form class="site-search search-in-page" action="menu.php" role="search">
+          <svg aria-hidden="true"><use href="#i-search"></use></svg>
+          <input type="search" name="q" value="<?= $searchWord ?>" placeholder="メニューや具材を検索" aria-label="メニューや具材を検索">
+        </form>
+      </div>
       <div id="chips"></div>
     </div>
   </section>
@@ -30,6 +34,12 @@ include '../includes/header.php';
       <p class="muted">読み込み中…</p>
     </div>
   </div>
+
+  <!-- ドリンク (表示だけ。お店が admin/juices.php で管理) -->
+  <section class="container page pt-0" id="juiceSection" hidden>
+    <div class="section-head"><h2 class="heading">ドリンク 🥤</h2></div>
+    <div id="juiceList" class="juice-grid"></div>
+  </section>
 </main>
 
 <script src="<?= asset_url('assets/js/menus.js') ?>"></script>
@@ -80,8 +90,25 @@ async function loadMenus() {
   noHit.classList.toggle('d-none', dishes.length > 0);
 }
 
+// ドリンク (ジュース) を出す。お店が OFF にしていたり 1つもなければ、セクションごと出さない。
+async function loadJuices() {
+  const res = await callApi('GET', '../api/juices.php');
+  if (!res.success || !res.data.length) return;
+  document.getElementById('juiceList').innerHTML = res.data.map(j => `
+    <div class="juice-card">
+      <div class="juice-media${j.image_url ? '' : ' no-img'}">${j.image_url ? `<img src="${esc(j.image_url)}" alt="${esc(j.name)}" onerror="this.parentElement.classList.add('no-img');this.remove()">` : ''}<span class="juice-emoji">🥤</span></div>
+      <div class="juice-body">
+        <div class="juice-name">${esc(j.name)}</div>
+        ${j.description ? `<div class="caption">${esc(j.description)}</div>` : ''}
+        <div class="price">${yen(j.price)}</div>
+      </div>
+    </div>`).join('');
+  document.getElementById('juiceSection').hidden = false;
+}
+
 // app.js (callApi, yen) はフッターで読み込まれるので、ページを全部読んでから動かす
 window.addEventListener('load', loadMenus);
+window.addEventListener('load', loadJuices);
 </script>
 
 <?php include '../includes/footer.php'; ?>

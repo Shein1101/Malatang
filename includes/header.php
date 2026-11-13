@@ -53,12 +53,20 @@ $tab = function (array $pages) use ($current) {
 <header class="site-header">
   <div class="container">
     <a class="logo" href="store.php"><svg><use href="#i-flame"></use></svg><span class="logo-name">Chilli 鍋</span></a>
-    <form class="site-search" action="menu.php" role="search">
-      <svg aria-hidden="true"><use href="#i-search"></use></svg>
-      <input type="search" name="q" value="<?= $searchWord ?>" placeholder="メニューや具材を検索" aria-label="メニューや具材を検索">
-    </form>
+    <nav class="top-nav hide-phone" aria-label="メインメニュー">
+      <a<?= $tab(['store.php']) ?> href="store.php"><svg><use href="#i-home"></use></svg>ホーム</a>
+      <a<?= $tab(['menu.php', 'customize.php']) ?> href="menu.php"><svg><use href="#i-menu"></use></svg>メニュー</a>
+      <a<?= $tab(['cart.php', 'checkout.php', 'payment.php']) ?> href="cart.php"><svg><use href="#i-cart"></use></svg>カート</a>
+      <?php if ($loggedIn): ?>
+      <a<?= $tab(['mypage.php', 'history.php', 'favorites.php', 'friends.php']) ?> href="mypage.php"><svg><use href="#i-user"></use></svg>マイページ</a>
+      <?php else: ?>
+      <a<?= $tab(['login.php', 'signup.php']) ?> href="login.php"><svg><use href="#i-user"></use></svg>ログイン</a>
+      <?php endif; ?>
+    </nav>
+    <div class="header-right">
     <a class="cart-btn" href="cart.php" aria-label="カート"><svg><use href="#i-cart"></use></svg><span class="cart-btn-label">カート</span><span class="cart-count" style="display:none"></span></a>
     <div class="header-icons">
+      <a class="hide-phone" href="menu.php" aria-label="検索"><svg><use href="#i-search"></use></svg></a>
       <?php if ($loggedIn): ?>
       <!-- アカウントメニュー: お気に入り・注文履歴・ファミリー&フレンズ・ログアウトを1つにまとめる。開け閉めは app.js -->
       <div class="acct hide-phone" id="acctMenu">
@@ -81,13 +89,13 @@ $tab = function (array $pages) use ($current) {
         <svg class="i-moon"><use href="#i-moon"></use></svg>
       </button>
     </div>
+    </div>
   </div>
 </header>
 <nav class="tabbar" aria-label="タブ">
   <ul>
     <li><a<?= $tab(['store.php']) ?> href="store.php"><svg><use href="#i-home"></use></svg>ホーム</a></li>
     <li><a<?= $tab(['menu.php', 'customize.php']) ?> href="menu.php"><svg><use href="#i-menu"></use></svg>メニュー</a></li>
-    <li><a<?= $tab(['info.php']) ?> href="info.php"><svg><use href="#i-store"></use></svg>店舗情報</a></li>
     <li><a<?= $tab(['cart.php', 'checkout.php', 'payment.php']) ?> href="cart.php"><svg><use href="#i-cart"></use></svg>カート</a></li>
     <?php if ($loggedIn): ?>
     <li><a<?= $tab(['mypage.php', 'history.php', 'favorites.php', 'friends.php']) ?> href="mypage.php"><svg><use href="#i-user"></use></svg><span class="share-count" style="display:none" aria-hidden="true"></span>マイページ</a></li>
@@ -96,3 +104,26 @@ $tab = function (array $pages) use ($current) {
     <?php endif; ?>
   </ul>
 </nav>
+<?php if ($current !== 'store.php'): // ホーム以外は「もどる」ボタンを出す (item 7) ?>
+<div class="page-back">
+  <div class="container">
+    <a class="back-link" id="backLink" href="store.php">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 5l-7 7 7 7"/></svg>
+      もどる
+    </a>
+  </div>
+</div>
+<script>
+// 同じサイトの前のページがあれば 1つ戻る。なければ href (ホーム) へ。
+(function () {
+  var b = document.getElementById('backLink');
+  if (!b) return;
+  b.addEventListener('click', function (e) {
+    if (history.length > 1 && document.referrer && document.referrer.indexOf(location.origin) === 0) {
+      e.preventDefault();
+      history.back();
+    }
+  });
+})();
+</script>
+<?php endif; ?>
