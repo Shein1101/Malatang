@@ -10,25 +10,19 @@ const MENU_CATS = [
 
 const LIMITED_MARK = '【期間限定】';
 
-// 写真がないときの色 (id で決まる)
-const MENU_ART = [
-  'linear-gradient(135deg,#3c5a2e,#6b8e3a)',
-  'linear-gradient(135deg,#1d3a4a,#3f6d80)',
-  'linear-gradient(135deg,#5c2a1c,#8f3420)',
-  'linear-gradient(135deg,#8a6a1f,#c9a05c)',
-];
-
 function menuCard(m) {
-  const img = m.image_url ? `<img src="${esc(m.image_url)}" alt="${esc(m.name)}" onerror="this.remove()">` : '';
-  const art = `style="background:${MENU_ART[m.id % MENU_ART.length]}"`;
+  const media = m.image_url
+    ? `<img src="${esc(m.image_url)}" alt="${esc(m.name)}" onerror="this.closest('.card-media').classList.add('no-img');this.remove()">`
+    : '';
   const ribbon = m.name.includes('期間限定') ? '<span class="ribbon">期間限定</span>' : '';
   const name = esc(m.name.replace(LIMITED_MARK, ''));
+  const mediaBox = `<div class="card-media${m.image_url ? '' : ' no-img'}">${media}<span class="card-emoji" aria-hidden="true">🍜</span>${ribbon}</div>`;
 
   // 売り切れ: 押せない
   if (!m.is_available) {
     return `
       <div class="card-bowl is-soldout">
-        <div class="card-media" ${art}>${img}${ribbon}</div>
+        ${mediaBox}
         <div class="card-info">
           <div class="card-name">${name}</div>
           <div class="card-desc">${esc(m.description)}</div>
@@ -39,7 +33,7 @@ function menuCard(m) {
 
   return `
     <a class="card-bowl" href="customize.php?menu_id=${m.id}">
-      <div class="card-media" ${art}>${img}${ribbon}</div>
+      ${mediaBox}
       <div class="card-info">
         <div class="card-name">${name}</div>
         <div class="card-desc">${esc(m.description)}</div>

@@ -29,7 +29,9 @@ if ($method === 'GET') {
             'status'         => $r['status'],
             'payment_status' => $r['payment_status'],
             'total_price'    => (int) $r['total_price'],
+            'order_type'     => 'takeout',
             'bowls'          => [],
+            'drinks'         => [],
         ];
     }
 
@@ -53,6 +55,33 @@ if ($method === 'GET') {
             'from_shared_recipe'  => (bool) $r['from_shared_recipe'],  // 友達から届いたレシピで注文した
         ];
     }
+    // 受け取り方法 (order_type) と ドリンク を足す (view に無いので直接よむ)
+    if ($orders) {
+        $oids = array_keys($orders);
+        $marks = implode(',', array_fill(0, count($oids), '?'));
+
+        $st = $pdo->prepare("SELECT id, order_type FROM orders WHERE id IN ($marks)");
+        $st->execute($oids);
+        foreach ($st->fetchAll() as $r) {
+            if (isset($orders[(int) $r['id']])) {
+                $orders[(int) $r['id']]['order_type'] = $r['order_type'];
+            }
+        }
+
+        $st = $pdo->prepare("SELECT order_id, juice_name, juice_price, quantity FROM order_drinks WHERE order_id IN ($marks) ORDER BY id");
+        $st->execute($oids);
+        foreach ($st->fetchAll() as $d) {
+            $oid = (int) $d['order_id'];
+            if (isset($orders[$oid])) {
+                $orders[$oid]['drinks'][] = [
+                    'name'       => $d['juice_name'],
+                    'quantity'   => (int) $d['quantity'],
+                    'line_total' => (int) $d['juice_price'] * (int) $d['quantity'],
+                ];
+            }
+        }
+    }
+
     send_json(array_values($orders));
 }
 

@@ -55,8 +55,9 @@ if ($method === 'GET') {
 
 // ========== ここから下は admin だけ ==========
 require_admin();
-if (($_GET['type'] ?? '') !== 'spice') {
-    send_error('type=spice only (soups: coming next)', 400);
+$type = $_GET['type'] ?? '';
+if ($type !== 'spice' && $type !== 'soup') {
+    send_error('type=spice or type=soup', 400);
 }
 $in = read_json();
 
@@ -67,6 +68,64 @@ function check_int($value, string $label): int {
         send_error("$label must be a number 0 or more", 400);
     }
     return $n;
+}
+
+// ========== スープ (味) の追加・変更 ==========
+// スープは削除しない (昔の注文が使っているので)。止めたいときは is_available = false。
+if ($type === 'soup') {
+
+    // 追加
+    if ($method === 'POST') {
+        require_fields($in, ['name']);
+        $name = trim((string) $in['name']);
+        if ($name === '' || mb_strlen($name) > 100) {
+            send_error('名前は1〜100文字で入力してください', 400);
+        }
+        $desc  = trim((string) ($in['description'] ?? ''));
+        $price = check_int($in['price'] ?? 0, 'price');
+        $order = (int) $pdo->query('SELECT COALESCE(MAX(sort_order), 0) + 1 FROM soups')->fetchColumn();
+        $stmt = $pdo->prepare(
+            'INSERT INTO soups (name, description, price, sort_order) VALUES (?, ?, ?, ?)'
+        );
+        $stmt->execute([$name, $desc === '' ? null : $desc, $price, $order]);
+        send_json(['id' => (int) $pdo->lastInsertId()], 201);
+    }
+
+    // 変更 (?id=3)
+    if ($method === 'PUT') {
+        $id = (int) ($_GET['id'] ?? 0);
+        $find = $pdo->prepare('SELECT id FROM soups WHERE id = ?');
+        $find->execute([$id]);
+        if (!$find->fetch()) {
+            send_error('Soup not found', 404);
+        }
+        $sets = [];
+        $values = [];
+        if (array_key_exists('name', $in)) {
+            $name = trim((string) $in['name']);
+            if ($name === '' || mb_strlen($name) > 100) {
+                send_error('名前は1〜100文字で入力してください', 400);
+            }
+            $sets[] = 'name = ?'; $values[] = $name;
+        }
+        if (array_key_exists('description', $in)) {
+            $d = trim((string) $in['description']);
+            $sets[] = 'description = ?'; $values[] = $d === '' ? null : $d;
+        }
+        if (array_key_exists('price', $in))        { $sets[] = 'price = ?';        $values[] = check_int($in['price'], 'price'); }
+        if (array_key_exists('sort_order', $in))   { $sets[] = 'sort_order = ?';   $values[] = check_int($in['sort_order'], 'sort_order'); }
+        if (array_key_exists('is_available', $in)) { $sets[] = 'is_available = ?'; $values[] = $in['is_available'] ? 1 : 0; }
+        if (count($sets) === 0) {
+            send_error('Nothing to change', 400);
+        }
+        // 値段を変えたら price_history に残る (DB の trigger)。だれが変えたかを渡す
+        $pdo->prepare('SET @current_user_id = ?')->execute([$_SESSION['user_id'] ?? null]);
+        $values[] = $id;
+        $pdo->prepare('UPDATE soups SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($values);
+        send_json(['id' => $id, 'updated' => true]);
+    }
+
+    send_error('Method not allowed for soup', 405);
 }
 
 // ========== POST: 辛さを追加 ==========

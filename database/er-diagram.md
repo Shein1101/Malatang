@@ -1,6 +1,6 @@
 # Malatang EC - ER Diagram
 
-26 tables · 41 relationships (malatang_ec, version 4 — Oct 20, 2026)
+30 tables · 45 relationships (malatang_ec, version 7 — Nov 13, 2026)
 
 ```mermaid
 erDiagram
@@ -19,6 +19,7 @@ erDiagram
     USERS ||--o{ RECIPE_SHARES : receives
     USERS ||--o{ RECIPE_SHARES : sends
     USERS ||--o{ PASSWORD_RESETS : resets
+    USERS ||--o{ REVIEWS : writes
     SOUPS ||--o{ RECIPE_SHARES : flavor_of
     SPICE_LEVELS |o--o{ RECIPE_SHARES : spice_of
     INGREDIENTS ||--o{ RECIPE_SHARE_INGREDIENTS : used_in
@@ -38,6 +39,10 @@ erDiagram
     USERS |o--o{ CART_BOWLS : puts_in_cart
     RECIPE_SHARES |o--o{ CART_BOWLS : added_from
     CART_BOWLS ||--o{ CART_BOWL_INGREDIENTS : has
+    JUICES ||--o{ CART_DRINKS : added_as
+    USERS |o--o{ CART_DRINKS : puts_in_cart
+    ORDERS ||--o{ ORDER_DRINKS : contains
+    JUICES |o--o{ ORDER_DRINKS : ordered_as
     INGREDIENTS ||--o{ CART_BOWL_INGREDIENTS : used_in
     USERS |o--o{ ORDERS : places
     MENUS |o--o{ ORDER_BOWLS : ordered_as
@@ -57,6 +62,8 @@ erDiagram
         varchar password_hash
         varchar name
         varchar phone
+        varchar postal_code
+        varchar address
         enum role
         timestamp created_at
         timestamp updated_at
@@ -129,6 +136,9 @@ erDiagram
         text description
         varchar address
         varchar phone
+        varchar line_url
+        varchar instagram_url
+        varchar x_url
         varchar opening_hours
         boolean is_open
         varchar banner_url
@@ -228,6 +238,33 @@ erDiagram
         int extra_price
     }
 
+    JUICES {
+        int id PK
+        varchar name
+        text description
+        int price
+        varchar image_url
+        boolean is_available
+        int sort_order
+    }
+
+    CART_DRINKS {
+        int id PK
+        int user_id FK
+        varchar guest_token
+        int juice_id FK
+        int quantity
+    }
+
+    ORDER_DRINKS {
+        int id PK
+        int order_id FK
+        int juice_id FK
+        varchar juice_name
+        int juice_price
+        int quantity
+    }
+
     PRICE_HISTORY {
         int id PK
         enum target_type
@@ -264,12 +301,16 @@ erDiagram
         int user_id FK
         varchar customer_name
         varchar customer_phone
+        varchar customer_postal
+        varchar customer_address
         datetime pickup_time
         int total_price
         enum payment_method
         enum payment_status
         enum status
+        enum order_type
         text note
+        varchar allergy_note
         timestamp created_at
         timestamp updated_at
     }
@@ -318,6 +359,15 @@ erDiagram
         enum status
         varchar mock_transaction_id
         char card_last4
+        timestamp created_at
+    }
+
+    REVIEWS {
+        int id PK
+        int user_id FK
+        tinyint rating
+        varchar comment
+        boolean is_visible
         timestamp created_at
     }
 ```
