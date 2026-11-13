@@ -53,14 +53,10 @@ function customCta(m) {
     </a>`;
 }
 
-<<<<<<< HEAD
 // いま画面に出している HTML (null = まだ一度も出していない)
 let shownHtml = null;
 
-// API から menu をもらって、カードを並べる
-=======
 // API から menu をもらって、?cat= と ?q= で絞って、カードを並べる
->>>>>>> e1552280092981ba5f87bacaf0365f29b168471a
 async function loadMenus() {
   const res = await callApi('GET', '../api/menus.php');
   const list = document.getElementById('menuList');
@@ -70,17 +66,6 @@ async function loadMenus() {
     showError(document.getElementById('error'), res.error);
     return;
   }
-<<<<<<< HEAD
-  const cta = customCta(res.data.find(m => m.is_custom));
-  let html = '';
-  for (const m of res.data.filter(m => !m.is_custom)) {   // ready-made dish だけ
-    html += menuCard(m);
-  }
-  if (cta + html === shownHtml) return;   // 変わっていなければ作り直さない (写真がちらつかない)
-  shownHtml = cta + html;
-  document.getElementById('customCta').innerHTML = cta;
-  list.innerHTML = html;
-=======
   const params = new URLSearchParams(location.search);
   const cat = MENU_CATS.find(c => c.key === params.get('cat'));
   const word = (params.get('q') || '').trim().toLowerCase();
@@ -89,25 +74,30 @@ async function loadMenus() {
   if (cat) dishes = dishes.filter(cat.match);
   if (word) dishes = dishes.filter(m => (m.name + ' ' + (m.description || '')).toLowerCase().includes(word));
 
-  document.getElementById('chips').innerHTML = menuChips(res.data, cat ? cat.key : null);
+  const chips = menuChips(res.data, cat ? cat.key : null);
   // 探しているときは案内を出さない
-  document.getElementById('customCta').innerHTML = cat || word ? '' : customCta(res.data.find(m => m.is_custom));
-  list.innerHTML = dishes.map(menuCard).join('');
+  const cta = cat || word ? '' : customCta(res.data.find(m => m.is_custom));
+  const html = dishes.map(menuCard).join('');
+  if (chips + cta + html === shownHtml) return;   // 変わっていなければ作り直さない (写真がちらつかない)
+  shownHtml = chips + cta + html;
+
+  document.getElementById('chips').innerHTML = chips;
+  document.getElementById('customCta').innerHTML = cta;
+  list.innerHTML = html;
 
   const noHit = document.getElementById('noHit');
   noHit.textContent = word ? `「${params.get('q')}」に合うメニューはありません` : 'このカテゴリのメニューはありません';
   noHit.classList.toggle('d-none', dishes.length > 0);
->>>>>>> e1552280092981ba5f87bacaf0365f29b168471a
 }
 
 // app.js (callApi, yen) はフッターで読み込まれるので、ページを全部読んでから動かす
 window.addEventListener('load', loadMenus);
 
 // 自動で新しくする: owner が 残り を補充したら、再読み込みなしで 売り切れ が消える
-//   5 秒ごと (別のタブを見ているあいだは止める) / タブに戻ったとき / 「戻る」で来たとき
+//   1 秒ごと (別のタブを見ているあいだは止める) / タブに戻ったとき / 「戻る」で来たとき
 setInterval(() => {
   if (!document.hidden) loadMenus();
-}, 5000);
+}, 1000);
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) loadMenus();
 });
