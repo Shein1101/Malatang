@@ -138,6 +138,13 @@ document.getElementById('list').addEventListener('click', async (e) => {
   }
 });
 
+// 3. 販売スイッチを押したら、ON / OFF の文字もすぐ変える (保存は「保存」ボタン)
+document.getElementById('list').addEventListener('change', (e) => {
+  if (e.target.id.startsWith('on-')) {
+    e.target.nextElementSibling.textContent = e.target.checked ? 'ON' : 'OFF';
+  }
+});
+
 // 4. 具材パネル: 全部の具材を出して、このメニューに入っているものにチェック
 let ingMenuId = null;
 async function openIngredients(id) {

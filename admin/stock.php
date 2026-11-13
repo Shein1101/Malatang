@@ -54,7 +54,7 @@ include '../includes/admin_header.php';
     <div class="tabs" id="catTabs" aria-label="カテゴリ"></div>
     <div class="adm-filter-row">
       <div class="tabs">
-        <button type="button" class="tab is-active" data-filter="all">状態: すべて</button>
+        <button type="button" class="tab" data-filter="all">すべて<span class="tab-count" id="countAll"></span></button>
         <button type="button" class="tab" data-filter="low">残りわずか<span class="tab-count" id="countLow"></span></button>
         <button type="button" class="tab" data-filter="out">品切れ<span class="tab-count" id="countOut"></span></button>
       </div>
@@ -161,6 +161,7 @@ async function loadList() {
       </tr>`;
   }
   document.getElementById('list').innerHTML = rows;
+  document.getElementById('countAll').textContent = res.data.length;
   document.getElementById('countLow').textContent = countLow;
   document.getElementById('countOut').textContent = countOut;
   catList = cats.map(name => ({
@@ -217,6 +218,7 @@ document.getElementById('catTabs').addEventListener('click', (e) => {
   if (!btn) return;
   setCategory(btn.dataset.cat);
   document.getElementById('search').value = '';
+  filter = 'all';   // カテゴリを押したら そのカテゴリの具材を全部見せる
   filterList();
 });
 
@@ -239,6 +241,11 @@ function filterList() {
     head.hidden = !any || (word === '' && category !== 'all');
   });
   renderCatTabs(word !== '');
+  // すべて が赤いのは、本当に全部の具材を見ているときだけ
+  document.querySelectorAll('.tab[data-filter]').forEach(t => {
+    t.classList.toggle('is-active', t.dataset.filter === filter
+      && (filter !== 'all' || (category === 'all' && word === '')));
+  });
 
   const empty = document.getElementById('noResult');
   if (shown === 0 && rows.length > 0) {
@@ -257,10 +264,9 @@ document.getElementById('search').addEventListener('input', filterList);
 document.querySelectorAll('.tab[data-filter]').forEach(btn => {
   btn.addEventListener('click', () => {
     filter = btn.dataset.filter;
-    document.querySelectorAll('.tab[data-filter]').forEach(t =>
-      t.classList.toggle('is-active', t.dataset.filter === filter));
-    // 残りわずか・品切れ は 全部のカテゴリから見る
-    if (filter !== 'all') setCategory('all');
+    // すべて・残りわずか・品切れ は 全部のカテゴリから見る
+    setCategory('all');
+    if (filter === 'all') document.getElementById('search').value = '';   // すべて = 検索も消して全部見せる
     filterList();
   });
 });
@@ -280,6 +286,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   if (res.success) {
     say(`「${form.name.value}」を追加しました`, true);
     setCategory(form.category_id.selectedOptions[0].textContent);   // 追加した物が見えるように
+    filter = 'all';
     form.name.value = '';
     form.price.value = '';
     form.portion.value = '';

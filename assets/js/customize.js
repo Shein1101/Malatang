@@ -541,4 +541,40 @@ async function addToCart() {
   setTimeout(() => { location.href = 'cart.php'; }, 900);
 }
 
+// ---------- 8. 自動で新しくする [Myat] ----------
+// owner が 残り・販売・値段 を変えたら、再読み込みなしで具材の表示を変える (選んだものは残す)
+async function refreshExtras() {
+  if (!state.menu || document.hidden) return;   // 読み込み前 / 別のタブを見ているあいだは止める
+  const res = await callApi('GET', '../api/ingredients.php');
+  if (!res.success) return;                     // 失敗: いまの表示のまま (次の更新でまた読む)
+
+  const before = state.extras.map(extraRow).join('');
+  const defaultIds = new Set(state.menu.ingredients.map(i => i.ingredient_id));
+  const extras = res.data.filter(i => !defaultIds.has(i.id));
+
+  // 売り切れ・削除になった具材は bowl から外して知らせる
+  const gone = [];
+  for (const id of state.added.keys()) {
+    const ing = extras.find(i => i.id === id);
+    if (!ing || !ing.is_available || ing.stock <= 0) {
+      gone.push(state.extras.find(i => i.id === id).name);
+      state.added.delete(id);
+    }
+  }
+  state.extras = extras;
+  if (gone.length) {
+    $('notice').textContent = '売り切れになったので外しました: ' + gone.join('、');
+    $('notice').classList.remove('d-none');
+  }
+
+  if (state.extras.map(extraRow).join('') === before) return;   // 変わっていなければ作り直さない
+  renderExtras();
+  render();
+}
+
 window.addEventListener('load', load);
+setInterval(refreshExtras, 1000);
+document.addEventListener('visibilitychange', refreshExtras);
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) refreshExtras();
+});
