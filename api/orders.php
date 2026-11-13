@@ -1,7 +1,7 @@
 <?php
 // api/orders.php — 注文 API. Owner: Zan (FEAT-13, FEAT-14)
 //   GET  ?slots=1      anyone → 今日えらべる受け取り時間  { is_open, opening_hours, slots: ["12:15", …] }
-//   POST               anyone → cart から注文を作る      { customer_name, customer_phone, pickup_time: "12:15", note }
+//   POST               anyone → cart から注文を作る      { customer_name, customer_phone(必須), customer_postal, customer_address, note, allergy_note }
 //   GET  ?id=12        本人 / admin → 注文1つ (payment.php 用)
 //   GET                admin → 注文一覧  (?status=all で終わった注文も)
 //   PUT  ?id=12        admin → ステータスを変える { status }
@@ -11,14 +11,17 @@ require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/api.php';
 require __DIR__ . '/../includes/cart.php';
 
-$method = require_method('GET', 'POST', 'PUT');
+$method = require_method('GET', 'POST', 'PUT', 'DELETE');
 
 // 注文ステータス: 次に進めるのはどれか (admin/orders.php のボタンと同じ)
+// お店の主な操作: 「出来上がり」(ready) → 「受け渡し完了」(completed)。
+// それに加えて、渡す前ならキャンセルもできる (キャンセル一覧に入る / 在庫は戻る)。
+// confirmed / preparing は昔のデータ用 (あっても ready に進められる)。
 const NEXT_STATUS = [
-    'pending'   => ['confirmed', 'cancelled'],   // 受付待ち → 受付済
-    'confirmed' => ['preparing', 'cancelled'],   // 受付済   → 調理中
-    'preparing' => ['ready', 'cancelled'],       // 調理中   → 受取待ち
-    'ready'     => ['completed', 'cancelled'],   // 受取待ち → 受取済
+    'pending'   => ['ready', 'cancelled'],      // 調理待ち → 出来上がり / キャンセル
+    'confirmed' => ['ready', 'cancelled'],      // (旧データ)
+    'preparing' => ['ready', 'cancelled'],      // (旧データ)
+    'ready'     => ['completed', 'cancelled'],  // 出来上がり → 受け渡し完了 / キャンセル
     'completed' => [],
     'cancelled' => [],
 ];
@@ -97,6 +100,7 @@ function attach_bowls(PDO $pdo, array $orders): array {
     $byOrder = [];
     foreach ($bowls as $b) {
         $byOrder[(int) $b['order_id']][] = [
+            'order_bowl_id' => (int) $b['id'],   // 支払い完了画面の「友達にシェア」で使う
             'menu_name'  => $b['menu_name'],
             'has_soup'   => (bool) $b['has_soup'],
             'soup_name'  => $b['soup_name'],
@@ -107,6 +111,25 @@ function attach_bowls(PDO $pdo, array $orders): array {
         ];
     }
 
+    // ドリンクを注文ごとに読む
+    $drinksByOrder = [];
+    $oid_list = array_column($orders, 'id');
+    if ($oid_list) {
+        $dmarks = implode(',', array_fill(0, count($oid_list), '?'));
+        $dstmt = $pdo->prepare(
+            "SELECT order_id, juice_name, juice_price, quantity FROM order_drinks WHERE order_id IN ($dmarks) ORDER BY id"
+        );
+        $dstmt->execute($oid_list);
+        foreach ($dstmt->fetchAll() as $d) {
+            $drinksByOrder[(int) $d['order_id']][] = [
+                'name'       => $d['juice_name'],
+                'price'      => (int) $d['juice_price'],
+                'quantity'   => (int) $d['quantity'],
+                'line_total' => (int) $d['juice_price'] * (int) $d['quantity'],
+            ];
+        }
+    }
+
     $out = [];
     foreach ($orders as $o) {
         $out[] = [
@@ -114,15 +137,21 @@ function attach_bowls(PDO $pdo, array $orders): array {
             'order_number'   => $o['order_number'],
             'customer_name'  => $o['customer_name'],
             'customer_phone' => $o['customer_phone'],
+            'customer_postal'  => $o['customer_postal'] ?? null,
+            'customer_address' => $o['customer_address'] ?? null,
             'pickup_time'    => $o['pickup_time'],
             'total_price'    => (int) $o['total_price'],
             'payment_status' => $o['payment_status'],
+            'payment_method' => $o['payment_method'] ?? 'mock_card',
             'status'         => $o['status'],
+            'order_type'     => $o['order_type'] ?? 'takeout',
             'note'           => $o['note'],
+            'allergy_note'   => $o['allergy_note'] ?? null,
             'is_guest'       => $o['user_id'] === null,
             'created_at'     => $o['created_at'],
             'next_status'    => NEXT_STATUS[$o['status']] ?? [],
             'bowls'          => $byOrder[(int) $o['id']] ?? [],
+            'drinks'         => $drinksByOrder[(int) $o['id']] ?? [],
         ];
     }
     return $out;
@@ -151,10 +180,17 @@ if ($method === 'GET') {
 
     // ---------- 一覧 (admin だけ) ----------
     require_admin();
-    $all = ($_GET['status'] ?? '') === 'all';
-    $sql = 'SELECT * FROM orders'
-         . ($all ? '' : " WHERE status NOT IN ('completed', 'cancelled')")
-         . ($all ? ' ORDER BY created_at DESC LIMIT 100' : ' ORDER BY pickup_time, id');
+    $st = $_GET['status'] ?? '';
+    if ($st === 'all') {
+        // 管理画面でカテゴリ分け (要対応 / テイクアウト / 配達 / 支払済 / キャンセル / 完了) するため全部返す
+        $sql = 'SELECT * FROM orders ORDER BY created_at DESC LIMIT 200';
+    } elseif ($st === 'done') {
+        // 受け渡し完了の注文 (完了タブ)
+        $sql = "SELECT * FROM orders WHERE status = 'completed' ORDER BY created_at DESC LIMIT 100";
+    } else {
+        // 対応中 (まだ渡していない注文): 調理待ち + 出来上がり
+        $sql = "SELECT * FROM orders WHERE status NOT IN ('completed','cancelled') ORDER BY created_at, id";
+    }
     send_json(attach_bowls($pdo, $pdo->query($sql)->fetchAll()));
 }
 
@@ -165,37 +201,61 @@ if ($method === 'POST') {
     $in = read_json();
 
     // 1. お客さんの情報 (login している人は空なら会員情報を使う)
-    $name  = trim((string) ($in['customer_name'] ?? ''));
-    $phone = trim((string) ($in['customer_phone'] ?? ''));
-    $note  = trim((string) ($in['note'] ?? ''));
+    $name    = trim((string) ($in['customer_name'] ?? ''));
+    $phone   = trim((string) ($in['customer_phone'] ?? ''));
+    $note    = trim((string) ($in['note'] ?? ''));
+    $allergy = trim((string) ($in['allergy_note'] ?? ''));
+    $postal  = trim((string) ($in['customer_postal'] ?? ''));
+    $address = trim((string) ($in['customer_address'] ?? ''));
     $user_id = current_user_id();
-    if ($user_id !== null && ($name === '' || $phone === '')) {
-        $stmt = $pdo->prepare('SELECT name, phone FROM users WHERE id = ?');
+    if ($user_id !== null) {
+        // 空のところは会員情報でおぎなう (マイページに入れた住所など)
+        $stmt = $pdo->prepare('SELECT name, phone, postal_code, address FROM users WHERE id = ?');
         $stmt->execute([$user_id]);
         $u = $stmt->fetch() ?: [];
-        $name  = $name  !== '' ? $name  : (string) ($u['name'] ?? '');
-        $phone = $phone !== '' ? $phone : (string) ($u['phone'] ?? '');
+        $name    = $name    !== '' ? $name    : (string) ($u['name'] ?? '');
+        $phone   = $phone   !== '' ? $phone   : (string) ($u['phone'] ?? '');
+        $postal  = $postal  !== '' ? $postal  : (string) ($u['postal_code'] ?? '');
+        $address = $address !== '' ? $address : (string) ($u['address'] ?? '');
     }
     if ($name === '' || mb_strlen($name) > 100) {
         send_error('お名前を入力してください', 400);
     }
-    if ($phone !== '' && !preg_match('/^[0-9\-+]{10,20}$/', $phone)) {
+    if ($phone === '') {                         // 電話番号は必須
+        send_error('電話番号を入力してください', 400);
+    }
+    if (!preg_match('/^[0-9\-+]{10,20}$/', $phone)) {
         send_error('電話番号は数字とハイフンで入力してください', 400);
     }
     if (mb_strlen($note) > 200) {
         send_error('備考は200文字以内で入力してください', 400);
     }
+    if (mb_strlen($allergy) > 255) {
+        send_error('アレルギーは255文字以内で入力してください', 400);
+    }
+    if (mb_strlen($postal) > 10) {
+        send_error('郵便番号を確認してください', 400);
+    }
+    if (mb_strlen($address) > 255) {
+        send_error('住所は255文字以内で入力してください', 400);
+    }
 
-    // 2. 受け取り時間: 候補の中にあるか (過去の時間・閉店後はだめ)
-    $slots = pickup_slots($pdo);
-    if (!$slots['is_open']) {
+    // 受け取り方法: テイクアウト（店頭）か 配達。配達は住所が必須。
+    $order_type = (($in['order_type'] ?? 'takeout') === 'delivery') ? 'delivery' : 'takeout';
+    if ($order_type === 'delivery' && $address === '') {
+        send_error('配達をえらんだ場合は、ご住所を入力してください', 400);
+    }
+
+    // 支払い方法: カード / PayPay / 代金引換(COD)。画面は 'card' を送る → DB は 'mock_card'。
+    $pm_map = ['card' => 'mock_card', 'mock_card' => 'mock_card', 'paypay' => 'paypay', 'cod' => 'cod'];
+    $payment_method = $pm_map[(string) ($in['payment_method'] ?? 'card')] ?? 'mock_card';
+
+    // 2. 受け取り時間は使いません。でも お店が閉まっているときは注文を受けない
+    $store = $pdo->query('SELECT is_open FROM store_settings WHERE id = 1')->fetch();
+    if (!$store || !$store['is_open']) {
         send_error('ただいま注文を受け付けていません', 400);
     }
-    $pickup = (string) ($in['pickup_time'] ?? '');
-    if (!in_array($pickup, $slots['slots'], true)) {
-        send_error('受け取り時間を選び直してください', 400);
-    }
-    $pickupAt = date('Y-m-d') . ' ' . $pickup . ':00';
+    $pickupAt = null;
 
     // 3. ここから transaction: 全部成功するか、全部なかったことにする
     $pdo->beginTransaction();
@@ -204,12 +264,58 @@ if ($method === 'POST') {
 
         // cart をロックして読む (2回押しても二重注文にならない)
         $cart = load_cart($pdo, true);
-        if (!$cart['bowls']) {
+        if (!$cart['bowls'] && !$cart['drinks']) {
             throw new InvalidArgumentException('カートが空です');
         }
         foreach ($cart['bowls'] as $b) {
             if ($b['error'] !== null) {
                 throw new InvalidArgumentException($b['menu_name'] . ': ' . $b['error']);
+            }
+        }
+
+        // 前に作って まだ支払っていない注文（下書き）を消す。
+        // 支払い前に情報入力ページへ「もどる」→ もう一度「確定」しても、注文が二重にならない。
+        // カートは支払いが終わるまで消さないので、もどってもカートの中身は残る。
+        $priorIds = [];
+        if ($user_id !== null) {
+            // 代金引換(COD) は注文した時点で確定なので 下書きではない → 消さない
+            $q = $pdo->prepare(
+                "SELECT id FROM orders
+                 WHERE user_id = ? AND payment_status = 'unpaid' AND status = 'pending' AND payment_method <> 'cod'
+                 FOR UPDATE"
+            );
+            $q->execute([$user_id]);
+            $priorIds = array_map('intval', array_column($q->fetchAll(), 'id'));
+        } else {
+            $sess = array_values(array_unique(array_map('intval', $_SESSION['guest_order_ids'] ?? [])));
+            if ($sess) {
+                $marks = implode(',', array_fill(0, count($sess), '?'));
+                $q = $pdo->prepare(
+                    "SELECT id FROM orders
+                     WHERE id IN ($marks) AND payment_status = 'unpaid' AND status = 'pending' AND payment_method <> 'cod'
+                     FOR UPDATE"
+                );
+                $q->execute($sess);
+                $priorIds = array_map('intval', array_column($q->fetchAll(), 'id'));
+            }
+        }
+        if ($priorIds) {
+            // 下書きを作ったときに減らした在庫を戻してから消す (order_bowls/items/drinks は CASCADE)
+            $restore = $pdo->prepare(
+                "UPDATE ingredients i
+                 JOIN (SELECT oi.ingredient_id, SUM(oi.quantity * ob.quantity) AS qty
+                       FROM order_items oi JOIN order_bowls ob ON ob.id = oi.order_bowl_id
+                       WHERE ob.order_id = ? AND oi.action = 'added' AND oi.ingredient_id IS NOT NULL
+                       GROUP BY oi.ingredient_id) used ON used.ingredient_id = i.id
+                 SET i.stock = i.stock + used.qty"
+            );
+            $del = $pdo->prepare('DELETE FROM orders WHERE id = ?');
+            foreach ($priorIds as $pid) {
+                $restore->execute([$pid]);
+                $del->execute([$pid]);
+            }
+            if ($user_id === null) {
+                $_SESSION['guest_order_ids'] = array_values(array_diff($_SESSION['guest_order_ids'] ?? [], $priorIds));
             }
         }
 
@@ -221,10 +327,14 @@ if ($method === 'POST') {
         } while ($stmt->fetchColumn());
 
         $stmt = $pdo->prepare(
-            'INSERT INTO orders (order_number, user_id, customer_name, customer_phone, pickup_time, total_price, note)
-             VALUES (?, ?, ?, ?, ?, ?, ?)'
+            'INSERT INTO orders (order_number, user_id, customer_name, customer_phone, customer_postal, customer_address,
+                                 pickup_time, total_price, note, allergy_note, order_type, payment_method)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
-        $stmt->execute([$number, $user_id, $name, $phone ?: null, $pickupAt, $cart['total'], $note ?: null]);
+        $stmt->execute([
+            $number, $user_id, $name, $phone, $postal ?: null, $address ?: null,
+            $pickupAt, $cart['total'], $note ?: null, $allergy ?: null, $order_type, $payment_method,
+        ]);
         $order_id = (int) $pdo->lastInsertId();
 
         // bowl ごとに「その時の名前と値段」をコピーして残す (あとで値段が変わっても注文は変わらない)
@@ -268,6 +378,17 @@ if ($method === 'POST') {
             }
         }
 
+        // ドリンク (ジュース) を「その時の名前と値段」でコピーして残す
+        $addDrink = $pdo->prepare(
+            'INSERT INTO order_drinks (order_id, juice_id, juice_name, juice_price, quantity) VALUES (?, ?, ?, ?, ?)'
+        );
+        foreach ($cart['drinks'] as $d) {
+            if ($d['error'] !== null) {
+                throw new InvalidArgumentException('ドリンク（' . $d['name'] . '）: ' . $d['error']);
+            }
+            $addDrink->execute([$order_id, $d['juice_id'], $d['name'], $d['price'], $d['quantity']]);
+        }
+
         // 2つの bowl で同じ具材を使ったときなど、在庫がマイナスになったら注文しない
         $used = [];
         foreach ($cart['bowls'] as $b) {
@@ -288,9 +409,14 @@ if ($method === 'POST') {
             throw new InvalidArgumentException("{$short} の在庫が足りません。杯数を減らしてください");
         }
 
-        // cart を空にする
-        [$where, $owner] = cart_owner();
-        $pdo->prepare("DELETE FROM cart_bowls WHERE $where")->execute([$owner]);
+        // カードや PayPay はここではカートを消さない。支払いが成功したときに api/payments.php で消す。
+        // → 支払い前に「もどる」でカートや注文情報を見直せる (注文が消えたように見えない)。
+        // 代金引換(COD) は支払い画面がない（注文した時点で確定）ので、ここで空にする。
+        if ($payment_method === 'cod') {
+            [$cw, $co] = cart_owner();
+            $pdo->prepare("DELETE FROM cart_bowls WHERE $cw")->execute([$co]);
+            $pdo->prepare("DELETE FROM cart_drinks WHERE $cw")->execute([$co]);
+        }
 
         $pdo->commit();
     } catch (InvalidArgumentException $e) {
@@ -306,7 +432,30 @@ if ($method === 'POST') {
         $_SESSION['guest_order_ids'][] = $order_id;
     }
 
-    send_json(['order_id' => $order_id, 'order_number' => $number, 'total_price' => $cart['total']], 201);
+    send_json(['order_id' => $order_id, 'order_number' => $number, 'total_price' => $cart['total'], 'payment_method' => $payment_method], 201);
+}
+
+// ======================================================================
+// DELETE ?id=12 : 注文を消す (admin)。完了・キャンセルの注文だけ (記録の整理用)
+// ======================================================================
+if ($method === 'DELETE') {
+    require_admin();
+    $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if ($id === false) {
+        send_error('id が必要です', 400);
+    }
+    $stmt = $pdo->prepare('SELECT status FROM orders WHERE id = ?');
+    $stmt->execute([$id]);
+    $st = $stmt->fetchColumn();
+    if ($st === false) {
+        send_error('注文が見つかりません', 404);
+    }
+    if (!in_array($st, ['completed', 'cancelled'], true)) {
+        send_error('完了・キャンセルの注文だけ削除できます', 400);
+    }
+    // order_bowls / order_items / order_drinks / payments / status_history は CASCADE で消える
+    $pdo->prepare('DELETE FROM orders WHERE id = ?')->execute([$id]);
+    send_json(['id' => $id, 'deleted' => true]);
 }
 
 // ======================================================================
@@ -321,13 +470,14 @@ $in = read_json();
 $new = (string) ($in['status'] ?? '');
 
 $pdo->beginTransaction();
-$stmt = $pdo->prepare('SELECT status FROM orders WHERE id = ? FOR UPDATE');
+$stmt = $pdo->prepare('SELECT status, payment_method, payment_status FROM orders WHERE id = ? FOR UPDATE');
 $stmt->execute([$id]);
-$old = $stmt->fetchColumn();
-if ($old === false) {
+$cur = $stmt->fetch();
+if ($cur === false) {
     $pdo->rollBack();
     send_error('注文が見つかりません', 404);
 }
+$old = $cur['status'];
 if (!in_array($new, NEXT_STATUS[$old] ?? [], true)) {
     $pdo->rollBack();
     send_error('このステータスには変えられません', 400);
@@ -335,6 +485,11 @@ if (!in_array($new, NEXT_STATUS[$old] ?? [], true)) {
 
 $pdo->prepare('SET @current_user_id = ?')->execute([current_user_id()]);   // 誰が変えたか (trigger が記録)
 $pdo->prepare('UPDATE orders SET status = ? WHERE id = ?')->execute([$new, $id]);
+
+// 代金引換(COD): 受け渡し完了のときに その場で支払い → 支払済にする
+if ($new === 'completed' && $cur['payment_method'] === 'cod' && $cur['payment_status'] !== 'paid') {
+    $pdo->prepare("UPDATE orders SET payment_status = 'paid' WHERE id = ?")->execute([$id]);
+}
 
 // キャンセル → 使うはずだった在庫を戻す
 if ($new === 'cancelled') {

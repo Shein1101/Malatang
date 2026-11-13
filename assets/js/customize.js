@@ -160,9 +160,10 @@ function renderStatic() {
   $('menuName').textContent = m.name;
   document.title = m.name + ' | Chilli 鍋';
 
-  // 行き先がわかるボタン (自分で作る ⇔ メニュー)
-  $('modeLink').innerHTML = '<a class="btn btn-outline btn-sm" href="menu.php">← メニュー一覧へ</a>'
-    + (m.is_custom ? '' : '<a class="btn btn-outline btn-sm" href="customize.php">一から自分で作る →</a>');
+  // 「もどる」ボタンがあるので、ここは「一から自分で作る」への軽いリンクだけにする
+  $('modeLink').innerHTML = m.is_custom
+    ? ''
+    : '<a class="cz-switch" href="customize.php">一から自分で作る →</a>';
 
   // 最初から入っている具材
   if (m.ingredients.length === 0) {

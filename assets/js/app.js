@@ -38,7 +38,7 @@ async function refreshCartCount() {
   const badge = document.querySelector('.site-header .cart-count');
   if (!badge) return;                       // 管理画面などカートがないページ
   const res = await callApi('GET', '../api/cart.php');
-  const count = res.success ? res.data.count : 0;
+  const count = res.success ? (res.data.item_count ?? res.data.count) : 0;
   badge.textContent = count;
   badge.style.display = count > 0 ? '' : 'none';
 }
@@ -74,3 +74,38 @@ function setupAccountMenu() {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !list.hidden) { open(false); btn.focus(); } });
 }
 window.addEventListener('load', setupAccountMenu);
+
+// フッターの「お店について」「アクセス」を、お店が設定した内容で埋める (api/store.php)。
+// フッターのある公開ページだけ。無ければ何もしない。
+async function fillFooter() {
+  const about = document.getElementById('footerAbout');
+  if (!about) return;
+  const res = await callApi('GET', '../api/store.php');
+  if (!res.success || !res.data || !res.data.store) return;
+  const s = res.data.store;
+  if (s.description) about.textContent = s.description;
+  const put = (id, label, value) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (value) { el.textContent = label + value; el.classList.remove('d-none'); }
+    else { el.classList.add('d-none'); }
+  };
+  put('footerAddress', '', s.address);
+  put('footerHours', '営業時間：', s.opening_hours);
+  put('footerPhone', 'TEL：', s.phone);
+
+  // SNS リンク (お店が設定したものだけ出す)。
+  // "instagram.com/.." のように http(s) を省いて入れても出せるように、無ければ付ける。
+  const sns = (id, url) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let u = String(url || '').trim();
+    if (u && !/^https?:\/\//i.test(u)) u = 'https://' + u;
+    if (u && /^https?:\/\/.+/i.test(u)) { el.href = u; el.classList.remove('d-none'); }
+    else el.classList.add('d-none');
+  };
+  sns('snsLine', s.line_url);
+  sns('snsIg', s.instagram_url);
+  sns('snsX', s.x_url);
+}
+window.addEventListener('load', fillFooter);

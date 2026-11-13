@@ -136,7 +136,7 @@ case 'me':
         send_json(null);
     }
 
-    $stmt = $pdo->prepare('SELECT id, name, email, phone, role FROM users WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT id, name, email, phone, postal_code, address, role FROM users WHERE id = ?');
     $stmt->execute([current_user_id()]);
     $user = $stmt->fetch();
 
@@ -148,6 +148,51 @@ case 'me':
 
     $user['id'] = (int)$user['id'];
     send_json($user);
+    break;
+
+case 'profile':
+    // マイページ: 自分の名前・電話・住所を変える (ログインしている人だけ)
+    require_method('PUT');
+    require_login();
+    $in = read_json();
+
+    $sets = [];
+    $values = [];
+    if (array_key_exists('name', $in)) {
+        $name = trim((string) $in['name']);
+        if ($name === '' || mb_strlen($name) > 100) {
+            send_error('名前は1〜100文字で入力してください', 400);
+        }
+        $sets[] = 'name = ?'; $values[] = $name;
+    }
+    if (array_key_exists('phone', $in)) {
+        $phone = trim((string) $in['phone']);
+        // 電話は必須 (空にはできない)
+        if ($phone === '' || !preg_match('/^[0-9\-+]{10,20}$/', $phone)) {
+            send_error('電話番号は数字とハイフンで入力してください', 400);
+        }
+        $sets[] = 'phone = ?'; $values[] = $phone;
+    }
+    if (array_key_exists('postal_code', $in)) {
+        $postal = trim((string) $in['postal_code']);
+        if (mb_strlen($postal) > 10) {
+            send_error('郵便番号を確認してください', 400);
+        }
+        $sets[] = 'postal_code = ?'; $values[] = $postal === '' ? null : $postal;
+    }
+    if (array_key_exists('address', $in)) {
+        $address = trim((string) $in['address']);
+        if (mb_strlen($address) > 255) {
+            send_error('住所は255文字以内で入力してください', 400);
+        }
+        $sets[] = 'address = ?'; $values[] = $address === '' ? null : $address;
+    }
+    if (count($sets) === 0) {
+        send_error('変更するところがありません', 400);
+    }
+    $values[] = (int) current_user_id();
+    $pdo->prepare('UPDATE users SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($values);
+    send_json(['updated' => true]);
     break;
 
 case 'forgot':

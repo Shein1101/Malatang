@@ -12,26 +12,67 @@ include '../includes/admin_header.php';
     <span class="caption" id="updated"></span>
   </div>
 
-  <div class="tabs" role="tablist">
-    <button class="tab is-active" role="tab" data-filter="active">対応中</button>
-    <button class="tab" role="tab" data-filter="all">すべて</button>
-  </div>
+  <!-- カテゴリ (6つ) -->
+  <div class="tabs" id="catTabs" role="tablist"></div>
+  <!-- そのカテゴリの中でさらにしぼる (テイクアウト・配達・要対応 など) -->
+  <div class="tabs adm-sub" id="subTabs"></div>
 
   <p id="error" class="field-error d-none"></p>
   <div id="orderList" class="grid-2"><p class="muted">読み込み中…</p></div>
 </main>
 
 <script>
-// ステータスの日本語・バッジの色・ボタンの文字
+// ステータスの日本語・バッジの色・ボタンの文字 (button = そのステータスに「進める」ボタンの文字)
+// お店の操作は2つだけ: 出来上がり → 受け渡し完了。
 const STATUS = {
-  pending:   { label: '受付待ち',   badge: 'badge-label',    button: '受付する' },
-  confirmed: { label: '受付済',     badge: 'badge-received', button: '受付する' },
-  preparing: { label: '調理中',     badge: 'badge-cooking',  button: '調理を始める' },
-  ready:     { label: '受取待ち',   badge: 'badge-received', button: 'できあがり' },
-  completed: { label: '受取済',     badge: 'badge-done',     button: '受け渡し完了' },
-  cancelled: { label: 'キャンセル', badge: 'badge-soldout',  button: 'キャンセル' },
+  pending:   { label: '調理待ち',     badge: 'badge-label' },
+  confirmed: { label: '受付済',       badge: 'badge-received' },  // 旧データ
+  preparing: { label: '調理中',       badge: 'badge-cooking' },   // 旧データ
+  ready:     { label: '出来上がり',   badge: 'badge-cooking',  button: '出来上がり' },
+  completed: { label: '受け渡し完了', badge: 'badge-done',     button: '受け渡し完了' },
+  cancelled: { label: 'キャンセル',   badge: 'badge-soldout' },
 };
-let filter = 'active';
+const PAY_METHOD = { mock_card: 'カード', paypay: 'PayPay', cod: '代金引換' };
+const FIN = ['completed', 'cancelled'];   // 「対応が終わった」注文
+
+// 6つのカテゴリ。match = その注文がこのカテゴリに入るか
+const CATS = [
+  { key: 'awaiting',  label: '要対応',      match: o => o.status === 'pending' },
+  { key: 'takeaway',  label: 'テイクアウト', match: o => o.order_type === 'takeout'  && !FIN.includes(o.status) },
+  { key: 'delivery',  label: '配達',        match: o => o.order_type === 'delivery' && !FIN.includes(o.status) },
+  { key: 'paid',      label: '支払い済み',   match: o => o.payment_status === 'paid' },
+  { key: 'cancelled', label: 'キャンセル',   match: o => o.status === 'cancelled' },
+  { key: 'finished',  label: '完了',        match: o => o.status === 'completed' },
+];
+
+// カテゴリごとの「さらにしぼる」ボタン (なければ出さない)
+const SUBS = {
+  awaiting: [
+    { key: 'all',      label: 'すべて',          match: () => true },
+    { key: 'takeout',  label: 'テイクアウト',     match: o => o.order_type === 'takeout' },
+    { key: 'delivery', label: '配達',            match: o => o.order_type === 'delivery' },
+    { key: 'codunpaid',label: '代金引換・未回収', match: o => o.payment_method === 'cod' && o.payment_status !== 'paid' },
+  ],
+  takeaway: [
+    { key: 'all',    label: 'すべて',              match: () => true },
+    { key: 'cooking',label: '調理待ち',            match: o => o.status === 'pending' },
+    { key: 'pickup', label: 'お客さまの受け取り待ち', match: o => o.status === 'ready' },
+  ],
+  delivery: [
+    { key: 'all',     label: 'すべて',          match: () => true },
+    { key: 'cooking', label: '調理待ち',        match: o => o.status === 'pending' },
+    { key: 'courier', label: '配達員の集荷待ち', match: o => o.status === 'ready' },
+  ],
+  paid: [
+    { key: 'all',      label: 'すべて',      match: () => true },
+    { key: 'takeout',  label: 'テイクアウト', match: o => o.order_type === 'takeout' },
+    { key: 'delivery', label: '配達',        match: o => o.order_type === 'delivery' },
+  ],
+};
+
+let allOrders = [];
+let cat = 'awaiting';
+let sub = 'all';
 
 // 新しい注文の音 + タブのタイトルの数 [Myat]
 //   seenIds = 一度でも見た注文の id。null = まだ一度も読んでいない (最初は鳴らさない)
@@ -87,42 +128,96 @@ function bowlLines(o) {
 
 function orderCard(o) {
   const s = STATUS[o.status];
-  // 次に進むボタン (キャンセルは別の色)
+  // 進めるボタン (出来上がり / 受け渡し完了)。キャンセルは目立たない ghost ボタン。
   const buttons = o.next_status.map(n => n === 'cancelled'
     ? `<button class="btn btn-ghost btn-sm" data-id="${o.id}" data-status="cancelled">キャンセル</button>`
     : `<button class="btn btn-chili btn-sm" data-id="${o.id}" data-status="${n}">${STATUS[n].button}</button>`
   ).join('');
+  // 完了・キャンセルの注文は 記録から削除できる
+  const delBtn = (o.status === 'completed' || o.status === 'cancelled')
+    ? `<button class="btn btn-ghost btn-sm text-danger" data-del="${o.id}">削除</button>` : '';
+  const payLabel = PAY_METHOD[o.payment_method] || 'カード';
 
   return `
     <div class="card order-card">
       <div class="order-top">
         <div>
-          <b>受取 ${hhmm(o.pickup_time)}</b>
-          <div class="caption">#${esc(o.order_number)}・${esc(o.customer_name)}${o.is_guest ? '（ゲスト）' : ''}${o.customer_phone ? '・' + esc(o.customer_phone) : ''}</div>
+          <b>注文 ${hhmm(o.created_at)}</b>
+          <div class="caption">#${esc(o.order_number)}・${esc(o.customer_name)}${o.is_guest ? '（ゲスト）' : ''}${o.customer_phone ? '・' + esc(o.customer_phone) : ''}・${o.order_type === 'delivery' ? '🛵 配達' : '🏪 店頭'}</div>
         </div>
         <span class="badge ${s.badge}">${s.label}</span>
       </div>
       <ul class="list">${bowlLines(o)}</ul>
+      ${o.drinks && o.drinks.length ? `<ul class="list">${o.drinks.map(d => `<li class="caption">🥤 ${esc(d.name)} ×${d.quantity}</li>`).join('')}</ul>` : ''}
+      ${o.allergy_note ? `<p class="caption text-chili"><b>⚠ アレルギー：${esc(o.allergy_note)}</b></p>` : ''}
       ${o.note ? `<p class="caption">備考：${esc(o.note)}</p>` : ''}
+      ${o.customer_address ? `<p class="caption">住所：${o.customer_postal ? esc(o.customer_postal) + ' ' : ''}${esc(o.customer_address)}</p>` : ''}
       <div class="order-foot">
         <span>合計 <span class="price">${yen(o.total_price)}</span>
+          <span class="badge badge-label">${esc(payLabel)}</span>
           <span class="badge ${o.payment_status === 'paid' ? 'badge-done' : 'badge-soldout'}">${o.payment_status === 'paid' ? '支払済' : '未払い'}</span></span>
-        <div class="row">${buttons}</div>
+        <div class="row">${buttons}${delBtn}</div>
       </div>
     </div>`;
 }
 
-async function loadOrders() {
-  const res = await callApi('GET', '../api/orders.php' + (filter === 'all' ? '?status=all' : ''));
+// 今のカテゴリ・しぼりこみに合う注文だけ返す
+function currentList() {
+  const c = CATS.find(c => c.key === cat);
+  const subs = SUBS[cat] || [];
+  const sm = (subs.find(s => s.key === sub) || subs[0] || { match: () => true }).match;
+  let rows = allOrders.filter(c.match).filter(sm);
+  // 対応中の仕事は「古い順」(先に来た注文から)。終わったものは「新しい順」。
+  const workish = ['awaiting', 'takeaway', 'delivery'].includes(cat);
+  rows.sort((a, b) => workish
+    ? (a.created_at < b.created_at ? -1 : 1)
+    : (a.created_at > b.created_at ? -1 : 1));
+  return rows;
+}
+
+// カテゴリのタブ (件数つき)
+function renderCatTabs() {
+  document.getElementById('catTabs').innerHTML = CATS.map(c => {
+    const n = allOrders.filter(c.match).length;
+    return `<button type="button" class="tab ${c.key === cat ? 'is-active' : ''}" data-cat="${c.key}">${c.label}<span class="tab-count">${n}</span></button>`;
+  }).join('');
+}
+
+// 「さらにしぼる」タブ (件数つき。無いカテゴリでは隠す)
+function renderSubTabs() {
+  const subs = SUBS[cat];
+  const box = document.getElementById('subTabs');
+  if (!subs) { box.innerHTML = ''; box.classList.add('d-none'); return; }
+  const base = allOrders.filter(CATS.find(c => c.key === cat).match);
+  box.classList.remove('d-none');
+  box.innerHTML = subs.map(s =>
+    `<button type="button" class="tab ${s.key === sub ? 'is-active' : ''}" data-sub="${s.key}">${s.label}<span class="tab-count">${base.filter(s.match).length}</span></button>`
+  ).join('');
+}
+
+function renderList() {
+  const rows = currentList();
   const list = document.getElementById('orderList');
+  list.innerHTML = rows.length
+    ? rows.map(orderCard).join('')
+    : '<div class="empty card"><svg><use href="#i-trash"/></svg><p>この分類の注文はありません</p></div>';
+}
+
+function renderAll() {
+  renderCatTabs();
+  renderSubTabs();
+  renderList();
+}
+
+async function loadOrders() {
+  const res = await callApi('GET', '../api/orders.php?status=all');
   if (!res.success) {
     showError(document.getElementById('error'), res.error);
     return;
   }
   document.getElementById('error').classList.add('d-none');
-  list.innerHTML = res.data.length
-    ? res.data.map(orderCard).join('')
-    : '<div class="empty card"><svg><use href="#i-trash"/></svg><p>対応中の注文はありません</p></div>';
+  allOrders = res.data;
+  renderAll();
   document.getElementById('updated').textContent = '最終更新 ' + new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
   // 受付待ちの新しい注文が来たら音を鳴らす (最初に読んだときは鳴らさない)
@@ -137,15 +232,33 @@ async function loadOrders() {
   document.title = pending.length ? `(${pending.length}) ${baseTitle}` : baseTitle;
 }
 
-document.addEventListener('click', async (e) => {
-  const tab = e.target.closest('[data-filter]');
-  if (tab) {
-    filter = tab.dataset.filter;
-    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('is-active', t === tab));
+// カテゴリを切り替え
+document.getElementById('catTabs').addEventListener('click', (e) => {
+  const t = e.target.closest('[data-cat]');
+  if (!t) return;
+  cat = t.dataset.cat;
+  sub = 'all';   // カテゴリを変えたら しぼりこみは最初から
+  renderAll();
+});
+// しぼりこみを切り替え
+document.getElementById('subTabs').addEventListener('click', (e) => {
+  const t = e.target.closest('[data-sub]');
+  if (!t) return;
+  sub = t.dataset.sub;
+  renderAll();
+});
+
+// ステータスを進める / キャンセル / 削除
+document.getElementById('orderList').addEventListener('click', async (e) => {
+  const del = e.target.closest('button[data-del]');
+  if (del) {
+    if (!confirm('この注文を記録から削除しますか？（元に戻せません）')) return;
+    del.disabled = true;
+    const res = await callApi('DELETE', '../api/orders.php?id=' + del.dataset.del);
+    if (!res.success) showError(document.getElementById('error'), res.error);
     loadOrders();
     return;
   }
-
   const b = e.target.closest('button[data-status]');
   if (!b) return;
   if (b.dataset.status === 'cancelled' && !confirm('この注文をキャンセルしますか？（在庫は元に戻ります）')) return;

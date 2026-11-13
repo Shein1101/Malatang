@@ -34,9 +34,13 @@ const STATUS = {
   cancelled: ['キャンセル', 'badge-soldout'],
 };
 
-// '2026-10-15 12:30:00' → '2026/10/15 12:30'
-function dateText(s) {
-  return String(s).slice(0, 16).replace(/-/g, '/');
+// '2026-10-15 12:30:00' → '2026/10/15 (木) 12:30' (曜日つきで、注文を見分けやすく)
+const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+function dateTimeText(s) {
+  const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+  if (!m) return String(s).slice(0, 16).replace(/-/g, '/');
+  const d = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+  return `${m[1]}/${m[2]}/${m[3]} (${WEEKDAYS[d.getDay()]}) ${m[4]}:${m[5]}`;
 }
 
 function bowlRow(b) {
@@ -57,13 +61,12 @@ function bowlRow(b) {
     </li>`;
 }
 
-// 受け取り時間 + 支払い (未払いならお支払いへ)
-function pickupLine(o) {
-  let pay = '';
-  if (o.payment_status === 'paid')          pay = ' ・ 支払い済み';
-  else if (o.payment_status === 'refunded') pay = ' ・ 返金済み';
-  else if (o.status !== 'cancelled')        pay = ` ・ <a href="payment.php?order_id=${o.order_id}">未払い（お支払いへ）</a>`;
-  return `<div class="caption">受け取り ${dateText(o.pickup_time)}${pay}</div>`;
+// 支払いの状態 (未払いならお支払いへ)
+function payLine(o) {
+  if (o.payment_status === 'paid')     return '<span class="text-done">支払い済み</span>';
+  if (o.payment_status === 'refunded') return '<span class="muted">返金済み</span>';
+  if (o.status !== 'cancelled')        return `<a href="payment.php?order_id=${o.order_id}">未払い（お支払いへ）</a>`;
+  return '';
 }
 
 function orderCard(o) {
@@ -71,10 +74,18 @@ function orderCard(o) {
   return `
     <div class="card order-card">
       <div class="order-top">
-        <div><b>注文番号：${esc(o.order_number)}</b><div class="caption">注文 ${dateText(o.ordered_at)}</div>${pickupLine(o)}</div>
-        <span class="badge ${cls}">${label}</span>
+        <div>
+          <div class="order-when">${dateTimeText(o.ordered_at)}</div>
+          <div class="caption">注文番号：${esc(o.order_number)} ・ ${payLine(o)}</div>
+        </div>
+        <div class="text-end">
+          <span class="badge ${cls}">${label}</span>
+          <div class="caption mt-1">${o.order_type === 'delivery' ? '🛵 配達' : '🏪 店頭'}</div>
+        </div>
       </div>
       <ul class="list">${o.bowls.map(bowlRow).join('')}</ul>
+      ${o.drinks && o.drinks.length ? `<ul class="list">${o.drinks.map(d =>
+        `<li class="flex-wrap"><div class="caption">🥤 ${esc(d.name)} ×${d.quantity}</div><span class="ms-auto">${yen(d.line_total)}</span></li>`).join('')}</ul>` : ''}
       <div class="order-foot">
         <span>合計 <span class="price">${yen(o.total_price)}</span></span>
         <button class="btn btn-chili btn-sm" data-reorder-order="${o.order_id}">もう一度注文する</button>

@@ -12,12 +12,6 @@ include '../includes/admin_header.php';
   <p class="caption">調味料・ティッシュ・スプーンなど、お店で使う物の数を管理します（お客さんの画面には出ません）。数字を変えるとすぐ保存されます。数が「最低数」以下になると 残りわずか になります。</p>
   <p id="message"></p>
 
-  <!-- まとめ: 今すぐ買いに行く物の数 (押すとその一覧にしぼる) -->
-  <div class="d-flex flex-wrap gap-2 mb-3">
-    <button type="button" class="btn btn-outline text-danger" data-filter="low">⚠ 残りわずか <strong id="countLow">-</strong> 件</button>
-    <button type="button" class="btn btn-outline" data-filter="out">✖ なくなった <strong id="countOut">-</strong> 件</button>
-  </div>
-
   <!-- 追加フォーム -->
   <form id="addForm" class="card card-body mb-4">
     <h2 class="h5">備品を追加</h2>
@@ -148,8 +142,6 @@ async function loadList() {
       </tr>`;
   }
   document.getElementById('list').innerHTML = rows || '<tr><td colspan="5" class="text-muted">まだありません</td></tr>';
-  document.getElementById('countLow').textContent = countLow;
-  document.getElementById('countOut').textContent = countOut;
   catList = cats.map(name => ({
     name,
     count: res.data.filter(s => s.category === name).length,

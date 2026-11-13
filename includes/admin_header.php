@@ -13,9 +13,11 @@ $adminNav  = [
     'orders.php'      => '注文',
     'home.php'        => 'ホーム編集',
     'menus.php'       => 'メニュー',
-    'options.php'     => '辛さ',
+    'options.php'     => 'スープ・辛さ',
+    'juices.php'      => 'ジュース',
     'stock.php'       => '具材・在庫',
     'supplies.php'    => '備品',
+    'reviews.php'     => 'レビュー',
     'store.php'       => '店舗',
 ];
 ?>

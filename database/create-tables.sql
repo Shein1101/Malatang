@@ -46,6 +46,8 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,      -- save bcrypt hash, NEVER plain password
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
+    postal_code VARCHAR(10),                  -- マイページで編集できる住所
+    address VARCHAR(255),
     role ENUM('customer', 'admin') NOT NULL DEFAULT 'customer',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -73,6 +75,9 @@ CREATE TABLE store_settings (
     description TEXT,
     address VARCHAR(255),
     phone VARCHAR(20),
+    line_url      VARCHAR(255),               -- SNS: LINE (フッターに出す)
+    instagram_url VARCHAR(255),               -- SNS: Instagram
+    x_url         VARCHAR(255),               -- SNS: X (Twitter)
     opening_hours VARCHAR(255),               -- e.g. '11:00〜21:00 (火曜定休)'
     is_open BOOLEAN NOT NULL DEFAULT TRUE,
     banner_url VARCHAR(500),                  -- main photo at the top of the store page
@@ -201,7 +206,21 @@ CREATE TABLE spice_levels (
     extra_price INT NOT NULL DEFAULT 0 CHECK (extra_price >= 0),
     is_available BOOLEAN NOT NULL DEFAULT TRUE   -- FALSE = owner が一時的に止める
 );
- 
+
+-- ジュース (飲み物) — お店が メニューに出す／下げる を管理する。
+-- 今は「メニューに表示するだけ」。カート・注文にはまだ入れない。
+CREATE TABLE juices (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price INT NOT NULL DEFAULT 0 CHECK (price >= 0),
+    image_url VARCHAR(500),
+    is_available BOOLEAN NOT NULL DEFAULT TRUE,   -- FALSE = メニューに出さない
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- =====================================================================
 -- 6. PRICE HISTORY  → Change prices (automatic)        [Myat]
 -- =====================================================================
@@ -251,8 +270,20 @@ CREATE TABLE cart_bowl_ingredients (
     FOREIGN KEY (cart_bowl_id) REFERENCES cart_bowls(id) ON DELETE CASCADE,
     FOREIGN KEY (ingredient_id) REFERENCES ingredients(id)
 );
- 
- 
+
+-- カートのドリンク (ジュースをカートに入れられる)。login: user_id / guest: guest_token。
+CREATE TABLE cart_drinks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    guest_token VARCHAR(64) NULL,
+    juice_id INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1 CHECK (quantity >= 1),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (juice_id) REFERENCES juices(id) ON DELETE CASCADE
+);
+
+
 -- =====================================================================
 -- 8. FAMILY & FRIENDS  → Family & Friends ordering       [Lin]
 --    友達にシェアしよう → 友達に届く！ → 同じ内容で注文
@@ -318,13 +349,17 @@ CREATE TABLE orders (
     user_id INT NULL,                         -- NULL = guest order
     customer_name VARCHAR(100) NOT NULL,      -- always saved (guests too)
     customer_phone VARCHAR(20),
-    pickup_time DATETIME NOT NULL,
+    customer_postal VARCHAR(10),              -- お客さまの住所 (ゲストは注文確認で入力)
+    customer_address VARCHAR(255),
+    pickup_time DATETIME NULL,                -- 受け取り時間は使わない (NULL 可)
     total_price INT NOT NULL DEFAULT 0 CHECK (total_price >= 0),
-    payment_method ENUM('mock_card') NOT NULL DEFAULT 'mock_card',
+    payment_method ENUM('mock_card', 'paypay', 'cod') NOT NULL DEFAULT 'mock_card',  -- カード / PayPay / 代金引換
     payment_status ENUM('unpaid', 'paid', 'refunded') NOT NULL DEFAULT 'unpaid',  -- set by trigger
     status ENUM('pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled')
         NOT NULL DEFAULT 'pending',
-    note TEXT,
+    order_type ENUM('takeout', 'delivery') NOT NULL DEFAULT 'takeout',  -- 受け取り方法 (配達は住所必須)
+    note TEXT,                                -- 備考・特別なご要望 (1注文に1つ)
+    allergy_note VARCHAR(255),                -- アレルギー (注文のときに入力)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
@@ -366,7 +401,19 @@ CREATE TABLE order_items (
     FOREIGN KEY (order_bowl_id) REFERENCES order_bowls(id) ON DELETE CASCADE,
     FOREIGN KEY (ingredient_id) REFERENCES ingredients(id)
 );
- 
+
+-- Drinks in each order (name & price copied, so the order never changes later)
+CREATE TABLE order_drinks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    juice_id INT NULL,
+    juice_name VARCHAR(100) NOT NULL,         -- copy
+    juice_price INT NOT NULL,                 -- copy
+    quantity INT NOT NULL DEFAULT 1 CHECK (quantity > 0),
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (juice_id) REFERENCES juices(id) ON DELETE SET NULL
+);
+
 -- Status changes (filled automatically by a trigger)
 CREATE TABLE order_status_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -384,7 +431,7 @@ CREATE TABLE order_status_history (
 CREATE TABLE payments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
-    method ENUM('mock_card') NOT NULL DEFAULT 'mock_card',
+    method ENUM('mock_card', 'paypay', 'cod') NOT NULL DEFAULT 'mock_card',
     amount INT NOT NULL CHECK (amount >= 0),
     status ENUM('pending', 'succeeded', 'failed', 'refunded') NOT NULL DEFAULT 'pending',
     mock_transaction_id VARCHAR(50),          -- fake ID, e.g. 'MOCK-8F3K2'
@@ -392,8 +439,19 @@ CREATE TABLE payments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
- 
- 
+
+-- Customer reviews shown on the home page (admin can hide/delete)   [Lin]
+CREATE TABLE reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,                       -- 会員のみ (1人1件)
+    rating TINYINT NOT NULL,                    -- 1〜5 (PHP でチェック)
+    comment VARCHAR(300),
+    is_visible BOOLEAN NOT NULL DEFAULT TRUE,   -- admin が隠せる
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
 -- =====================================================================
 -- 11. FAVORITES  → Favorites & reorder                 [Lin]
 --     favorites + favorite_ingredients = マイレシピ (a whole custom bowl)
@@ -1015,6 +1073,12 @@ INSERT INTO spice_levels (name, level, extra_price) VALUES
 ('中辛',     3, 0),
 ('大辛',     4, 0),
 ('激辛',     5, 0);
+
+INSERT INTO juices (name, description, price, is_available, sort_order) VALUES
+('オレンジジュース', '果汁100%のオレンジ',       250, TRUE, 1),
+('アップルジュース', 'すっきり甘いりんご',         250, TRUE, 2),
+('ウーロン茶',       '食事に合うあたたかいお茶',   200, TRUE, 3),
+('ライチジュース',   '南国のあまい香り',           300, TRUE, 4);
  
  
 -- =====================================================================
