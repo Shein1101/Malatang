@@ -11,7 +11,6 @@ include '../includes/admin_header.php';
     <h1 class="heading">注文一覧</h1>
     <span class="caption" id="updated"></span>
   </div>
-
   <!-- カテゴリ (6つ) -->
   <div class="tabs" id="catTabs" role="tablist"></div>
   <!-- そのカテゴリの中でさらにしぼる (テイクアウト・配達・要対応 など) -->
