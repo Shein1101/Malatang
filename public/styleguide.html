@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>スタイルガイド | Chilli 鍋</title>
+<script>
+  (function () {
+    var t = localStorage.getItem('theme');
+    if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  })();
+</script>
 <link rel="stylesheet" href="../assets/css/style.css">
 <style>
   /* Styles for THIS page only (the guide's own layout). Do not copy these into features. */
@@ -68,6 +74,8 @@
   <symbol id="i-logout" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></g></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></g></symbol>
   <symbol id="i-bowl" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 11h18a9 9 0 0 1-18 0Z"/><path d="M8 7c0-2 1.5-2 1.5-4M12.5 7c0-2 1.5-2 1.5-4"/></g></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v3M12 18.5v3M3.5 12h3M17.5 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></g></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></symbol>
 </svg>
 
 <!-- ===== Shared header (copy into includes/header.php) ===== -->
@@ -87,10 +95,21 @@
       <a href="search.php" aria-label="検索"><svg><use href="#i-search"/></svg></a>
       <a href="mypage.php" aria-label="マイページ"><svg><use href="#i-user"/></svg></a>
       <a href="cart.php" aria-label="カート"><svg><use href="#i-cart"/></svg><span class="cart-count">2</span></a>
+      <button class="theme-toggle" id="sgThemeToggle" type="button" aria-label="表示モードを切り替える">
+        <svg class="i-sun"><use href="#i-sun"/></svg>
+        <svg class="i-moon"><use href="#i-moon"/></svg>
+      </button>
       <button class="menu-toggle" aria-label="メニューを開く"><svg><use href="#i-burger"/></svg></button>
     </div>
   </div>
 </header>
+<script>
+  document.getElementById('sgThemeToggle').addEventListener('click', function () {
+    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    if (isLight) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme', 'dark'); }
+    else { document.documentElement.setAttribute('data-theme', 'light'); localStorage.setItem('theme', 'light'); }
+  });
+</script>
 
 <main class="container page">
   <h1 class="title">スタイルガイド</h1>
@@ -105,17 +124,21 @@
   <!-- ============ COLORS ============ -->
   <section class="sg-section" id="colors">
     <h2 class="heading">色 <small>Colors · CSS variables</small></h2>
-    <p class="sg-note">Always use the variable, e.g. <code>color: var(--chili);</code> Never type the hex code in your own CSS.</p>
+    <p class="sg-note">Always use the variable, e.g. <code>color: var(--chili);</code> Never type a hex code in your own CSS — the actual value changes between the dark (default) and light theme.
+    Click the <svg width="14" height="14" style="vertical-align:-2px"><use href="#i-sun"/></svg>/<svg width="14" height="14" style="vertical-align:-2px"><use href="#i-moon"/></svg> button in the header above to compare.</p>
     <div class="sg-swatches">
-      <div class="sg-swatch"><div class="chip-color" style="background:var(--chili)"></div><div><b>メイン</b><br><code>--chili #C8261B</code></div></div>
-      <div class="sg-swatch"><div class="chip-color" style="background:var(--chili-dark)"></div><div><b>ホバー</b><br><code>--chili-dark #A51E15</code></div></div>
-      <div class="sg-swatch"><div class="chip-color" style="background:var(--chili-soft)"></div><div><b>選択中の背景</b><br><code>--chili-soft #FDECEA</code></div></div>
-      <div class="sg-swatch"><div class="chip-color" style="background:var(--bg)"></div><div><b>ページ背景</b><br><code>--bg #FAF6F2</code></div></div>
-      <div class="sg-swatch"><div class="chip-color" style="background:var(--ink)"></div><div><b>本文</b><br><code>--ink #2A1F1D</code></div></div>
-      <div class="sg-swatch"><div class="chip-color" style="background:var(--muted)"></div><div><b>補足テキスト</b><br><code>--muted #7A6E68</code></div></div>
-      <div class="sg-swatch"><div class="chip-color" style="background:var(--line)"></div><div><b>線</b><br><code>--line #EDE5E0</code></div></div>
-      <div class="sg-swatch"><div class="chip-color" style="background:var(--orange)"></div><div><b>調理中</b><br><code>--orange #E07A1F</code></div></div>
-      <div class="sg-swatch"><div class="chip-color" style="background:var(--green)"></div><div><b>完了・入金</b><br><code>--green #2E8B57</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--chili)"></div><div><b>メイン</b><br><code>--chili</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--chili-dark)"></div><div><b>ホバー</b><br><code>--chili-dark</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--gold)"></div><div><b>プレミアム強調（セクション見出し等）</b><br><code>--gold</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--chili-soft)"></div><div><b>選択中の背景</b><br><code>--chili-soft</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--bg)"></div><div><b>ページ背景</b><br><code>--bg</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--surface)"></div><div><b>カード・入力欄</b><br><code>--surface</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--surface-2)"></div><div><b>入れ子の面</b><br><code>--surface-2</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--ink)"></div><div><b>本文</b><br><code>--ink</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--muted)"></div><div><b>補足テキスト</b><br><code>--muted</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--line)"></div><div><b>線</b><br><code>--line</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--orange)"></div><div><b>調理中</b><br><code>--orange</code></div></div>
+      <div class="sg-swatch"><div class="chip-color" style="background:var(--green)"></div><div><b>完了・入金</b><br><code>--green</code></div></div>
     </div>
   </section>
 
@@ -125,6 +148,7 @@
     <div class="sg-demo">
       <div class="sg-type-row"><span class="caption">.title 32px Bold</span><span class="title">ログイン</span></div>
       <div class="sg-type-row"><span class="caption">.heading 20px Bold</span><span class="heading">おすすめメニュー</span></div>
+      <div class="sg-type-row"><span class="caption">.section-label 17px Bold + gold bar</span><span class="section-label" style="margin:0">具材を選ぶ</span></div>
       <div class="sg-type-row"><span class="caption">body 14px Regular</span><span>牛肉とたっぷりの野菜、きのこを使用した人気の一品です。</span></div>
       <div class="sg-type-row"><span class="caption">.caption 12px</span><span class="caption">会員の方は、こちらからログインしてください。</span></div>
       <div class="sg-type-row"><span class="caption">.price / .price-lg</span><span><span class="price">¥980</span>　<span class="price-lg">¥3,500</span></span></div>
@@ -294,6 +318,28 @@
     </div>
     <div class="sg-code" data-for="prev"></div>
 
+    <h3 class="caption">具材の写真タイル（カスタマイズ画面） · .ing-grid / .ing-tile</h3>
+    <p class="sg-note">写真が無い具材は <code>#i-bowl</code> アイコンを自動で表示（<code>image_url</code> が null のとき）。選んだ具材（個数&gt;0）は <code>is-added</code> で金の枠が付く。</p>
+    <div class="sg-demo">
+<ul class="ing-grid" style="max-width:480px">
+  <li class="ing-tile is-added">
+    <div class="ing-photo"><div class="sg-food"></div><button class="icon-btn" aria-label="お気に入りから外す">♥</button></div>
+    <div class="ing-info"><span class="ing-name">牛肉<small class="text-muted">（1つ 50g）</small></span><span class="caption">+¥250</span></div>
+    <div class="stepper"><button type="button" aria-label="減らす">−</button><output>2</output><button type="button" aria-label="増やす">+</button></div>
+  </li>
+  <li class="ing-tile">
+    <div class="ing-photo"><div class="ing-photo-fallback"><svg><use href="#i-bowl"/></svg></div><button class="icon-btn" aria-label="お気に入りに追加">♡</button></div>
+    <div class="ing-info"><span class="ing-name">豆腐</span><span class="caption">+¥120</span></div>
+    <div class="stepper"><button type="button" aria-label="減らす">−</button><output>0</output><button type="button" aria-label="増やす">+</button></div>
+  </li>
+  <li class="ing-tile is-soldout">
+    <div class="ing-photo"><div class="ing-photo-fallback"><svg><use href="#i-bowl"/></svg></div><span class="badge badge-soldout ing-badge">売り切れ</span></div>
+    <div class="ing-info"><span class="ing-name">豚バラ</span><span class="caption">+¥200</span></div>
+  </li>
+</ul>
+    </div>
+    <div class="sg-code" data-for="prev"></div>
+
     <h3 class="caption">ウォレット残高 · .balance-card</h3>
     <div class="sg-demo">
 <div class="grid-2">
@@ -370,6 +416,7 @@
   <section class="sg-section" id="layout">
     <h2 class="heading">ヘッダー・フッター・タブバー <small>Layout (goes in includes/)</small></h2>
     <p class="sg-note">The real header is at the top of this page. Resize the window below 768px to see the mobile version and the bottom tab bar. Add <code>class="has-tabbar"</code> to <code>&lt;body&gt;</code> on customer pages.</p>
+    <p class="sg-note">Dark theme is the default; add <code>data-theme="light"</code> on <code>&lt;html&gt;</code> for the light theme. <code>includes/header.php</code> has a small inline script in <code>&lt;head&gt;</code> that reads <code>localStorage.theme</code> before paint (no flash), and the <code>.theme-toggle</code> button (see header above) flips it and saves the choice.</p>
     <h3 class="caption">モバイル表示</h3>
     <div class="sg-phone">
       <div class="sg-demo" style="padding:0; border:0">

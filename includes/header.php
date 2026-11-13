@@ -1,8 +1,17 @@
 <?php
 // Shared header: every page includes this first. Owner: Lin
 // $pageTitle can be set by the page before including this file.
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
+require_once __DIR__ . '/asset.php';  // asset_url(): CSS / JS の URL
+require_once __DIR__ . '/auth.php';   // starts the session, gives current_user_id()
 $pageTitle = $pageTitle ?? 'Chilli 鍋';
+$loggedIn  = current_user_id() !== null;
+// tabbar: 今のページのタブを赤くする
+$current   = basename($_SERVER['SCRIPT_NAME']);
+// ヘッダーの検索欄: 今の検索語を残す
+$searchWord = htmlspecialchars(is_string($_GET['q'] ?? null) ? $_GET['q'] : '');
+$tab = function (array $pages) use ($current) {
+    return in_array($current, $pages, true) ? ' class="is-active"' : '';
+};
 ?>
 <!doctype html>
 <html lang="ja">
@@ -10,10 +19,12 @@ $pageTitle = $pageTitle ?? 'Chilli 鍋';
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= htmlspecialchars($pageTitle) ?></title>
+  <!-- light / dark: set before paint so there is no flash -->
+  <script src="<?= asset_url('assets/js/theme.js') ?>"></script>
   <!-- Bootstrap 5 (shared design) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <!-- Our own styles -->
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="<?= asset_url('assets/css/style.css') ?>">
 </head>
 <body class="has-tabbar">
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -34,22 +45,54 @@ $pageTitle = $pageTitle ?? 'Chilli 鍋';
   <symbol id="i-logout" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></g></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></g></symbol>
   <symbol id="i-bowl" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 11h18a9 9 0 0 1-18 0Z"/><path d="M8 7c0-2 1.5-2 1.5-4M12.5 7c0-2 1.5-2 1.5-4"/></g></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v3M12 18.5v3M3.5 12h3M17.5 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></g></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></g></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v10h16V10M3 10l2-6h14l2 6M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0M10 20v-5h4v5"/></g></symbol>
 </svg>
 <header class="site-header">
   <div class="container">
-    <a class="logo" href="index.php"><svg><use href="#i-flame"></use></svg><span class="logo-name">Chilli 鍋<span class="logo-sub">麻辣香鍋・麻辣湯</span></span></a>
+    <a class="logo" href="store.php"><svg><use href="#i-flame"></use></svg><span class="logo-name">Chilli 鍋</span></a>
+    <form class="site-search" action="menu.php" role="search">
+      <svg aria-hidden="true"><use href="#i-search"></use></svg>
+      <input type="search" name="q" value="<?= $searchWord ?>" placeholder="メニューや具材を検索" aria-label="メニューや具材を検索">
+    </form>
+    <a class="cart-btn" href="cart.php" aria-label="カート"><svg><use href="#i-cart"></use></svg><span class="cart-btn-label">カート</span><span class="cart-count" style="display:none"></span></a>
     <div class="header-icons">
-      <a href="cart.php" aria-label="カート"><svg><use href="#i-cart"></use></svg><span class="cart-count">2</span></a>
-      <button class="menu-toggle" aria-label="メニューを開く"><svg><use href="#i-burger"></use></svg></button>
+      <?php if ($loggedIn): ?>
+      <!-- アカウントメニュー: お気に入り・注文履歴・ファミリー&フレンズ・ログアウトを1つにまとめる。開け閉めは app.js -->
+      <div class="acct hide-phone" id="acctMenu">
+        <button class="acct-btn" id="acctBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="acctList" aria-label="アカウントメニュー">
+          <svg><use href="#i-user"></use></svg>
+          <span class="share-count" style="display:none" aria-hidden="true"></span>
+        </button>
+        <nav class="acct-list" id="acctList" aria-label="アカウント" hidden>
+          <a href="favorites.php"><svg><use href="#i-heart"></use></svg>お気に入り</a>
+          <a href="history.php"><svg><use href="#i-receipt"></use></svg>注文履歴</a>
+          <a href="friends.php"><svg><use href="#i-users"></use></svg>ファミリー&フレンズ</a>
+          <a href="logout.php"><svg><use href="#i-logout"></use></svg>ログアウト</a>
+        </nav>
+      </div>
+      <?php else: ?>
+      <a class="hide-phone" href="login.php" aria-label="ログイン"><svg><use href="#i-user"></use></svg></a>
+      <?php endif; ?>
+      <button class="theme-toggle" type="button" aria-label="ライトとダークを切り替える">
+        <svg class="i-sun"><use href="#i-sun"></use></svg>
+        <svg class="i-moon"><use href="#i-moon"></use></svg>
+      </button>
     </div>
   </div>
 </header>
-<div style="height:140px"></div>
 <nav class="tabbar" aria-label="タブ">
   <ul>
-    <li><a class="is-active" href="index.php"><svg><use href="#i-home"></use></svg>ホーム</a></li>
-    <li><a href="menu.php"><svg><use href="#i-menu"></use></svg>メニュー</a></li>
-    <li><a href="cart.php"><svg><use href="#i-cart"></use></svg>カート</a></li>
-    <li><a href="mypage.php"><svg><use href="#i-user"></use></svg>マイページ</a></li>
+    <li><a<?= $tab(['store.php']) ?> href="store.php"><svg><use href="#i-home"></use></svg>ホーム</a></li>
+    <li><a<?= $tab(['menu.php', 'customize.php']) ?> href="menu.php"><svg><use href="#i-menu"></use></svg>メニュー</a></li>
+    <li><a<?= $tab(['info.php']) ?> href="info.php"><svg><use href="#i-store"></use></svg>店舗情報</a></li>
+    <li><a<?= $tab(['cart.php', 'checkout.php', 'payment.php']) ?> href="cart.php"><svg><use href="#i-cart"></use></svg>カート</a></li>
+    <?php if ($loggedIn): ?>
+    <li><a<?= $tab(['mypage.php', 'history.php', 'favorites.php', 'friends.php']) ?> href="mypage.php"><svg><use href="#i-user"></use></svg><span class="share-count" style="display:none" aria-hidden="true"></span>マイページ</a></li>
+    <?php else: ?>
+    <li><a<?= $tab(['login.php', 'signup.php']) ?> href="login.php"><svg><use href="#i-user"></use></svg>ログイン</a></li>
+    <?php endif; ?>
   </ul>
 </nav>

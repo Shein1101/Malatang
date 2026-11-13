@@ -31,3 +31,46 @@ function showError(el, message) {
   el.textContent = message;
   el.classList.remove('d-none');
 }
+
+// ヘッダーのカートの数を本当の数にする (ページを開くたびに動く)
+// header.php の <span class="cart-count"> を使う。0 なら隠す。
+async function refreshCartCount() {
+  const badge = document.querySelector('.site-header .cart-count');
+  if (!badge) return;                       // 管理画面などカートがないページ
+  const res = await callApi('GET', '../api/cart.php');
+  const count = res.success ? res.data.count : 0;
+  badge.textContent = count;
+  badge.style.display = count > 0 ? '' : 'none';
+}
+window.addEventListener('load', refreshCartCount);
+
+// 友達から届いたレシピの数 (通知バッジ)。ヘッダーの人アイコンとマイページのタブに出す。
+// .share-count はログインしている人のページにだけある。無ければ何もしない (guest / 管理画面)。
+async function refreshShareCount() {
+  const badges = document.querySelectorAll('.share-count');
+  if (!badges.length) return;
+  const res = await callApi('GET', '../api/shares.php?action=count');
+  const count = res.success ? res.data.count : 0;
+  badges.forEach(b => {
+    b.textContent = count > 9 ? '9+' : count;
+    b.style.display = count > 0 ? 'grid' : 'none';
+  });
+}
+window.addEventListener('load', refreshShareCount);
+// 別のタブから戻ってきたとき & ときどき 更新する (見ていない間は止める)
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshShareCount(); });
+setInterval(() => { if (!document.hidden) refreshShareCount(); }, 25000);
+
+// ヘッダーのアカウントメニュー (お気に入り・注文履歴・ファミリー&フレンズ・ログアウト)
+// ボタンで開く / 外を押す・Esc で閉じる。ログインしていないページには無いので、無ければ何もしない。
+function setupAccountMenu() {
+  const menu = document.getElementById('acctMenu');
+  if (!menu) return;
+  const btn = document.getElementById('acctBtn');
+  const list = document.getElementById('acctList');
+  const open = (show) => { list.hidden = !show; btn.setAttribute('aria-expanded', show); };
+  btn.addEventListener('click', (e) => { e.stopPropagation(); open(list.hidden); });
+  document.addEventListener('click', (e) => { if (!e.target.closest('#acctMenu')) open(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !list.hidden) { open(false); btn.focus(); } });
+}
+window.addEventListener('load', setupAccountMenu);

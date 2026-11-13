@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concept C — Premium Asian Restaurant | Chilli 鍋</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#15100F; --surface:#231A18; --surface2:#2B201D;
+  --red:#8B1E1E; --gold:#C9A05C; --cream:#EDE4DA; --muted:#A9958A; --line:#3A2E2B;
+  --serif:"Noto Serif JP", serif; --sans:"Noto Sans JP", sans-serif;
+}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--cream);font-family:var(--sans);line-height:1.9}
+.wrap{max-width:1140px;margin:0 auto;padding:0 28px}
+.concept-tag{background:var(--gold);color:#1A1210;text-align:center;font-size:12px;letter-spacing:.1em;padding:8px;font-weight:700}
+img,.ph{display:block;width:100%}
+
+header{position:absolute;top:36px;left:0;right:0;z-index:10}
+.hrow{display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--serif);font-size:20px;letter-spacing:.1em;color:var(--cream);text-align:center}
+.logo small{display:block;font-size:10px;letter-spacing:.3em;color:var(--gold);margin-top:6px}
+.nav{display:flex;gap:30px;font-size:12px;letter-spacing:.08em;color:var(--cream)}
+.hamburger{font-size:12px;letter-spacing:.15em;border:1px solid var(--gold);color:var(--gold);padding:8px 16px}
+
+.hero{position:relative;height:640px;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.hero .ph{position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,#3a1a12,#15100F 75%)}
+.hero .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(21,16,15,.3),rgba(21,16,15,.9))}
+.hero-content{position:relative;z-index:2}
+.hero .eyebrow{font-size:11px;letter-spacing:.35em;color:var(--gold);margin-bottom:22px}
+.hero h1{font-family:var(--serif);font-size:52px;font-weight:700;margin:0 0 24px;letter-spacing:.05em}
+.hero p{max-width:30em;margin:0 auto 36px;color:var(--muted);font-size:14px;letter-spacing:.03em}
+.btn-gold{display:inline-flex;align-items:center;gap:10px;height:50px;padding:0 36px;border:1px solid var(--gold);color:var(--gold);font-size:12px;letter-spacing:.15em;text-decoration:none}
+.btn-gold:hover{background:var(--gold);color:#1A1210}
+
+.section{padding:88px 0}
+.section-head{text-align:center;margin-bottom:56px}
+.section-head .eyebrow{font-size:11px;letter-spacing:.35em;color:var(--gold);margin-bottom:14px}
+.section-head h2{font-family:var(--serif);font-size:30px;margin:0;font-weight:500}
+.section-head p{color:var(--muted);font-size:13px;max-width:34em;margin:14px auto 0}
+
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:46px}
+.card{text-align:center}
+.card .ph{aspect-ratio:3/4;margin-bottom:22px}
+.card .cat{font-size:10px;letter-spacing:.2em;color:var(--gold);margin-bottom:10px}
+.card h4{font-family:var(--serif);font-size:19px;margin:0 0 10px;font-weight:500}
+.card .desc{font-size:12px;color:var(--muted);margin:0 0 16px}
+.hairline{border:0;border-top:1px solid var(--line);width:40px;margin:0 auto 16px}
+.price{font-size:14px;letter-spacing:.1em;color:var(--cream)}
+
+.cz{background:var(--surface);padding:88px 0}
+.cz-grid{display:grid;grid-template-columns:1.1fr .8fr;gap:70px}
+.cz h3.label{font-size:11px;letter-spacing:.2em;color:var(--gold);margin:0 0 22px;text-transform:uppercase}
+.cz section{margin-bottom:40px}
+.ing-list{list-style:none;margin:0;padding:0}
+.ing-list li{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--line);font-size:13px}
+.gold-check{width:18px;height:18px;border:1px solid var(--gold);display:inline-grid;place-items:center;margin-right:14px;font-size:10px;color:var(--gold)}
+.gold-check.on{background:var(--gold);color:#1A1210}
+.chili-glyphs{letter-spacing:4px;color:var(--gold);font-size:13px}
+.chili-glyphs .dim{opacity:.25}
+.summary{border:1px solid var(--line);padding:36px;position:sticky;top:90px}
+.summary h3{font-family:var(--serif);font-size:17px;margin:0 0 24px;letter-spacing:.05em}
+.line-item{display:flex;justify-content:space-between;font-size:12px;padding:9px 0;color:var(--muted);letter-spacing:.03em}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:18px;margin-top:10px;margin-bottom:26px}
+.total .amt{font-family:var(--serif);font-size:26px;color:var(--gold)}
+
+footer{padding:50px 0;text-align:center;font-size:11px;letter-spacing:.1em;color:var(--muted);border-top:1px solid var(--line)}
+@media(max-width:900px){.grid3{grid-template-columns:1fr}.cz-grid{grid-template-columns:1fr}.nav{display:none}.hero h1{font-size:36px}}
+</style>
+</head>
+<body>
+<div class="concept-tag">CONCEPT C — プレミアムアジアンレストラン / PREMIUM ASIAN RESTAURANT（ブランド重視・重厚感）</div>
+
+<header>
+  <div class="wrap hrow">
+    <nav class="nav"><a href="#" style="color:inherit;text-decoration:none">メニュー</a><a href="#" style="color:inherit;text-decoration:none">こだわり</a><a href="#" style="color:inherit;text-decoration:none">店舗</a></nav>
+    <div class="logo">Chilli 鍋<small>麻辣香鍋 · 麻辣湯</small></div>
+    <div class="hamburger">MENU ☰</div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="ph"></div>
+  <div class="hero-content">
+    <div class="eyebrow">本場四川の味 · ESTABLISHED IN JAPAN</div>
+    <h1>一杯に、炎と静寂を。</h1>
+    <p>選び抜いた食材と香り立つ花椒。四川麻辣湯・麻辣香鍋を、落ち着いた空間で。</p>
+    <a class="btn-gold" href="#menu">メニューを見る</a>
+  </div>
+</section>
+
+<section class="section wrap" id="menu">
+  <div class="section-head">
+    <div class="eyebrow">SIGNATURE</div>
+    <h2>おすすめの一杯</h2>
+    <p>三種の味わいから、季節の食材を使った代表的な麻辣湯をご紹介します。</p>
+  </div>
+  <div class="grid3">
+    <div class="card">
+      <div class="ph" style="background:linear-gradient(160deg,#2a1812,#8f3420)"></div>
+      <div class="cat">海鮮 · SEAFOOD</div>
+      <h4>海鮮麻辣湯</h4>
+      <p class="desc">エビ・イカ・ホタテ・あさりの旨みたっぷり</p>
+      <hr class="hairline"><span class="price">¥1,180</span>
+    </div>
+    <div class="card">
+      <div class="ph" style="background:linear-gradient(160deg,#2a1812,#6b4a28)"></div>
+      <div class="cat">点心 · DIM SUM</div>
+      <h4>点心のせ麻辣湯</h4>
+      <p class="desc">水餃子・しゅうまい・小籠包をのせた贅沢な一杯</p>
+      <hr class="hairline"><span class="price">¥1,080</span>
+    </div>
+    <div class="card">
+      <div class="ph" style="background:linear-gradient(160deg,#2a1812,#3c5a2e)"></div>
+      <div class="cat">季節限定 · LIMITED</div>
+      <h4>羊肉麻辣湯</h4>
+      <p class="desc">羊肉とパクチーの本場の味</p>
+      <hr class="hairline"><span class="price">¥1,280</span>
+    </div>
+  </div>
+</section>
+
+<section class="cz" id="customize">
+  <div class="wrap cz-grid">
+    <div>
+      <section>
+        <h3 class="label">味を選ぶ</h3>
+        <ul class="ing-list">
+          <li><span><span class="gold-check on">✓</span>麻辣（まーらー）</span><span class="muted">四川山椒の香り</span></li>
+          <li><span><span class="gold-check"></span>白湯</span><span class="muted">濃厚でやさしい</span></li>
+          <li><span><span class="gold-check"></span>清湯</span><span class="muted">あっさり透明</span></li>
+        </ul>
+      </section>
+      <section>
+        <h3 class="label">辛さ</h3>
+        <div class="chili-glyphs">🌶🌶<span class="dim">🌶🌶</span>　普通</div>
+      </section>
+      <section>
+        <h3 class="label">具材を選ぶ — 海鮮</h3>
+        <ul class="ing-list">
+          <li><span><span class="gold-check on">✓</span>エビ</span><span>¥250</span></li>
+          <li><span><span class="gold-check on">✓</span>ホタテ</span><span>¥300</span></li>
+          <li><span><span class="gold-check"></span>あさり</span><span>¥200</span></li>
+        </ul>
+      </section>
+    </div>
+    <aside class="summary">
+      <h3>お会計</h3>
+      <div class="line-item"><span>自分で作る麻辣湯</span><span>¥300</span></div>
+      <div class="line-item"><span>エビ</span><span>¥250</span></div>
+      <div class="line-item"><span>ホタテ</span><span>¥300</span></div>
+      <div class="total"><span>合計</span><span class="amt">¥850</span></div>
+      <a class="btn-gold" style="display:flex;width:100%;justify-content:center" href="#">カートに入れる</a>
+    </aside>
+  </div>
+</section>
+
+<footer class="wrap">CHILLI NABE — MALA XIANGGUO · MALATANG</footer>
+</body>
+</html>
