@@ -74,6 +74,40 @@ let allOrders = [];
 let cat = 'awaiting';
 let sub = 'all';
 
+// 新しい注文の音 + タブのタイトルの数 [Myat]
+//   seenIds = 一度でも見た注文の id。null = まだ一度も読んでいない (最初は鳴らさない)
+//   タイトル = 受付待ちの数。音は「受付待ちの新しい注文」が来たときだけ
+let seenIds = null;
+const baseTitle = document.title;
+
+// 音を作る (ファイルなし。WebAudio で「ピッ」)。ブラウザの決まりで、
+// お店が1回どこかをクリックするまで音は出ないことがある (クリックで直る)
+let audioCtx = null;
+function playBeep() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const t = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 880;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+    osc.start(t);
+    osc.stop(t + 0.45);
+  } catch (e) {
+    // 音が出せなくても注文の処理は続ける
+  }
+}
+// 最初のクリックで音を使えるようにする (ブラウザの決まり対策)
+document.addEventListener('click', () => {
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+});
+
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
@@ -185,6 +219,17 @@ async function loadOrders() {
   allOrders = res.data;
   renderAll();
   document.getElementById('updated').textContent = '最終更新 ' + new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  // 受付待ちの新しい注文が来たら音を鳴らす (最初に読んだときは鳴らさない)
+  const pending = res.data.filter(o => o.status === 'pending');
+  if (seenIds !== null && pending.some(o => !seenIds.has(o.id))) {
+    playBeep();
+  }
+  if (seenIds === null) seenIds = new Set();
+  for (const o of res.data) seenIds.add(o.id);
+
+  // タブのタイトルに 受付待ち の数を出す (ほかのタブを見ていても気づけるように)
+  document.title = pending.length ? `(${pending.length}) ${baseTitle}` : baseTitle;
 }
 
 // カテゴリを切り替え

@@ -63,11 +63,15 @@ function customCta(m) {
     </a>`;
 }
 
+// いま画面に出している HTML (null = まだ一度も出していない)
+let shownHtml = null;
+
 // API から menu をもらって、?cat= と ?q= で絞って、カードを並べる
 async function loadMenus() {
   const res = await callApi('GET', '../api/menus.php');
   const list = document.getElementById('menuList');
   if (!res.success) {
+    if (shownHtml !== null) return;   // 自動更新の失敗: いまのカードを消さない (次の更新でまた読む)
     list.innerHTML = '';
     showError(document.getElementById('error'), res.error);
     return;
@@ -80,10 +84,16 @@ async function loadMenus() {
   if (cat) dishes = dishes.filter(cat.match);
   if (word) dishes = dishes.filter(m => (m.name + ' ' + (m.description || '')).toLowerCase().includes(word));
 
-  document.getElementById('chips').innerHTML = menuChips(res.data, cat ? cat.key : null);
+  const chips = menuChips(res.data, cat ? cat.key : null);
   // 探しているときは案内を出さない
-  document.getElementById('customCta').innerHTML = cat || word ? '' : customCta(res.data.find(m => m.is_custom));
-  list.innerHTML = dishes.map(menuCard).join('');
+  const cta = cat || word ? '' : customCta(res.data.find(m => m.is_custom));
+  const html = dishes.map(menuCard).join('');
+  if (chips + cta + html === shownHtml) return;   // 変わっていなければ作り直さない (写真がちらつかない)
+  shownHtml = chips + cta + html;
+
+  document.getElementById('chips').innerHTML = chips;
+  document.getElementById('customCta').innerHTML = cta;
+  list.innerHTML = html;
 
   const noHit = document.getElementById('noHit');
   noHit.textContent = word ? `「${params.get('q')}」に合うメニューはありません` : 'このカテゴリのメニューはありません';
@@ -109,6 +119,18 @@ async function loadJuices() {
 // app.js (callApi, yen) はフッターで読み込まれるので、ページを全部読んでから動かす
 window.addEventListener('load', loadMenus);
 window.addEventListener('load', loadJuices);
+
+// 自動で新しくする: owner が 残り を補充したら、再読み込みなしで 売り切れ が消える
+//   1 秒ごと (別のタブを見ているあいだは止める) / タブに戻ったとき / 「戻る」で来たとき
+setInterval(() => {
+  if (!document.hidden) loadMenus();
+}, 1000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) loadMenus();
+});
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) loadMenus();
+});
 </script>
 
 <?php include '../includes/footer.php'; ?>
