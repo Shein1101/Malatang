@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>案1 屋台ナイト | Chilli 鍋</title>
+<!-- design-concepts/v3/yatai.html — デザイン案1「屋台ナイト」. Owner: Lin
+     暗い背景で 赤いスープと湯気が光る。唐辛子の赤 + 提灯の黄色。勢いのある太い文字。 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #17100D; --bg-2: #1F1612; --card: #261A15; --line: #3B2A21;
+    --text: #FFF3E4; --muted: #C9B19B;
+    --red: #E8392B; --red-dark: #C42A1E; --yellow: #FFC83A; --ember: #FF7A2F;
+    --display: "Dela Gothic One", "Noto Sans JP", sans-serif;
+    --sans: "Noto Sans JP", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.7 var(--sans); }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+  .concept-note { background: var(--yellow); color: #1A0F0A; text-align: center; font-size: 12px; font-weight: 900; padding: 6px; letter-spacing: .08em; }
+
+  /* header */
+  header { position: sticky; top: 0; z-index: 20; background: rgba(23, 16, 13, .86); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .hrow { display: flex; align-items: center; gap: 24px; height: 72px; }
+  .logo { display: flex; align-items: center; gap: 10px; font: 22px var(--display); letter-spacing: .04em; }
+  .lantern { width: 30px; height: 38px; border-radius: 45% 45% 40% 40%; background: radial-gradient(circle at 50% 40%, #FF8E5C, var(--red) 60%, #8E1A12); box-shadow: 0 0 22px rgba(232, 57, 43, .7); position: relative; }
+  .lantern::before, .lantern::after { content: ""; position: absolute; left: 6px; right: 6px; height: 4px; background: #2A1A12; border-radius: 2px; }
+  .lantern::before { top: -2px; } .lantern::after { bottom: -2px; }
+  nav { display: flex; gap: 26px; margin-left: 12px; font-weight: 700; font-size: 14px; color: var(--muted); }
+  nav a:hover, nav a.on { color: var(--yellow); }
+  .open { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .open i { width: 8px; height: 8px; border-radius: 50%; background: #4CD37B; box-shadow: 0 0 10px #4CD37B; }
+  .cart { display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 18px; background: var(--yellow); color: #1A0F0A; border-radius: 12px; font-weight: 900; font-size: 14px; }
+  .cart b { background: #1A0F0A; color: var(--yellow); border-radius: 999px; padding: 0 8px; font-size: 12px; }
+
+  /* hero */
+  .hero { position: relative; overflow: hidden; padding: 64px 0 72px; background:
+    radial-gradient(50% 60% at 78% 45%, rgba(232, 57, 43, .38), transparent 70%),
+    radial-gradient(30% 40% at 70% 30%, rgba(255, 200, 58, .16), transparent 70%); }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr .95fr; align-items: center; gap: 40px; }
+  .kicker { display: inline-block; padding: 6px 12px; background: var(--red); color: #fff; font-weight: 900; font-size: 13px; letter-spacing: .1em; transform: rotate(-2deg); }
+  h1 { margin: 22px 0 18px; font: clamp(34px, 5.6vw, 76px)/1.1 var(--display); letter-spacing: .01em; }
+  h1 .nb { white-space: nowrap; }
+  h1 .hl { color: var(--yellow); text-shadow: 0 0 28px rgba(255, 200, 58, .35); }
+  .lead { max-width: 30em; color: var(--muted); font-size: 16px; margin: 0 0 30px; }
+  .ctas { display: flex; flex-wrap: wrap; gap: 14px; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; height: 56px; padding: 0 28px; border-radius: 14px; font-weight: 900; font-size: 16px; border: 2px solid transparent; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+  .btn-red { background: var(--red); color: #fff; box-shadow: 0 10px 30px rgba(232, 57, 43, .45); }
+  .btn-red:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(232, 57, 43, .55); }
+  .btn-line { border-color: var(--text); color: var(--text); background: transparent; }
+  .btn-line:hover { background: var(--text); color: var(--bg); }
+  .hero-art { position: relative; justify-self: center; width: min(100%, 470px); }
+  .hero-art .bowl { width: 100%; filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .55)); }
+  .sticker { position: absolute; top: 4%; right: -2%; width: 120px; height: 120px; border-radius: 50%; background: var(--yellow); color: #1A0F0A; display: grid; place-items: center; text-align: center; font: 16px/1.15 var(--display); transform: rotate(12deg); box-shadow: 0 10px 24px rgba(0, 0, 0, .4); }
+  .sticker small { display: block; font: 900 11px var(--sans); }
+  @keyframes steam { 0% { opacity: 0; transform: translateY(8px); } 40% { opacity: .55; } 100% { opacity: 0; transform: translateY(-18px); } }
+  .bowl-steam path { animation: steam 2.8s ease-in-out infinite; }
+  .bowl-steam path:nth-child(2) { animation-delay: .9s; } .bowl-steam path:nth-child(3) { animation-delay: 1.8s; }
+
+  /* ticker */
+  .ticker { background: var(--red); color: #fff; overflow: hidden; border-block: 3px solid var(--yellow); }
+  .ticker-track { display: flex; gap: 36px; width: max-content; padding: 12px 0; font: 18px var(--display); animation: tick 26s linear infinite; }
+  .ticker-track span::after { content: "●"; margin-left: 36px; color: var(--yellow); }
+  @keyframes tick { to { transform: translateX(-50%); } }
+
+  /* sections */
+  section { padding: 72px 0; }
+  .shead { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 26px; }
+  h2 { margin: 0; font: clamp(28px, 3.4vw, 40px)/1.15 var(--display); }
+  h2 em { font-style: normal; color: var(--red); }
+  .shead p { margin: 6px 0 0; color: var(--muted); }
+  .rail { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 26px; scrollbar-width: none; }
+  .rail button { flex: none; height: 42px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2); color: var(--text); font: 700 14px var(--sans); cursor: pointer; }
+  .rail button.on { background: var(--yellow); border-color: var(--yellow); color: #1A0F0A; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+  .card { position: relative; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; transition: transform .2s, border-color .2s; }
+  .card:hover { transform: translateY(-4px); border-color: var(--red); }
+  .card .art { position: relative; padding: 22px 30px 6px; background: radial-gradient(70% 70% at 50% 55%, rgba(232, 57, 43, .32), transparent 70%); }
+  .card .art .bowl { width: 100%; filter: drop-shadow(0 14px 18px rgba(0, 0, 0, .5)); }
+  .tag { position: absolute; top: 14px; right: 14px; padding: 6px 12px; background: var(--yellow); color: #1A0F0A; font: 18px var(--display); border-radius: 8px; transform: rotate(4deg); box-shadow: 0 6px 14px rgba(0, 0, 0, .35); }
+  .limited { position: absolute; top: 14px; left: 14px; padding: 4px 10px; background: var(--red); color: #fff; font-size: 11px; font-weight: 900; border-radius: 6px; }
+  .card .body { padding: 14px 18px 18px; display: grid; gap: 4px; flex: 1; }
+  .card h3 { margin: 0; font-size: 17px; font-weight: 900; }
+  .card p { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+  .add { margin-top: auto; height: 46px; border: 0; border-radius: 12px; background: var(--red); color: #fff; font: 900 14px var(--sans); cursor: pointer; }
+  .add:hover { background: var(--red-dark); }
+  .soldout { opacity: .45; } .soldout .add { background: var(--line); cursor: not-allowed; }
+
+  /* heat meter */
+  .heat { display: grid; grid-template-columns: .9fr 1.1fr; gap: 36px; align-items: center; padding: 36px; border-radius: 24px; background: linear-gradient(135deg, #2A1813, #1C120E); border: 1px solid var(--line); }
+  .meter { display: grid; gap: 16px; }
+  .chilis { display: flex; gap: 10px; }
+  .chilis button { width: 60px; height: 60px; border-radius: 16px; border: 1px solid var(--line); background: var(--bg-2); cursor: pointer; padding: 10px; transition: transform .15s; }
+  .chilis button svg { width: 100%; height: 100%; }
+  .chilis button:hover { transform: translateY(-3px); }
+  .chilis button.on { background: #3A1A13; border-color: var(--red); }
+  .bar { height: 14px; border-radius: 999px; background: var(--bg-2); overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 40%; border-radius: 999px; background: linear-gradient(90deg, var(--yellow), var(--ember), var(--red)); transition: width .3s; }
+  .heat-name { font: 34px var(--display); color: var(--yellow); }
+
+  /* build */
+  .build { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  .step { padding: 26px; border-radius: 20px; background: var(--card); border: 1px solid var(--line); }
+  .step .no { font: 46px var(--display); color: var(--red); line-height: 1; }
+  .step h3 { margin: 10px 0 6px; font-size: 18px; font-weight: 900; }
+  .step p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  footer { padding: 40px 0 120px; color: var(--muted); border-top: 1px solid var(--line); font-size: 13px; }
+  .floatbar { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 30; display: flex; align-items: center; gap: 18px; padding: 10px 10px 10px 22px; border-radius: 18px; background: var(--yellow); color: #1A0F0A; box-shadow: 0 16px 40px rgba(0, 0, 0, .5); font-weight: 900; }
+  .floatbar .btn { height: 46px; background: #1A0F0A; color: var(--yellow); }
+  .floatbar, .floatbar * { white-space: nowrap; }
+  @media (max-width: 520px) { .floatbar { left: 16px; right: 16px; transform: none; justify-content: space-between; } }
+
+  @media (max-width: 860px) {
+    nav, .open { display: none; }
+    .cart { margin-left: auto; }
+    .hero-grid, .heat, .build { grid-template-columns: 1fr; }
+    .hero-art { order: -1; width: min(86%, 360px); }
+    .sticker { width: 92px; height: 92px; font-size: 13px; }
+    .heat { padding: 24px; }
+    .chilis button { width: 52px; height: 52px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+  <div class="concept-note">デザイン案 1 ・ 屋台ナイト (見本ページ。注文はできません)</div>
+  <header>
+    <div class="wrap hrow">
+      <a class="logo" href="#"><span class="lantern" aria-hidden="true"></span>Chilli 鍋</a>
+      <nav aria-label="メニュー"><a class="on" href="#">ホーム</a><a href="#menu">メニュー</a><a href="#heat">辛さ</a><a href="#build">自分で作る</a></nav>
+      <span class="open"><i></i>営業中 11:00〜21:00</span>
+      <a class="cart" href="#">カート <b id="cartN">0</b></a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="kicker">本場四川の 麻辣湯</span>
+        <h1><span class="nb">しびれる<span class="hl">辛さ</span>、</span><br><span class="nb">とまらない<span class="hl">旨さ</span>。</span></h1>
+        <p class="lead">真っ赤なスープに、好きな具材を好きなだけ。30種類以上から選んで、あなただけの一杯を。</p>
+        <div class="ctas">
+          <a class="btn btn-red" href="#menu">今すぐ注文する →</a>
+          <a class="btn btn-line" href="#build">自分で作る</a>
+        </div>
+      </div>
+      <div class="hero-art" id="heroArt">
+        <div class="sticker">具材<br>30種+<small>好きなだけ</small></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ticker" aria-hidden="true"><div class="ticker-track" id="ticker"></div></div>
+
+  <section id="menu">
+    <div class="wrap">
+      <div class="shead">
+        <div><h2>今夜の<em>一杯</em>を選ぶ</h2><p>いちばん人気の組み合わせを、そのまま注文できます。</p></div>
+      </div>
+      <div class="rail" id="rail"></div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+  <section id="heat">
+    <div class="wrap heat">
+      <div>
+        <h2>辛さは<em>5段階</em></h2>
+        <p style="color:var(--muted);margin:10px 0 0">唐辛子を押して、あなたの辛さを見つけよう。</p>
+      </div>
+      <div class="meter">
+        <div class="chilis" id="chilis"></div>
+        <div class="bar"><i id="barFill"></i></div>
+        <div class="heat-name" id="heatName">ピリ辛</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="build">
+    <div class="wrap">
+      <div class="shead"><div><h2>3ステップで<em>自分だけ</em>の一杯</h2></div></div>
+      <div class="build" id="steps"></div>
+    </div>
+  </section>
+
+  <footer><div class="wrap">© 2026 Chilli 鍋 ・ <span id="dataNote"></span></div></footer>
+  <div class="floatbar"><span>カート <span id="cartTotal">¥0</span></span><a class="btn" href="#">注文へ進む</a></div>
+
+<script src="data.js"></script>
+<script src="bowl.js"></script>
+<script>
+const CATS = [['all', 'すべて'], ['麻辣湯', '麻辣湯'], ['期間限定', '期間限定'], ['custom', '自分で作る']];
+let cat = 'all', menus = [], cart = { n: 0, total: 0 };
+
+function card(m) {
+  const { name, limited } = menuLabel(m);
+  return `
+    <article class="card ${m.is_available ? '' : 'soldout'}">
+      <div class="art">${bowlSVG({ seed: m.id, rim: '#2E211B', rimShade: 'rgba(0,0,0,.35)' })}
+        <span class="tag">${yen(m.price)}${m.is_custom ? '〜' : ''}</span>
+        ${limited ? '<span class="limited">期間限定</span>' : ''}
+      </div>
+      <div class="body">
+        <h3>${esc(name)}</h3>
+        <p>${esc(m.description)}</p>
+        <button class="add" ${m.is_available ? '' : 'disabled'} data-price="${m.price}">${m.is_available ? '＋ カートに入れる' : '売り切れ'}</button>
+      </div>
+    </article>`;
+}
+function renderGrid() {
+  const list = menus.filter(m => cat === 'all' || (cat === 'custom' ? m.is_custom : m.name.includes(cat)));
+  document.getElementById('grid').innerHTML = list.map(card).join('');
+}
+
+chilliData().then(d => {
+  menus = d.menus;
+  document.getElementById('dataNote').textContent = d.live ? 'メニュー・値段はお店の本物のデータ' : '見本のデータ (API に接続できません)';
+  document.getElementById('heroArt').insertAdjacentHTML('beforeend', bowlSVG({ seed: 7, rim: '#2E211B', rimShade: 'rgba(0,0,0,.35)', steam: true }));
+  const words = ['麻辣湯', '麻辣香鍋', '具材 30種以上', '辛さ 5段階', ...d.soups.map(s => s.name), 'テイクアウトOK'];
+  document.getElementById('ticker').innerHTML = [...words, ...words].map(w => `<span>${esc(w)}</span>`).join('');
+  document.getElementById('rail').innerHTML = CATS.map(([k, l]) => `<button type="button" data-cat="${k}" class="${k === cat ? 'on' : ''}">${l}</button>`).join('');
+  renderGrid();
+
+  const spices = d.spices.length ? d.spices : CHILLI_SAMPLE.spices;
+  const chilis = document.getElementById('chilis');
+  chilis.innerHTML = spices.map((s, i) => `<button type="button" data-i="${i}" aria-label="${esc(s.name)}">${chiliIcon(i === 0 ? '#E8392B' : '#5A3A2E')}</button>`).join('');
+  const setHeat = (i) => {
+    chilis.querySelectorAll('button').forEach((b, k) => { b.classList.toggle('on', k <= i); b.innerHTML = chiliIcon(k <= i ? '#E8392B' : '#5A3A2E'); });
+    document.getElementById('barFill').style.width = ((i + 1) / spices.length * 100) + '%';
+    document.getElementById('heatName').textContent = spices[i].name;
+  };
+  chilis.addEventListener('click', e => { const b = e.target.closest('button'); if (b) setHeat(Number(b.dataset.i)); });
+  setHeat(0);
+
+  const names = (l) => l.slice(0, 3).map(x => x.name).join('・');
+  document.getElementById('steps').innerHTML = [
+    ['01', 'スープを選ぶ', names(d.soups)],
+    ['02', '具材を選ぶ', `${d.ingredients.length}種類から 好きなだけ`],
+    ['03', '辛さを選ぶ', names(spices)],
+  ].map(([n, t, p]) => `<div class="step"><div class="no">${n}</div><h3>${t}</h3><p>${esc(p)}</p></div>`).join('');
+});
+
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-cat]');
+  if (c) { cat = c.dataset.cat; document.querySelectorAll('#rail button').forEach(b => b.classList.toggle('on', b === c)); renderGrid(); }
+  const a = e.target.closest('.add');
+  if (a && !a.disabled) {
+    cart.n++; cart.total += Number(a.dataset.price);
+    document.getElementById('cartN').textContent = cart.n;
+    document.getElementById('cartTotal').textContent = yen(cart.total);
+    a.textContent = '✓ 入れました'; setTimeout(() => { a.textContent = '＋ カートに入れる'; }, 1200);
+  }
+});
+</script>
+</body>
+</html>

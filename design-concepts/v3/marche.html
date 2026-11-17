@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>案2+ マルシェ | Chilli 鍋</title>
+<!-- design-concepts/v3/marche.html — デザイン案2 を大人っぽく・高級感のある形に. Owner: Lin
+     元の案2 (ichiba.html) と同じ「新鮮な食材」「どんぶりを作る」の考え方のまま、
+     色: トマトから熾火 (おきび) へのグラデーション・深い森の緑・真鍮の金・クリームとオーツ色
+     文字: 角のある日本語ゴシック + 英語と数字だけ イタリックのセリフ体
+     形: すりガラスのパネル・細い線・やわらかい影 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF6EE; --oat: #F2E9DC; --oat-2: #EADDCB; --white: #FFFDF9;
+    --ink: #1E1611; --muted: #6F6157; --line: rgba(30, 22, 17, .10);
+    --tomato: #C8321F; --ember: #E8643A; --ember-soft: #F6D3C2;
+    --forest: #1F3D31; --forest-2: #2A5242; --sage: #A8BBA0;
+    --brass: #B98A45; --brass-soft: #E9D7B5;
+    --serif: "Fraunces", "Times New Roman", serif;
+    --sans: "Zen Kaku Gothic New", "Noto Sans JP", system-ui, sans-serif;
+    --shadow: 0 1px 2px rgba(30, 22, 17, .05), 0 18px 40px -18px rgba(30, 22, 17, .25);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--cream); color: var(--ink); font: 15px/1.8 var(--sans); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+  .concept-note { background: var(--forest); color: var(--brass-soft); text-align: center; font-size: 12px; padding: 7px; letter-spacing: .14em; }
+  .serif { font-family: var(--serif); font-style: italic; font-weight: 400; }
+
+  /* header */
+  header { position: sticky; top: 0; z-index: 30; background: rgba(251, 246, 238, .78); backdrop-filter: blur(14px) saturate(1.4); border-bottom: 1px solid var(--line); }
+  .hrow { display: flex; align-items: center; gap: 28px; height: 74px; }
+  .logo { display: flex; align-items: baseline; gap: 8px; font-weight: 900; font-size: 21px; letter-spacing: .02em; }
+  .logo .serif { color: var(--tomato); font-size: 24px; }
+  nav { display: flex; gap: 30px; margin-left: 20px; font-size: 14px; font-weight: 500; color: var(--muted); }
+  nav a { position: relative; padding: 4px 0; }
+  nav a:hover, nav a.on { color: var(--ink); }
+  nav a.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 2px; background: var(--tomato); border-radius: 2px; }
+  .hright { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+  .open { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .open i { width: 7px; height: 7px; border-radius: 50%; background: #3FA36B; box-shadow: 0 0 0 4px rgba(63, 163, 107, .15); }
+  .cart { display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 8px 0 20px; border-radius: 999px; background: var(--ink); color: var(--cream); font-size: 14px; font-weight: 700; }
+  .cart b { display: grid; place-items: center; min-width: 30px; height: 30px; border-radius: 50%; background: var(--tomato); color: #fff; font-size: 13px; }
+
+  /* hero */
+  .hero { position: relative; margin-top: 18px; }
+  .hero-card { position: relative; overflow: hidden; display: grid; grid-template-columns: 1.05fr .95fr; align-items: center; gap: 24px; padding: clamp(32px, 5vw, 72px); border-radius: 32px; color: #FFF6EE;
+    background:
+      radial-gradient(60% 80% at 82% 40%, rgba(255, 160, 110, .45), transparent 60%),
+      radial-gradient(70% 90% at 0% 100%, rgba(120, 15, 5, .55), transparent 60%),
+      linear-gradient(135deg, #B42A18 0%, #D2452A 45%, #E8643A 100%); }
+  .hero-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .14; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  .hero-card > * { position: relative; z-index: 1; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; letter-spacing: .14em; color: #FFE3D2; }
+  .eyebrow .line { width: 34px; height: 1px; background: currentColor; opacity: .7; }
+  h1 { margin: 18px 0 18px; font-weight: 900; font-size: clamp(36px, 5vw, 66px); line-height: 1.16; letter-spacing: -.01em; }
+  h1 .serif { display: block; margin-top: 6px; font-size: .62em; color: #FFD8C2; letter-spacing: 0; }
+  .hero-card p { margin: 0 0 32px; max-width: 30em; font-size: 16px; color: #FFE9DD; }
+  .ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 54px; padding: 0 28px; border-radius: 999px; font: 700 15px var(--sans); letter-spacing: .04em; border: 1px solid transparent; cursor: pointer; transition: transform .2s, background .2s, box-shadow .2s; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-light { background: #FFF8F2; color: var(--tomato); box-shadow: 0 12px 30px -10px rgba(80, 10, 0, .5); }
+  .btn-glass { background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .35); color: #fff; backdrop-filter: blur(8px); }
+  .btn-glass:hover { background: rgba(255, 255, 255, .2); }
+  .stats { display: flex; gap: 0; margin-top: 40px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, .22); }
+  .stat { flex: 1; padding-right: 18px; }
+  .stat + .stat { padding-left: 18px; border-left: 1px solid rgba(255, 255, 255, .22); }
+  .stat b { display: block; font: 500 34px/1 var(--serif); }
+  .stat span { font-size: 12px; letter-spacing: .1em; color: #FFE3D2; }
+  .hero-art { position: relative; justify-self: center; width: min(100%, 470px); }
+  .hero-art .bowl { width: 100%; filter: drop-shadow(0 34px 40px rgba(70, 8, 0, .45)); }
+  .glass { position: absolute; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 16px; background: rgba(255, 250, 245, .16); border: 1px solid rgba(255, 255, 255, .3); backdrop-filter: blur(12px); color: #fff; font-size: 12px; line-height: 1.4; box-shadow: 0 10px 30px -12px rgba(60, 5, 0, .5); }
+  .glass i { width: 30px; height: 30px; border-radius: 50%; flex: none; }
+  .glass b { display: block; font-size: 13px; }
+  .glass.g1 { top: 8%; left: -6%; } .glass.g1 i { background: radial-gradient(circle at 35% 35%, #9BC77A, #3F7A35); }
+  .glass.g2 { bottom: 12%; right: -4%; } .glass.g2 i { background: radial-gradient(circle at 35% 35%, #FFB089, #C8321F); }
+  @keyframes steam { 0% { opacity: 0; transform: translateY(8px); } 40% { opacity: .5; } 100% { opacity: 0; transform: translateY(-16px); } }
+  .bowl-steam path { animation: steam 3s ease-in-out infinite; }
+  .bowl-steam path:nth-child(2) { animation-delay: 1s; } .bowl-steam path:nth-child(3) { animation-delay: 2s; }
+
+  /* sections */
+  section { padding: 96px 0 0; }
+  .shead { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 36px; }
+  .kicker { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 12px; letter-spacing: .2em; color: var(--tomato); font-weight: 700; }
+  .kicker .serif { font-size: 15px; letter-spacing: 0; font-weight: 500; }
+  h2 { margin: 0; font-weight: 900; font-size: clamp(28px, 3.4vw, 42px); line-height: 1.25; letter-spacing: -.01em; }
+  .shead p { margin: 10px 0 0; max-width: 34em; color: var(--muted); }
+
+  /* how it works */
+  .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 24px; overflow: hidden; }
+  .how > div { background: var(--white); padding: 30px 28px; }
+  .how .n { font: italic 400 40px/1 var(--serif); color: var(--tomato); }
+  .how h3 { margin: 14px 0 4px; font-size: 18px; font-weight: 700; }
+  .how p { margin: 0; font-size: 14px; color: var(--muted); }
+
+  /* builder */
+  .builder { display: grid; grid-template-columns: 400px 1fr; gap: 40px; align-items: start; }
+  .panel { position: sticky; top: 96px; padding: 30px; border-radius: 28px; color: #F3EEE6; overflow: hidden;
+    background: radial-gradient(80% 60% at 50% 0%, rgba(232, 100, 58, .28), transparent 70%), linear-gradient(160deg, var(--forest-2), var(--forest)); box-shadow: 0 30px 60px -30px rgba(15, 35, 25, .7); }
+  .panel .label { font-size: 12px; letter-spacing: .2em; color: var(--brass-soft); }
+  .panel h3 { margin: 4px 0 6px; font-weight: 700; font-size: 20px; }
+  .panel .bowl { display: block; width: 84%; margin: 6px auto 0; filter: drop-shadow(0 22px 26px rgba(0, 0, 0, .45)); }
+  .lines { margin: 14px 0 0; padding: 0; list-style: none; max-height: 160px; overflow-y: auto; }
+  .lines li { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid rgba(255, 255, 255, .1); font-size: 13px; color: #D9D2C6; }
+  .lines li:last-child { border-bottom: 0; }
+  .total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; padding-top: 16px; border-top: 1px solid rgba(233, 215, 181, .35); }
+  .total span { font-size: 13px; letter-spacing: .14em; color: var(--brass-soft); }
+  .total b { font: 500 40px/1 var(--serif); color: #fff; }
+  .panel .btn { width: 100%; margin-top: 20px; background: linear-gradient(135deg, var(--tomato), var(--ember)); color: #fff; box-shadow: 0 14px 30px -12px rgba(200, 50, 31, .8); }
+
+  .opt { margin-bottom: 36px; }
+  .opt h3 { display: flex; align-items: baseline; gap: 12px; margin: 0 0 14px; font-size: 17px; font-weight: 700; }
+  .opt h3 .serif { color: var(--brass); font-size: 18px; }
+  .opt h3 small { font: 400 13px var(--sans); color: var(--muted); }
+  .seg { display: flex; flex-wrap: wrap; gap: 10px; }
+  .choice { position: relative; min-width: 128px; padding: 14px 18px; border-radius: 18px; background: var(--white); border: 1px solid var(--line); text-align: left; font: inherit; color: inherit; cursor: pointer; transition: border-color .2s, box-shadow .2s, transform .2s; }
+  .choice:hover { border-color: rgba(30, 22, 17, .3); transform: translateY(-1px); }
+  .choice b { display: block; font-size: 15px; }
+  .choice span { font-size: 12px; color: var(--muted); }
+  .choice.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink), var(--shadow); }
+  .choice.on::after { content: ""; position: absolute; top: 12px; right: 12px; width: 9px; height: 9px; border-radius: 50%; background: var(--tomato); }
+  .choice .swatch { display: block; width: 26px; height: 26px; margin-bottom: 8px; border-radius: 50%; box-shadow: inset 0 -3px 6px rgba(0, 0, 0, .2); }
+  .heat { display: inline-flex; gap: 2px; margin-bottom: 6px; } .heat svg { width: 15px; height: 15px; }
+
+  .cats { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 16px; scrollbar-width: none; }
+  .cats button { flex: none; height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: 500 13px var(--sans); cursor: pointer; }
+  .cats button.on { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+  .ings { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 12px; }
+  .ing { position: relative; display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 18px; background: var(--white); border: 1px solid var(--line); cursor: pointer; font: inherit; color: inherit; text-align: left; transition: border-color .2s, box-shadow .2s; }
+  .ing:hover { border-color: rgba(30, 22, 17, .28); }
+  .ing.on { border-color: var(--forest); box-shadow: inset 0 0 0 1px var(--forest); }
+  .ing .dot { width: 44px; height: 44px; border-radius: 50%; box-shadow: inset 0 -4px 8px rgba(0, 0, 0, .18); }
+  .ing b { display: block; font-size: 14px; line-height: 1.35; }
+  .ing span { font-size: 12px; color: var(--muted); }
+  .ing .qty { position: absolute; top: -8px; right: -8px; display: none; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 999px; background: var(--forest); color: #fff; font-size: 12px; font-weight: 700; }
+  .ing.on .qty { display: grid; }
+  .hint { margin: 10px 0 0; font-size: 12px; color: var(--muted); }
+
+  /* menu */
+  .menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 22px; }
+  .mcard { position: relative; display: flex; flex-direction: column; border-radius: 26px; background: var(--white); border: 1px solid var(--line); overflow: hidden; transition: transform .25s, box-shadow .25s; }
+  .mcard:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+  .mcard .art { position: relative; padding: 26px 34px 10px; background: radial-gradient(70% 70% at 50% 55%, var(--oat-2), var(--oat)); }
+  .mcard .bowl { width: 100%; filter: drop-shadow(0 16px 18px rgba(60, 25, 10, .25)); transition: transform .4s; }
+  .mcard:hover .bowl { transform: rotate(-6deg) scale(1.03); }
+  .mcard .badge { position: absolute; top: 16px; left: 16px; padding: 4px 12px; border-radius: 999px; background: var(--ink); color: var(--brass-soft); font-size: 11px; letter-spacing: .12em; }
+  .mbody { display: flex; flex-direction: column; flex: 1; padding: 18px 22px 22px; }
+  .mbody h3 { margin: 0 0 4px; font-size: 17px; font-weight: 700; }
+  .mbody p { margin: 0 0 16px; font-size: 13px; color: var(--muted); }
+  .mfoot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+  .price { font: 500 26px/1 var(--serif); }
+  .price small { font: 400 12px var(--sans); color: var(--muted); }
+  .plus { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--ink); font-size: 22px; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+  .mcard:hover .plus { background: var(--tomato); border-color: var(--tomato); color: #fff; }
+  .mcard.soldout { opacity: .5; } .mcard.soldout .plus { cursor: not-allowed; }
+
+  /* footer */
+  footer { margin-top: 110px; padding: 64px 0 40px; background: var(--forest); color: #CFD8CC; }
+  .fgrid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 32px; padding-bottom: 32px; border-bottom: 1px solid rgba(255, 255, 255, .12); }
+  .fgrid h4 { margin: 0 0 12px; font-size: 12px; letter-spacing: .2em; color: var(--brass-soft); font-weight: 700; }
+  .fgrid p { margin: 0; font-size: 14px; }
+  .flogo { font-weight: 900; font-size: 24px; color: #fff; } .flogo .serif { color: var(--ember); }
+  .fbottom { padding-top: 20px; font-size: 12px; color: #9DB0A4; }
+
+  @media (max-width: 940px) {
+    nav, .open { display: none; }
+    .hero-card, .builder, .how { grid-template-columns: 1fr; }
+    .hero-art { order: -1; width: min(84%, 360px); }
+    .glass.g1 { left: -2%; } .glass.g2 { right: -2%; }
+    .panel { position: static; }
+    .fgrid { grid-template-columns: 1fr; }
+    section { padding-top: 72px; }
+  }
+  @media (max-width: 520px) {
+    .wrap { padding: 0 16px; }
+    .stats { flex-wrap: wrap; } .stat b { font-size: 28px; }
+    .choice { min-width: calc(50% - 5px); }
+    .glass { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+  <div class="concept-note">デザイン案 2+ ・ マルシェ (見本ページ。注文はできません)</div>
+  <header>
+    <div class="wrap hrow">
+      <a class="logo" href="#">Chilli <span class="serif">鍋</span></a>
+      <nav aria-label="メニュー"><a class="on" href="#">ホーム</a><a href="#build">自分で作る</a><a href="#menu">メニュー</a><a href="#how">はじめての方へ</a></nav>
+      <div class="hright">
+        <span class="open"><i></i>営業中 11:00 — 21:00</span>
+        <a class="cart" href="#">カート <b id="cartN">0</b></a>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap hero">
+    <div class="hero-card">
+      <div>
+        <span class="eyebrow"><span class="line"></span>SICHUAN MALATANG</span>
+        <h1>好きな具材で、<br>あなたの一杯を。<span class="serif">Fresh, spicy &amp; made your way.</span></h1>
+        <p>市場から届く野菜・お肉・海鮮を、好きなだけ。じっくり炊いたスープと、5段階の辛さで仕上げます。</p>
+        <div class="ctas"><a class="btn btn-light" href="#build">どんぶりを作る →</a><a class="btn btn-glass" href="#menu">メニューを見る</a></div>
+        <div class="stats" id="stats"></div>
+      </div>
+      <div class="hero-art" id="heroArt">
+        <div class="glass g1"><i></i><span><b>朝どれ野菜</b>毎日 入荷</span></div>
+        <div class="glass g2"><i></i><span><b>自家製スープ</b>じっくり炊いて</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section id="how">
+    <div class="wrap">
+      <div class="shead"><div><div class="kicker"><span class="serif">How it works</span>— 3 STEPS</div><h2>3つ選ぶだけで、<br>自分だけの麻辣湯。</h2></div></div>
+      <div class="how" id="how3"></div>
+    </div>
+  </section>
+
+  <section id="build">
+    <div class="wrap">
+      <div class="shead"><div><div class="kicker"><span class="serif">Build your bowl</span>— 自分で作る</div><h2>どんぶりを、組み立てる。</h2><p>選ぶたびに、どんぶりの絵と金額がその場で変わります。</p></div></div>
+      <div class="builder">
+        <aside class="panel">
+          <div class="label">YOUR BOWL</div>
+          <h3 id="pname">自分で作る麻辣湯</h3>
+          <div id="liveBowl"></div>
+          <ul class="lines" id="lines"></ul>
+          <div class="total"><span>TOTAL</span><b id="total">¥0</b></div>
+          <button class="btn" type="button" id="addBowl">カートに入れる</button>
+        </aside>
+        <div>
+          <div class="opt"><h3><span class="serif">01</span>スープ</h3><div class="seg" id="soups"></div></div>
+          <div class="opt"><h3><span class="serif">02</span>辛さ</h3><div class="seg" id="spices"></div></div>
+          <div class="opt"><h3><span class="serif">03</span>具材 <small>押すたびに +1 ・ 右クリックで −1</small></h3>
+            <div class="cats" id="cats"></div>
+            <div class="ings" id="ings"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="menu">
+    <div class="wrap">
+      <div class="shead"><div><div class="kicker"><span class="serif">Signature bowls</span>— おすすめ</div><h2>迷ったら、ここから。</h2><p>人気の組み合わせを、そのまま注文できます。</p></div></div>
+      <div class="menu" id="menuGrid"></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="fgrid">
+        <div><div class="flogo">Chilli <span class="serif">鍋</span></div><p style="margin-top:10px">新鮮な食材と、じっくり炊いたスープの麻辣湯。</p></div>
+        <div><h4>HOURS</h4><p>11:00 — 21:00</p></div>
+        <div><h4>TAKEOUT</h4><p>店頭でお受け取り</p></div>
+      </div>
+      <div class="fbottom">© 2026 Chilli 鍋 ・ <span id="dataNote"></span></div>
+    </div>
+  </footer>
+
+<script src="data.js"></script>
+<script src="bowl.js"></script>
+<script>
+// 具材の色 (カテゴリごと。写真のかわりの丸)
+const CAT_GRAD = {
+  '野菜': ['#A9D18C', '#3F7A35'], 'きのこ': ['#E8C9A0', '#9A6A3A'], '肉': ['#E39A86', '#8E3A2A'], '海鮮': ['#F2A98C', '#C0503A'],
+  '団子・練り物': ['#F1D3A0', '#B9874A'], '豆腐・湯葉': ['#FFF4DF', '#D9BE8F'], '麺': ['#F7E2B8', '#C99A55'], '点心': ['#F4D9B5', '#B07A45'], 'トッピング': ['#FFD38A', '#D98A1F'],
+};
+const SOUP_SWATCH = { '麻辣': ['#F47A3C', '#9E1D12'], 'トマト': ['#FF8A5B', '#B22A1B'], '白湯': ['#FFF3DD', '#D9B57C'], 'きのこ': ['#D9A066', '#6E3B1A'] };
+const BROTH = { 'トマト': 'tomato', '白湯': 'paitan', 'きのこ': 'mushroom' };
+const grad = (c) => `radial-gradient(circle at 35% 30%, ${c[0]}, ${c[1]})`;
+const st = { base: 300, soup: null, spice: null, picks: new Map(), cat: null, cartN: 0 };
+let D;
+
+function soupKey(s) { return s ? Object.keys(SOUP_SWATCH).find(k => s.name.includes(k)) : null; }
+
+function render() {
+  const soup = D.soups.find(s => s.id === st.soup);
+  const spice = D.spices.find(s => s.id === st.spice);
+  const bk = soup ? Object.keys(BROTH).find(k => soup.name.includes(k)) : null;
+  document.getElementById('liveBowl').innerHTML = bowlSVG({ seed: 4 + st.picks.size, rim: '#F4EEE4', broth: bk ? BROTH[bk] : 'mala', steam: true });
+  let total = st.base;
+  const rows = [[`ベース`, st.base]];
+  if (soup) { rows.push([soup.name, soup.price || 0]); total += soup.price || 0; }
+  if (spice) { rows.push([`辛さ: ${spice.name}`, spice.extra_price || 0]); total += spice.extra_price || 0; }
+  for (const [id, q] of st.picks) {
+    const i = D.ingredients.find(x => x.id === id);
+    rows.push([`${i.name}${q > 1 ? ' ×' + q : ''}`, i.price * q]);
+    total += i.price * q;
+  }
+  document.getElementById('lines').innerHTML = rows.map(([n, p]) => `<li><span>${esc(n)}</span><span>${p ? '+' + yen(p) : '—'}</span></li>`).join('');
+  document.getElementById('total').textContent = yen(total);
+  document.querySelectorAll('[data-soup]').forEach(c => c.classList.toggle('on', Number(c.dataset.soup) === st.soup));
+  document.querySelectorAll('[data-spice]').forEach(c => c.classList.toggle('on', Number(c.dataset.spice) === st.spice));
+  document.querySelectorAll('[data-ing]').forEach(b => {
+    const q = st.picks.get(Number(b.dataset.ing)) || 0;
+    b.classList.toggle('on', q > 0);
+    b.querySelector('.qty').textContent = q;
+  });
+}
+
+function renderIngs() {
+  const list = D.ingredients.filter(i => i.category_name === st.cat);
+  document.getElementById('ings').innerHTML = list.map(i => `
+    <button type="button" class="ing" data-ing="${i.id}">
+      <span class="dot" style="background:${grad(CAT_GRAD[i.category_name] || CAT_GRAD['野菜'])}"></span>
+      <span><b>${esc(i.name)}</b><span>${i.portion ? esc(i.portion) + ' ・ ' : ''}+${yen(i.price)}</span></span>
+      <span class="qty">0</span>
+    </button>`).join('');
+  document.querySelectorAll('#cats button').forEach(b => b.classList.toggle('on', b.dataset.cat === st.cat));
+  render();
+}
+
+chilliData().then(d => {
+  D = d;
+  const custom = d.menus.find(m => m.is_custom);
+  st.base = custom ? custom.price : 300;
+  st.soup = d.soups[0] && d.soups[0].id;
+  st.spice = d.spices[0] && d.spices[0].id;
+  const cats = [...new Set(d.ingredients.map(i => i.category_name))];
+  st.cat = cats[0];
+  document.getElementById('dataNote').textContent = d.live ? 'メニュー・値段・具材はお店の本物のデータ' : '見本のデータ (API に接続できません)';
+  document.getElementById('heroArt').insertAdjacentHTML('afterbegin', bowlSVG({ seed: 11, rim: '#F7F1E8', steam: true }));
+  document.getElementById('stats').innerHTML = [[d.ingredients.length, '具材'], [d.soups.length, 'スープ'], [d.spices.length, '辛さ']]
+    .map(([n, l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join('');
+  const names = (l) => l.slice(0, 3).map(x => x.name).join('・');
+  document.getElementById('how3').innerHTML = [['01', 'スープを選ぶ', names(d.soups)], ['02', '具材を選ぶ', `${d.ingredients.length}種類から、好きなだけ`], ['03', '辛さを選ぶ', names(d.spices)]]
+    .map(([n, t, p]) => `<div><div class="n">${n}</div><h3>${t}</h3><p>${esc(p)}</p></div>`).join('');
+  document.getElementById('soups').innerHTML = d.soups.map(s => {
+    const k = soupKey(s);
+    return `<button type="button" class="choice" data-soup="${s.id}"><span class="swatch" style="background:${grad(SOUP_SWATCH[k] || SOUP_SWATCH['麻辣'])}"></span><b>${esc(s.name)}</b><span>${s.price ? '+' + yen(s.price) : '追加料金なし'}</span></button>`;
+  }).join('');
+  const max = Math.max(...d.spices.map(s => s.level));
+  document.getElementById('spices').innerHTML = d.spices.map(s => `
+    <button type="button" class="choice" data-spice="${s.id}"><span class="heat">${Array.from({ length: max }, (_, k) => chiliIcon(k < s.level ? '#C8321F' : '#E5D9C8')).join('')}</span><b>${esc(s.name)}</b><span>${s.extra_price ? '+' + yen(s.extra_price) : 'Lv.' + s.level}</span></button>`).join('');
+  document.getElementById('cats').innerHTML = cats.map(c => `<button type="button" data-cat="${esc(c)}">${esc(c)}</button>`).join('');
+  document.getElementById('menuGrid').innerHTML = d.menus.filter(m => !m.is_custom).map(m => {
+    const { name, limited } = menuLabel(m);
+    return `
+      <article class="mcard ${m.is_available ? '' : 'soldout'}">
+        <div class="art">${limited ? '<span class="badge">LIMITED ・ 期間限定</span>' : ''}${bowlSVG({ seed: m.id, rim: '#FBF6EE' })}</div>
+        <div class="mbody">
+          <h3>${esc(name)}</h3><p>${esc(m.description)}</p>
+          <div class="mfoot"><span class="price">${m.is_available ? yen(m.price) : '<small>売り切れ</small>'}</span><button class="plus" type="button" aria-label="${esc(name)}をカートに入れる" ${m.is_available ? '' : 'disabled'}>+</button></div>
+        </div>
+      </article>`;
+  }).join('');
+  renderIngs();
+});
+
+document.addEventListener('click', e => {
+  const s = e.target.closest('[data-soup]'); if (s) { st.soup = Number(s.dataset.soup); render(); }
+  const p = e.target.closest('[data-spice]'); if (p) { st.spice = Number(p.dataset.spice); render(); }
+  const c = e.target.closest('[data-cat]'); if (c) { st.cat = c.dataset.cat; renderIngs(); }
+  const i = e.target.closest('[data-ing]'); if (i) { const id = Number(i.dataset.ing); st.picks.set(id, Math.min(10, (st.picks.get(id) || 0) + 1)); render(); }
+  if (e.target.closest('.plus:not([disabled]), #addBowl')) { st.cartN++; document.getElementById('cartN').textContent = st.cartN; }
+});
+document.addEventListener('contextmenu', e => {
+  const i = e.target.closest('[data-ing]');
+  if (!i) return;
+  e.preventDefault();
+  const id = Number(i.dataset.ing), q = (st.picks.get(id) || 0) - 1;
+  if (q > 0) st.picks.set(id, q); else st.picks.delete(id);
+  render();
+});
+</script>
+</body>
+</html>

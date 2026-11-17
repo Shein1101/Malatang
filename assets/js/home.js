@@ -16,80 +16,66 @@ function textLink(b) {
     ? `<a class="link-more" href="${esc(b.link_url)}">${esc(b.link_label)} →</a>` : '';
 }
 
-// ---------- メニューのスライダー (横スクロール。写真の上に名前・値段・ボタン) ----------
-// 写真を主役にして、文字とボタンは写真の上に重ねる。濃いグラデーションで文字を読みやすく。
-function slideCard(m) {
-  const media = m.image_url
-    ? `<img src="${esc(m.image_url)}" alt="" onerror="this.closest('.slide-media').classList.add('no-img');this.remove()">`
-    : '';
-  const name = esc(m.name.replace('【期間限定】', ''));
-  const foot = m.is_available
-    ? `<span class="slide-price">${yen(m.price)}</span>
-       <a class="slide-order" href="customize.php?menu_id=${m.id}">注文する</a>`
-    : `<span class="slide-tag">売り切れ</span>`;
-  return `
-    <article class="slide-card${m.is_available ? '' : ' is-soldout'}">
-      <div class="slide-media${m.image_url ? '' : ' no-img'}">${media}<span class="slide-emoji">🍜</span></div>
-      <div class="slide-overlay">
-        <h3 class="slide-name">${name}</h3>
-        <div class="slide-foot">${foot}</div>
-      </div>
-    </article>`;
-}
+// ---------- メニューのスライダー (menus.js の menuCard と同じカード。矢印は見出しの横) ----------
+const ARROW = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="${d}"/></svg>`;
 
 function menuSlider(menus) {
   const dishes = menus.filter(m => !m.is_custom).slice(0, 10);
   if (!dishes.length) return '';
   return `
-    <section class="h-section container">
+    <section class="h-section container slider">
       <div class="section-head">
-        <h2 class="heading">トップメニュー 🔥</h2>
-        <a class="link-more" href="menu.php">すべて見る →</a>
+        <div><p class="kicker">Signature bowls<small>おすすめ</small></p><h2 class="heading">おすすめのメニュー</h2></div>
+        <div class="head-actions">
+          <a class="link-more" href="menu.php">すべて見る <span aria-hidden="true">→</span></a>
+          <div class="slider-nav">
+            <button type="button" class="slider-arrow prev" aria-label="前へ">${ARROW('M15 5l-7 7 7 7')}</button>
+            <button type="button" class="slider-arrow next" aria-label="次へ">${ARROW('M9 5l7 7-7 7')}</button>
+          </div>
+        </div>
       </div>
-      <div class="slider">
-        <button type="button" class="slider-arrow prev" aria-label="前へ"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M15 5l-7 7 7 7"/></svg></button>
-        <div class="slider-track" id="menuTrack">${dishes.map(slideCard).join('')}</div>
-        <button type="button" class="slider-arrow next" aria-label="次へ"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></button>
-      </div>
+      <div class="slider-track" id="menuTrack">${dishes.map(menuCard).join('')}</div>
     </section>`;
 }
 
 // ---------- ブロックごとの HTML ----------
 const render = {
-  // メインのヒーロー: 左にことば+ボタン+受け取り案内、右に大きな料理の写真 + 割引バッジ
+  // メインのヒーロー: ベント (大きなグラデーションのタイル + 右に 2つのタイル)
+  //   大: ことば・ボタン・どんぶり (お店が画像を入れたら その写真が背景)
+  //   右上: 自分で作る (値段から)   右下: メニュー・スープ・辛さ の数
   hero(b, d) {
     const s = d.store;
-    const image = b.image_url || (s && s.banner_url);
-    const action = linkBtn(b, 'btn-chili btn-lg') || `<a class="btn btn-chili btn-lg" href="menu.php">メニューを見る <span class="arrow"></span></a>`;
-    const discount = d.promoBadge
-      ? `<span class="hh-discount">${esc(d.promoBadge)}</span>` : '';
-    const photo = image
-      ? `<img src="${esc(image)}" alt="" onerror="this.closest('.hh-photo').classList.add('no-img');this.remove()">`
-      : '';
+    const action = linkBtn(b, 'btn-light btn-lg') || `<a class="btn btn-light btn-lg" href="menu.php">メニューを見る<span class="arrow" aria-hidden="true"></span></a>`;
+    const discount = d.promoBadge ? `<span class="hh-discount">${esc(d.promoBadge)}</span>` : '';
+    const art = b.image_url
+      ? `<div class="b-photo"><img src="${esc(b.image_url)}" alt="" onerror="this.closest('.b-photo').remove()"></div>`
+      : `<div class="b-art">${bowlSVG({ seed: 11, rim: '#F7F1E8', steam: true })}</div>`;
+    const custom = d.customMenu && d.customMenu.is_available ? d.customMenu : null;
+    const dishes = d.menus.filter(m => !m.is_custom).length;
+    const stats = [[dishes, 'メニュー'], [d.soups.length, 'スープ'], [d.spices.length, '辛さ']]
+      .filter(([n]) => n > 0)
+      .map(([n, l]) => `<div class="b-stat"><b>${n}</b><span>${l}</span></div>`).join('');
     return `
       <section class="home-hero">
-        <div class="container hh-grid">
-          <div class="hh-copy">
-            ${s ? `<p class="hh-status"><span class="dot ${s.is_open ? 'is-open' : ''}"></span>${s.is_open ? '営業中' : '本日はお休み'}${s.opening_hours ? ' · ' + esc(s.opening_hours) : ''}</p>` : ''}
-            <h1 class="hh-title">${lines(b.title)}</h1>
-            <p class="hh-sub">${lines(b.body)}</p>
-            <div class="hh-actions">${action}</div>
-            <div class="hh-badges">
-              <div class="hh-badge">
-                <span class="hh-badge-ico"><svg viewBox="0 0 24 24" width="20" height="20"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>
-                <span class="hh-badge-txt"><b>かんたん注文</b>最短3分で完了</span>
-              </div>
-              <div class="hh-badge">
-                <span class="hh-badge-ico"><svg viewBox="0 0 24 24" width="20" height="20"><use href="#i-store"></use></svg></span>
-                <span class="hh-badge-txt"><b>テイクアウト</b>店頭でお受け取り</span>
-              </div>
-            </div>
+        <div class="container bento">
+          <div class="b-hero">
+            ${art}
+            ${discount}
+            ${s ? `<p class="b-pill"><span class="dot ${s.is_open ? 'is-open' : ''}"></span>${s.is_open ? '営業中' : '本日はお休み'}${s.opening_hours ? ' · ' + esc(s.opening_hours) : ''}</p>` : ''}
+            <h1 class="hh-title">${lines(b.title)}<span class="hh-en">Fresh, spicy &amp; made your way.</span></h1>
+            ${b.body ? `<p class="hh-sub">${lines(b.body)}</p>` : ''}
+            <div class="hh-actions">${action}${custom ? `<a class="btn btn-glass btn-lg" href="customize.php">自分で作る</a>` : ''}</div>
           </div>
-          <div class="hh-media">
-            <div class="hh-photo ${image ? '' : 'no-img'}">
-              ${photo}
-              ${discount}
-            </div>
+          <div class="b-side">
+            ${custom ? `
+            <a class="b-tile b-custom" href="customize.php">
+              <span class="kicker">Build your bowl<small>自分で作る</small></span>
+              <h2>好きな具材で、<br>一から。</h2>
+              <p>スープ・辛さ・具材を ぜんぶ自分で。</p>
+              <span class="b-from">${yen(custom.price)}<small>から</small></span>
+              <div class="b-art2">${bowlSVG({ seed: 21, rim: '#FFFFFF' })}</div>
+            </a>` : ''}
+            ${stats ? `<div class="b-tile b-stats">${stats}</div>` : ''}
           </div>
         </div>
       </section>
@@ -131,7 +117,7 @@ const render = {
             <p class="caption">PR</p>
             <h2 class="heading">${esc(b.title)}</h2>
             ${b.body ? `<p class="muted">${lines(b.body)}</p>` : ''}
-            ${linkBtn(b, 'btn-chili')}
+            ${linkBtn(b, 'btn-outline')}
           </div>
           ${b.image_url ? `<img src="${esc(b.image_url)}" alt="" onerror="this.closest('.h-ad').classList.remove('has-image');this.remove()">` : ''}
         </article>
@@ -145,12 +131,13 @@ const render = {
       <section class="h-section container">
         <div class="h-head">
           <div>
+            <p class="kicker">Build your bowl<small>自分で作る</small></p>
             <h2 class="heading">${esc(b.title)}</h2>
             <p class="muted">${lines(b.body)}</p>
           </div>
           <div class="h-head-action">
             <span class="price">${yen(d.customMenu.price)}〜</span>
-            ${linkBtn(b, 'btn-chili')}
+            ${linkBtn(b, 'btn-outline')}
           </div>
         </div>
         <ol class="h-steps">
@@ -181,6 +168,7 @@ function renderBlocks(blocks, data) {
 function setupSliders() {
   document.querySelectorAll('.slider').forEach(slider => {
     const track = slider.querySelector('.slider-track');
+    if (!track) return;
     const step = () => Math.max(220, track.clientWidth * 0.8);
     slider.querySelector('.prev')?.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: 'smooth' }));
     slider.querySelector('.next')?.addEventListener('click', () => track.scrollBy({ left: step(), behavior: 'smooth' }));
@@ -235,7 +223,7 @@ async function loadReviews(loggedIn) {
   const avgN = Math.round(summary.avg);
 
   const header = `
-    <div class="section-head"><h2 class="heading">お客さまの声 ★</h2></div>
+    <div class="section-head"><div><p class="kicker">Voices<small>お客さまの声</small></p><h2 class="heading">お客さまの声</h2></div></div>
     ${summary.count ? `<div class="reviews-summary"><span class="reviews-avg">${summary.avg}</span><span><div class="reviews-stars">${starStr(avgN)}</div><div class="caption">${summary.count}件のレビュー</div></span></div>` : ''}`;
   const form = loggedIn
     ? reviewFormHtml(mine)

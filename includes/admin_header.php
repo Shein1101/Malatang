@@ -45,7 +45,7 @@ $adminNav  = [
   </svg>
 <header class="site-header admin-header">
   <div class="container">
-    <a class="logo" href="orders.php"><svg><use href="#i-flame"></use></svg><span class="logo-name">Chilli 鍋<span class="logo-sub">管理画面</span></span></a>
+    <a class="logo" href="orders.php"><span class="logo-name">Chilli <em>鍋</em><span class="logo-sub">管理画面</span></span></a>
     <?php if (empty($isLoginPage)): ?>
     <nav class="main-nav" aria-label="管理メニュー">
       <?php foreach ($adminNav as $file => $label): ?>

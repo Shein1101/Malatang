@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>デザイン 3案 | Chilli 鍋</title>
+<!-- design-concepts/v3/index.html — 3つのデザイン案の入り口. Owner: Lin -->
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 20px 56px; background: #F3EFE9; color: #241A14; font: 15px/1.7 "Noto Sans JP", system-ui, sans-serif; }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  h1 { margin: 0 0 6px; font-size: 26px; }
+  .lead { margin: 0 0 28px; color: #6E6158; max-width: 64em; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 20px; }
+  a.card { display: flex; flex-direction: column; border-radius: 18px; overflow: hidden; color: inherit; text-decoration: none; background: #fff; border: 1px solid #E4DDD3; transition: transform .2s, box-shadow .2s; }
+  a.card:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(36, 26, 20, .12); }
+  .shot { position: relative; height: 230px; overflow: hidden; border-bottom: 1px solid #E4DDD3; }
+  .shot iframe { width: 1280px; height: 900px; border: 0; transform: scale(.3); transform-origin: 0 0; pointer-events: none; }
+  .body { padding: 18px 20px 22px; display: grid; gap: 8px; }
+  .no { font-size: 12px; font-weight: 700; letter-spacing: .14em; color: #8A7B70; }
+  h2 { margin: 0; font-size: 20px; }
+  .sw { display: flex; gap: 6px; } .sw i { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .1); }
+  ul { margin: 0; padding-left: 1.2em; color: #4E433B; font-size: 14px; }
+  .open { margin-top: 6px; font-weight: 700; color: #B42318; }
+  @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } .shot { height: 260px; } .shot iframe { transform: scale(.34); } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Chilli 鍋 ・ デザイン 3案</h1>
+    <p class="lead">レイアウト・文字・色が まったくちがう 3つの案です。どれも 食欲をそそる色 (赤・オレンジ・黄色) と、真っ赤なスープのどんぶりを主役にしています。メニュー・値段・スープ・辛さ・具材は お店の本物のデータを表示しています (見本なので注文はできません)。気に入った案を教えてください。サイト全体をその案で作ります。</p>
+    <div class="grid">
+      <a class="card" href="yatai.html">
+        <div class="shot"><iframe src="yatai.html" title="案1" tabindex="-1" loading="lazy"></iframe></div>
+        <div class="body">
+          <div class="no">案 1</div><h2>屋台ナイト</h2>
+          <div class="sw"><i style="background:#17100D"></i><i style="background:#E8392B"></i><i style="background:#FFC83A"></i><i style="background:#FF7A2F"></i></div>
+          <ul><li>暗い背景で 赤いスープと湯気が光る</li><li>太い文字・流れるテロップ・値段の札</li><li>唐辛子を押すと 辛さメーターが動く</li><li>画面の下に いつもカートのバー</li></ul>
+          <span class="open">見る →</span>
+        </div>
+      </a>
+      <a class="card" href="ichiba.html">
+        <div class="shot"><iframe src="ichiba.html" title="案2" tabindex="-1" loading="lazy"></iframe></div>
+        <div class="body">
+          <div class="no">案 2</div><h2>朝市マルシェ</h2>
+          <div class="sw"><i style="background:#FFF7EA"></i><i style="background:#E4472C"></i><i style="background:#3C8C43"></i><i style="background:#F3B53D"></i></div>
+          <ul><li>明るいクリーム色に トマト・野菜・マスタードの色</li><li>丸い やさしい文字</li><li>選ぶと どんぶりの絵と金額がその場で変わる</li><li>はじめての人にも わかりやすい</li></ul>
+          <span class="open">見る →</span>
+        </div>
+      </a>
+      <a class="card" href="marche.html" style="border-color:#1F3D31;box-shadow:0 0 0 2px #1F3D31">
+        <div class="shot"><iframe src="marche.html" title="案2+" tabindex="-1" loading="lazy"></iframe></div>
+        <div class="body">
+          <div class="no">案 2+ (新)</div><h2>マルシェ</h2>
+          <div class="sw"><i style="background:#FBF6EE"></i><i style="background:#C8321F"></i><i style="background:#E8643A"></i><i style="background:#1F3D31"></i><i style="background:#B98A45"></i></div>
+          <ul><li>案2 を 大人っぽく・高級感のある形に</li><li>トマト→熾火のグラデーション・深い緑・真鍮の金</li><li>すりガラスのパネル・細い線・やわらかい影</li><li>どんぶりを作る は そのまま (もっと見やすく)</li></ul>
+          <span class="open">見る →</span>
+        </div>
+      </a>
+      <a class="card" href="spice.html">
+        <div class="shot"><iframe src="spice.html" title="案3" tabindex="-1" loading="lazy"></iframe></div>
+        <div class="body">
+          <div class="no">案 3</div><h2>麻辣酒家</h2>
+          <div class="sw"><i style="background:#F6EADB"></i><i style="background:#B23A1E"></i><i style="background:#E3A13A"></i><i style="background:#6E1F14"></i></div>
+          <ul><li>パプリカ・サフラン・唐辛子の スパイスの色</li><li>料理雑誌のような 明朝体と縦書き</li><li>メニューは お店の「お品書き」のように</li><li>「麻 × 辣」の図で 辛さを説明</li></ul>
+          <span class="open">見る →</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

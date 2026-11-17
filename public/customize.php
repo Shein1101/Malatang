@@ -17,6 +17,14 @@ include '../includes/header.php';
   <p id="loading" class="muted">読み込み中…</p>
 
   <div id="builder" class="cz-layout d-none">
+    <!-- 左: 手順 (スクロールすると 今の場所が光る。押すとそこへ) -->
+    <nav class="cz-rail" id="czRail" aria-label="手順">
+      <a href="#czSoup"><span class="n">1</span>味</a>
+      <a href="#czBroth"><span class="n">2</span>スープ</a>
+      <a href="#czSpice"><span class="n">3</span>辛さ</a>
+      <a href="#defaultsBox"><span class="n">4</span>最初の具材</a>
+      <a href="#czExtras"><span class="n">5</span>具材を追加</a>
+    </nav>
     <div class="stack">
       <!-- 1. ほかのページへ (今のページ名は見ればわかるので、大きな箱は出さない) -->
       <h1 id="menuName" class="visually-hidden"></h1>
@@ -30,14 +38,14 @@ include '../includes/header.php';
       <p id="notice" class="caption text-chili d-none"></p>
 
       <!-- 2. 味 (必ず1つ) -->
-      <section class="cz-section">
-        <p class="section-label">味を選ぶ</p>
+      <section class="cz-section" id="czSoup">
+        <p class="section-label"><span class="n">1</span>味を選ぶ</p>
         <div id="soupChips" class="chip-group" role="group" aria-label="味"></div>
       </section>
 
       <!-- 3. スープ あり / なし -->
-      <section class="cz-section">
-        <p class="section-label">スープ</p>
+      <section class="cz-section" id="czBroth">
+        <p class="section-label"><span class="n">2</span>スープ</p>
         <div id="brothChips" class="chip-group" role="group" aria-label="スープ">
           <button type="button" class="chip is-selected" data-broth="1" aria-pressed="true">スープあり</button>
           <button type="button" class="chip" data-broth="0" aria-pressed="false">スープなし（汁なし）</button>
@@ -45,20 +53,20 @@ include '../includes/header.php';
       </section>
 
       <!-- 4. 辛さ -->
-      <section class="cz-section">
-        <p class="section-label">辛さを選ぶ</p>
+      <section class="cz-section" id="czSpice">
+        <p class="section-label"><span class="n">3</span>辛さを選ぶ</p>
         <div id="spiceChips" class="chip-group" role="group" aria-label="辛さ"></div>
       </section>
 
       <!-- 5. 最初から入っている具材 (外せるものだけチェックを外せる) -->
       <section id="defaultsBox" class="cz-section">
-        <p class="section-label">最初から入っている具材</p>
+        <p class="section-label"><span class="n">4</span>最初から入っている具材</p>
         <ul id="defaultList" class="list"></ul>
       </section>
 
       <!-- 6. 追加する具材 (カテゴリごと) -->
-      <section class="cz-section">
-        <p class="section-label">具材を追加する</p>
+      <section class="cz-section" id="czExtras">
+        <p class="section-label"><span class="n">5</span>具材を追加する</p>
         <input type="search" id="ingSearch" class="input mb-3" placeholder="具材をさがす（例: えび、豆腐）" aria-label="具材をさがす">
         <details id="favBox" class="cz-fold d-none mb-3">
           <summary><b>♥ お気に入りの具材</b><span id="favCount" class="caption"></span></summary>
@@ -97,4 +105,25 @@ include '../includes/header.php';
 <!-- app.js (callApi, yen) は footer で読み込まれる → customize.js は window の load で動き始める -->
 <script src="<?= asset_url('assets/js/share.js') ?>"></script>
 <script src="<?= asset_url('assets/js/customize.js') ?>"></script>
+<script>
+// 手順のレール: 見えている場所を光らせる (最初の具材が無いメニューでは 4 を隠す)
+(function () {
+  const rail = document.getElementById('czRail');
+  const links = [...rail.querySelectorAll('a')];
+  const sections = links.map(a => document.querySelector(a.getAttribute('href')));
+  function mark() {
+    const top = window.innerWidth >= 1024 ? 40 : 140;
+    let current = 0;
+    sections.forEach((s, i) => {
+      if (s && !s.classList.contains('d-none') && s.getBoundingClientRect().top - top <= 0) current = i;
+    });
+    links.forEach((a, i) => {
+      a.hidden = sections[i] && sections[i].classList.contains('d-none');
+      a.classList.toggle('is-current', i === current);
+    });
+  }
+  window.addEventListener('scroll', mark, { passive: true });
+  window.addEventListener('load', () => setTimeout(mark, 300));
+})();
+</script>
 <?php include '../includes/footer.php'; ?>

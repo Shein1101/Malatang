@@ -3,7 +3,7 @@
 <footer class="site-footer">
   <div class="container footer-top">
     <div class="footer-brand">
-      <div class="logo"><svg><use href="#i-flame"/></svg><span class="logo-name">Chilli 鍋</span></div>
+      <div class="logo"><span class="logo-name">Chilli <em>鍋</em></span></div>
       <p class="footer-about" id="footerAbout">自分だけの麻辣湯を、スープ・辛さ・具材から。</p>
       <div class="footer-social" id="footerSocial">
         <a class="sns-link d-none" id="snsLine" target="_blank" rel="noopener noreferrer">LINE</a>
