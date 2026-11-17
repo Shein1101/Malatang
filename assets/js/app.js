@@ -34,13 +34,16 @@ function showError(el, message) {
 
 // ヘッダーのカートの数を本当の数にする (ページを開くたびに動く)
 // header.php の <span class="cart-count"> を使う。0 なら隠す。
+// サイドバー (PC) と 下のドック (スマホ) の 2か所にある
 async function refreshCartCount() {
-  const badge = document.querySelector('.site-header .cart-count');
-  if (!badge) return;                       // 管理画面などカートがないページ
+  const badges = document.querySelectorAll('.cart-count');
+  if (!badges.length) return;               // 管理画面などカートがないページ
   const res = await callApi('GET', '../api/cart.php');
   const count = res.success ? (res.data.item_count ?? res.data.count) : 0;
-  badge.textContent = count;
-  badge.style.display = count > 0 ? '' : 'none';
+  badges.forEach(b => {
+    b.textContent = count;
+    b.style.display = count > 0 ? '' : 'none';
+  });
 }
 window.addEventListener('load', refreshCartCount);
 
