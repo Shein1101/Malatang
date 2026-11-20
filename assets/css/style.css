@@ -1,10 +1,9 @@
 /* =========================================================
    Chilli 鍋 — shared stylesheet
-   Design: "Gradient bento" (v5, 2026-11)
-   Two palettes you can switch live (assets/js/theme.js):
-     data-palette="forest" (default) — deep green → fresh green, citrus-lime pop
-     data-palette="ember"            — deep burnt orange → amber, golden pop
-   Each has light + dark. Desktop: left sidebar. Phones: floating dock.
+   Design: "Gradient bento" (v6, 2026-11)
+   One appetizing CHILI RED palette (deep chili → warm red, golden pop),
+   in light + dark (assets/js/theme.js toggles light/dark). Desktop: left
+   sidebar. Phones: floating dock.
    Buttons: rounded-square gradients with an arrow bubble; tonal secondary.
 
    Every page loads this file, after Bootstrap 5.
@@ -41,92 +40,59 @@
   --disabled-bg: #ECE8E0; --disabled-ink: #9A938A;
 }
 
-/* ---------- palette: FOREST (default) ---------- */
-:root, [data-palette="forest"] {
-  --bg: #F4F2EA;           /* page: warm sage-cream */
+/* ---------- palette: CHILI RED ---------- */
+:root {
+  --bg: #FAF4EE;           /* page: warm appetizing cream */
   --surface: #FFFFFF;
-  --soft: #ECF1E8;         /* quiet tinted bands */
-  --soft-2: #DFE9DC;
-  --ink: #0F2219;
-  --muted: #56685E;
-  --line: #E1E7DD;
-  --line-strong: #C9D5CA;
-  --placeholder: #8A9A90;
-  --chili: #1E6B48;        /* accent: links, prices, active marks */
-  --chili-dark: #0E3B2C;
-  --chili-soft: #E2F0E5;
+  --soft: #FBECE3;         /* quiet warm bands */
+  --soft-2: #F6DACE;
+  --ink: #2A130C;
+  --muted: #7C584C;
+  --line: #F0E0D6;
+  --line-strong: #E4C9BC;
+  --placeholder: #A98979;
+  --chili: #CE3A24;        /* accent: links, prices, active marks */
+  --chili-dark: #9E2A16;
+  --chili-soft: #FBE3DA;
   --on-chili: #FFFFFF;
   --on-primary: #FFFFFF;   /* text on the main gradient */
-  --grad-primary: linear-gradient(135deg, #0E3B2C 0%, #1F6B4A 55%, #2A7D55 100%);
-  --grad-tonal: linear-gradient(135deg, #E3F0E6 0%, #EEF5DC 100%);
-  --grad-hero: radial-gradient(60% 80% at 90% 10%, rgba(201, 226, 101, .55), transparent 60%), linear-gradient(140deg, #0B2E22 0%, #155C40 48%, #3C9466 100%);
-  --grad-soft: linear-gradient(135deg, #EAF4EC 0%, #F7F4E6 100%);
-  --glow: rgba(14, 59, 44, .45);
-  --mix: #C9E265;          /* citrus-lime pop */
-  --on-mix: #0E2A1D;
-  --yellow: #C9E265; --on-yellow: #0E2A1D;     /* badges, counts */
-  --tab-active: #0E3B2C; --on-tab-active: #FFFFFF;
-  --bar: #0E3B2C; --on-bar: #FFFFFF;
-  --forest: #0B2E22; --forest-2: #1C6145;      /* deep panels: receipt, banner, footer */
-  --brass: #C9E265; --brass-soft: #DDEFA6;
-  --shadow: 0 1px 2px rgba(15, 34, 25, .05), 0 18px 40px -20px rgba(15, 34, 25, .25);
-  --shadow-hover: 0 2px 4px rgba(15, 34, 25, .06), 0 28px 50px -22px rgba(15, 34, 25, .35);
+  --grad-primary: linear-gradient(135deg, #A8221A 0%, #D23A28 55%, #E85334 100%);
+  --grad-tonal: linear-gradient(135deg, #FCE3D9 0%, #FDEFD7 100%);
+  --grad-hero: radial-gradient(60% 80% at 90% 10%, rgba(249, 191, 74, .55), transparent 60%), linear-gradient(140deg, #5A0F08 0%, #B5281A 48%, #E05A32 100%);
+  --grad-soft: linear-gradient(135deg, #FDECE3 0%, #FBF3E4 100%);
+  --glow: rgba(178, 40, 26, .45);
+  --mix: #F7B733;          /* warm golden pop */
+  --on-mix: #3A1206;
+  --yellow: #F7C14A; --on-yellow: #3A1206;     /* badges, counts */
+  --tab-active: #7C2114; --on-tab-active: #FFFFFF;
+  --bar: #7C2114; --on-bar: #FFFFFF;
+  --forest: #4A0F08; --forest-2: #9A1F12;      /* deep panels: receipt, banner, footer */
+  --brass: #F7C14A; --brass-soft: #F9D98C;
+  --shadow: 0 1px 2px rgba(42, 19, 12, .05), 0 18px 40px -20px rgba(42, 19, 12, .25);
+  --shadow-hover: 0 2px 4px rgba(42, 19, 12, .06), 0 28px 50px -22px rgba(42, 19, 12, .35);
   --card-border: transparent;
 }
-[data-theme="dark"], [data-theme="dark"][data-palette="forest"] {
+[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #08130E; --surface: #0F1F18; --soft: #152A20; --soft-2: #1C3428;
-  --ink: #E9F2EC; --muted: #9DB3A6; --line: #1F3529; --line-strong: #2C4A3A; --placeholder: #6F887A;
-  --chili: #7FD3A0; --chili-dark: #A6E2BD; --chili-soft: rgba(127, 211, 160, .14); --on-chili: #06140D;
-  --on-primary: #06140D;
-  --grad-primary: linear-gradient(135deg, #5FBF86 0%, #9AD86E 100%);
-  --grad-tonal: linear-gradient(135deg, #16301F 0%, #1E3A22 100%);
-  --grad-hero: radial-gradient(60% 80% at 90% 10%, rgba(201, 226, 101, .30), transparent 60%), linear-gradient(140deg, #06231A 0%, #0F4532 55%, #1E6B48 100%);
-  --grad-soft: linear-gradient(135deg, #10241A 0%, #17291A 100%);
-  --glow: rgba(95, 191, 134, .35);
-  --yellow: #C9E265; --on-yellow: #0E2A1D;
-  --tab-active: #E9F2EC; --on-tab-active: #08130E;
-  --bar: #1C3428; --on-bar: #E9F2EC;
-  --forest: #071C14; --forest-2: #0F3B2A;
-  --disabled-bg: #1F3529; --disabled-ink: #6F887A;
+  --bg: #140806; --surface: #1F0F0A; --soft: #2A150E; --soft-2: #371C13;
+  --ink: #F8E9E3; --muted: #C6A295; --line: #3A1F17; --line-strong: #502C20; --placeholder: #946F60;
+  --chili: #FF8666; --chili-dark: #FFA488; --chili-soft: rgba(255, 134, 102, .15); --on-chili: #230A04;
+  --on-primary: #230A04;
+  --grad-primary: linear-gradient(135deg, #E04A30 0%, #FF8A4D 100%);
+  --grad-tonal: linear-gradient(135deg, #2E160D 0%, #331E0F 100%);
+  --grad-hero: radial-gradient(60% 80% at 90% 10%, rgba(249, 191, 74, .30), transparent 60%), linear-gradient(140deg, #2A0A04 0%, #7C1E10 55%, #C2410C 100%);
+  --grad-soft: linear-gradient(135deg, #24130B 0%, #2A190B 100%);
+  --glow: rgba(255, 122, 77, .35);
+  --mix: #F7C14A; --on-mix: #3A1206;
+  --yellow: #F7C14A; --on-yellow: #3A1206;
+  --tab-active: #F8E9E3; --on-tab-active: #140806;
+  --bar: #371C13; --on-bar: #F8E9E3;
+  --forest: #200905; --forest-2: #5A160B;
+  --disabled-bg: #3A1F17; --disabled-ink: #946F60;
   --orange: #F2A65A; --orange-soft: rgba(242, 166, 90, .14);
   --green: #4CC487; --green-ink: #4CC487; --green-soft: rgba(76, 196, 135, .14); --gold: #E0B25C;
   --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 18px 40px -20px rgba(0, 0, 0, .6);
   --shadow-hover: 0 2px 4px rgba(0, 0, 0, .35), 0 28px 50px -22px rgba(0, 0, 0, .7);
-}
-
-/* ---------- palette: EMBER ---------- */
-[data-palette="ember"] {
-  --bg: #FBF3EA; --surface: #FFFFFF; --soft: #F8EADC; --soft-2: #F2DCC6;
-  --ink: #2A1408; --muted: #75594A; --line: #EFDFCF; --line-strong: #E0C8B1; --placeholder: #A88C7C;
-  --chili: #B5400E; --chili-dark: #7C2D12; --chili-soft: #FCE6D6; --on-chili: #FFFFFF;
-  --on-primary: #FFFFFF;
-  --grad-primary: linear-gradient(135deg, #7C2D12 0%, #B5400E 55%, #C2470F 100%);
-  --grad-tonal: linear-gradient(135deg, #FDE6D3 0%, #FDF0D2 100%);
-  --grad-hero: radial-gradient(60% 80% at 90% 10%, rgba(251, 191, 36, .6), transparent 60%), linear-gradient(140deg, #6B230C 0%, #C2410C 50%, #F97316 100%);
-  --grad-soft: linear-gradient(135deg, #FFF0E2 0%, #FDF6E6 100%);
-  --glow: rgba(194, 65, 12, .45);
-  --mix: #FBBF24; --on-mix: #2A1408;
-  --yellow: #FBBF24; --on-yellow: #2A1408;
-  --tab-active: #2A1408; --on-tab-active: #FFFFFF;
-  --bar: #2A1408; --on-bar: #FFFFFF;
-  --forest: #3B1205; --forest-2: #8A3410;
-  --brass: #FBBF24; --brass-soft: #FCD989;
-}
-[data-theme="dark"][data-palette="ember"] {
-  color-scheme: dark;
-  --bg: #140A05; --surface: #1E120B; --soft: #2A1A10; --soft-2: #352214;
-  --ink: #FBEDE2; --muted: #C4A592; --line: #36231A; --line-strong: #4B3123; --placeholder: #8E7363;
-  --chili: #FB923C; --chili-dark: #FDBA74; --chili-soft: rgba(251, 146, 60, .14); --on-chili: #1E0D04;
-  --on-primary: #1E0D04;
-  --grad-primary: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
-  --grad-tonal: linear-gradient(135deg, #2E1A0D 0%, #33230D 100%);
-  --grad-hero: radial-gradient(60% 80% at 90% 10%, rgba(251, 191, 36, .28), transparent 60%), linear-gradient(140deg, #2A0D04 0%, #6B230C 55%, #A8390C 100%);
-  --grad-soft: linear-gradient(135deg, #24140A 0%, #2A1B0B 100%);
-  --glow: rgba(249, 115, 22, .35);
-  --tab-active: #FBEDE2; --on-tab-active: #140A05;
-  --bar: #352214; --on-bar: #FBEDE2;
-  --forest: #200A03; --forest-2: #5A1E09;
 }
 
 /* ---------- 2. Base ---------- */
@@ -502,16 +468,6 @@ a.card-bowl:hover .pick .arrow { background: rgba(255, 255, 255, .2); }
 .logo-name { font-family: var(--font); font-weight: 900; font-size: 22px; line-height: 1.1; letter-spacing: .02em; }
 .logo-name em { font-family: var(--font-num); font-style: italic; font-weight: 600; font-size: 1.15em; background: var(--grad-primary); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .logo-sub  { display: block; font-size: 10px; font-weight: 500; color: var(--muted); }
-
-/* palette switch: two gradient dots */
-.palette-switch { display: inline-flex; gap: 6px; padding: 4px; }
-.palette-switch button {
-  width: 26px; height: 26px; padding: 0; border: 2px solid transparent; border-radius: 50%; cursor: pointer;
-  box-shadow: inset 0 0 0 2px var(--surface);
-}
-.palette-switch [data-palette-pick="forest"] { background: linear-gradient(135deg, #0E3B2C, #3C9466 70%, #C9E265); }
-.palette-switch [data-palette-pick="ember"] { background: linear-gradient(135deg, #7C2D12, #F97316 70%, #FBBF24); }
-.palette-switch button[aria-pressed="true"] { border-color: var(--ink); }
 
 /* cart: big gradient button in the sidebar */
 .cart-btn {
