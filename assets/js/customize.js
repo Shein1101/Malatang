@@ -214,6 +214,25 @@ function ingArt(category) {
   return 'linear-gradient(135deg,#e2c98a,#a5802c)';
 }
 
+// 写真がない具材 (または 写真が読めない) ときに出す 絵文字 [Myat]
+// まず名前で探す → なければ カテゴリで → それもなければ 🍲。新しい具材にも 自動で つく。
+const ING_EMOJI_BY_NAME = [
+  [/トマト/, '🍅'], [/れんこん/, '🪷'], [/昆布|わかめ/, '🌿'], [/空芯菜|青菜/, '🥬'], [/パクチー/, '🌿'],
+  [/ランチョンミート/, '🥫'], [/肉味噌/, '🥩'], [/チーズ/, '🧀'], [/卵|玉/, '🥚'],
+  [/あさり|はまぐり|貝/, '🐚'], [/えび|エビ/, '🍤'], [/いか|イカ/, '🦑'], [/魚|つみれ/, '🐟'],
+  [/団子|ちくわ|練り/, '🍢'], [/トッポギ/, '🍡'], [/餃子|しゅうまい|小籠包|点心/, '🥟'],
+  [/豆腐|湯葉|厚揚げ|腐竹/, '🫘'], [/春雨|ラーメン|うどん|麺/, '🍜'], [/たけ|茸/, '🍄'],
+];
+const ING_EMOJI_BY_CAT = [
+  [/野菜/, '🥬'], [/きのこ/, '🍄'], [/肉/, '🥩'], [/海鮮|魚/, '🦐'], [/団子|練り物/, '🍢'],
+  [/豆腐|湯葉/, '🫘'], [/麺/, '🍜'], [/点心/, '🥟'], [/トッピング/, '🥚'],
+];
+function ingEmoji(name, category) {
+  const hit = ING_EMOJI_BY_NAME.find(([re]) => re.test(name || ''))
+           || ING_EMOJI_BY_CAT.find(([re]) => re.test(category || ''));
+  return hit ? hit[1] : '🍲';
+}
+
 // 具材1枚 (丸い写真 + 名前 + 値段 + − 1 +。お気に入りの所とカテゴリの所で同じものを使う)
 function extraRow(i) {
   const soldOut = !i.is_available || i.stock <= 0;
@@ -222,7 +241,9 @@ function extraRow(i) {
     ? `<button type="button" class="icon-btn" data-pick="${i.id}" aria-pressed="${state.picks.has(i.id)}"
          aria-label="${esc(i.name)}をお気に入り${state.picks.has(i.id) ? 'から外す' : 'に追加'}">${state.picks.has(i.id) ? '♥' : '♡'}</button>`
     : '';
-  const photo = i.image_url ? `<img src="${esc(i.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : '';
+  // 写真の後ろに いつも 絵文字 を置く → 写真がない / 読めない ときは 絵文字が見える
+  const photo = `<span class="ing-emoji" aria-hidden="true">${ingEmoji(i.name, i.category_name)}</span>`
+    + (i.image_url ? `<img src="${esc(i.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : '');
   return `
     <li class="ing-tile ${soldOut ? 'is-soldout' : ''} ${qty > 0 ? 'is-added' : ''}" data-name="${esc(normalize(i.name + ' ' + i.category_name))}">
       ${heart}

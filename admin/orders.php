@@ -70,47 +70,53 @@ const SUBS = {
 };
 
 let allOrders = [];
+let queueNo = new Map();   // 注文 id → 順番 (1, 2, 3…)
 let cat = 'awaiting';
+
+// 順番の番号: まだ終わっていない注文 (完了・キャンセル 以外) を 来た順に 1, 2, 3…
+// 1番が 完了 / キャンセル になると 自動で 2番 → 1番 に くり上がる (毎回 計算しなおすので)
+function buildQueue() {
+  queueNo = new Map(
+    allOrders
+      .filter(o => !FIN.includes(o.status))
+      .sort((a, b) => (a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : Number(a.id) - Number(b.id)))
+      .map((o, i) => [Number(o.id), i + 1])
+  );
+}
 let sub = 'all';
 
-// 新しい注文の音 + タブのタイトルの数 [Myat]
-//   seenIds = 一度でも見た注文の id。null = まだ一度も読んでいない (最初は鳴らさない)
-//   タイトル = 受付待ちの数。音は「受付待ちの新しい注文」が来たときだけ
-let seenIds = null;
-const baseTitle = document.title;
-
-// 音を作る (ファイルなし。WebAudio で「ピッ」)。ブラウザの決まりで、
-// お店が1回どこかをクリックするまで音は出ないことがある (クリックで直る)
-let audioCtx = null;
-function playBeep() {
-  try {
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const t = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.value = 880;
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    gain.gain.setValueAtTime(0.001, t);
-    gain.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
-    osc.start(t);
-    osc.stop(t + 0.45);
-  } catch (e) {
-    // 音が出せなくても注文の処理は続ける
-  }
-}
-// 最初のクリックで音を使えるようにする (ブラウザの決まり対策)
-document.addEventListener('click', () => {
-  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-});
+// 新しい注文の音・タブのタイトル・お知らせバー は assets/js/admin-notify.js (全部の管理ページ) [Myat]
+// ここでは「NEW (まだ確認していない注文)」のカードを目立たせるだけ。
+const newIds = () => new Set(window.adminNotify ? window.adminNotify.newIds() : []);
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 const hhmm = (dt) => String(dt).slice(11, 16);
+
+// "2026-11-13 12:30:00" → Date (Safari でも読めるように T にする)
+const toDate = (dt) => new Date(String(dt).replace(' ', 'T'));
+
+// いつの注文か: 今日 → 「12:30」、昨日 → 「昨日 12:30」、それより前 → 「11/12 12:30」
+function whenLabel(dt) {
+  const d = toDate(dt), now = new Date();
+  const day = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diffDays = Math.round((day(now) - day(d)) / 86400000);
+  if (diffDays === 0) return hhmm(dt);
+  if (diffDays === 1) return '昨日 ' + hhmm(dt);
+  return `${d.getMonth() + 1}/${d.getDate()} ${hhmm(dt)}`;
+}
+
+// 何分前か (今日の注文だけ)。「調理待ち」で 15分 以上たったら 赤くする
+const LATE_MIN = 15;
+function agoMin(dt) { return Math.max(0, Math.floor((Date.now() - toDate(dt).getTime()) / 60000)); }
+function agoLabel(o) {
+  const m = agoMin(o.created_at);
+  if (m >= 24 * 60) return '';
+  const text = m < 1 ? 'たった今' : m < 60 ? `${m}分前` : `${Math.floor(m / 60)}時間${m % 60 ? (m % 60) + '分' : ''}前`;
+  const late = o.status === 'pending' && m >= LATE_MIN;
+  return `<span class="order-ago${late ? ' is-late' : ''}">${late ? '⏱ ' : ''}${text}</span>`;
+}
 
 function bowlLines(o) {
   return o.bowls.map(b => {
@@ -136,12 +142,17 @@ function orderCard(o) {
   const delBtn = (o.status === 'completed' || o.status === 'cancelled')
     ? `<button class="btn btn-ghost btn-sm text-danger" data-del="${o.id}">削除</button>` : '';
   const payLabel = PAY_METHOD[o.payment_method] || 'カード';
+  const isNew = newIds().has(Number(o.id));
+  const isPast = agoMin(o.created_at) >= 24 * 60 && FIN.includes(o.status);  // 前の日の 終わった注文
+
+  const qn = queueNo.get(Number(o.id));   // 終わった注文には 番号なし
 
   return `
-    <div class="card order-card">
+    <div class="card order-card${isNew ? ' is-new' : ''}${isPast ? ' is-past' : ''}" data-order="${o.id}">
       <div class="order-top">
-        <div>
-          <b>注文 ${hhmm(o.created_at)}</b>
+        ${qn ? `<span class="queue-no${qn === 1 ? ' is-first' : ''}" title="${qn}番目">${qn}</span>` : ''}
+        <div class="order-head">
+          ${isNew ? '<span class="badge badge-new">NEW</span> ' : ''}<b>注文 ${whenLabel(o.created_at)}</b> ${agoLabel(o)}
           <div class="caption">#${esc(o.order_number)}・${esc(o.customer_name)}${o.is_guest ? '（ゲスト）' : ''}${o.customer_phone ? '・' + esc(o.customer_phone) : ''}・${o.order_type === 'delivery' ? '🛵 配達' : '🏪 店頭'}</div>
         </div>
         <span class="badge ${s.badge}">${s.label}</span>
@@ -197,12 +208,24 @@ function renderSubTabs() {
 function renderList() {
   const rows = currentList();
   const list = document.getElementById('orderList');
-  list.innerHTML = rows.length
-    ? rows.map(orderCard).join('')
-    : '<div class="empty card"><svg><use href="#i-trash"/></svg><p>この分類の注文はありません</p></div>';
+  if (!rows.length) {
+    list.innerHTML = '<div class="empty card"><svg><use href="#i-trash"/></svg><p>この分類の注文はありません</p></div>';
+    return;
+  }
+  // 新しい注文 (未確認) を いちばん上に まとめて出す。そのあとに それ以外。
+  const nw = newIds();
+  const fresh = rows.filter(o => nw.has(Number(o.id)));
+  const rest  = rows.filter(o => !nw.has(Number(o.id)));
+  const head  = (text, cls = '') => `<div class="order-group ${cls}">${text}</div>`;
+  list.innerHTML = fresh.length
+    ? head(`🔔 新しい注文 ${fresh.length}件 <span class="caption">（カードをタップすると確認済みになります）</span>`, 'is-new')
+      + fresh.map(orderCard).join('')
+      + (rest.length ? head(`それ以外の注文 ${rest.length}件`) + rest.map(orderCard).join('') : '')
+    : rows.map(orderCard).join('');
 }
 
 function renderAll() {
+  buildQueue();
   renderCatTabs();
   renderSubTabs();
   renderList();
@@ -218,18 +241,13 @@ async function loadOrders() {
   allOrders = res.data;
   renderAll();
   document.getElementById('updated').textContent = '最終更新 ' + new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-  // 受付待ちの新しい注文が来たら音を鳴らす (最初に読んだときは鳴らさない)
-  const pending = res.data.filter(o => o.status === 'pending');
-  if (seenIds !== null && pending.some(o => !seenIds.has(o.id))) {
-    playBeep();
-  }
-  if (seenIds === null) seenIds = new Set();
-  for (const o of res.data) seenIds.add(o.id);
-
-  // タブのタイトルに 受付待ち の数を出す (ほかのタブを見ていても気づけるように)
-  document.title = pending.length ? `(${pending.length}) ${baseTitle}` : baseTitle;
 }
+
+// admin-notify.js が新しい情報を取ってきたら、すぐに一覧を作り直す (待たずに NEW が出る)
+document.addEventListener('admin:orders', (e) => {
+  allOrders = e.detail.orders;
+  renderAll();
+});
 
 // カテゴリを切り替え
 document.getElementById('catTabs').addEventListener('click', (e) => {
@@ -249,6 +267,12 @@ document.getElementById('subTabs').addEventListener('click', (e) => {
 
 // ステータスを進める / キャンセル / 削除
 document.getElementById('orderList').addEventListener('click', async (e) => {
+  // NEW のカードをタップ (ボタンでも) → 確認済み にする
+  const card = e.target.closest('.order-card.is-new');
+  if (card && window.adminNotify) {
+    window.adminNotify.ack(card.dataset.order);
+    if (!e.target.closest('button')) { renderAll(); return; }
+  }
   const del = e.target.closest('button[data-del]');
   if (del) {
     if (!confirm('この注文を記録から削除しますか？（元に戻せません）')) return;
@@ -269,7 +293,8 @@ document.getElementById('orderList').addEventListener('click', async (e) => {
 
 window.addEventListener('load', () => {
   loadOrders();
-  setInterval(loadOrders, 30000);   // 30秒ごとに新しい注文を見る
+  setInterval(loadOrders, 30000);   // 30秒ごとに作り直す (新しい注文は admin-notify.js が 15秒ごとに見ている)
+  setInterval(renderList, 60000);   // 「◯分前」を 1分ごとに 新しくする
 });
 </script>
 

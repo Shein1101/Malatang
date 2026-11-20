@@ -21,6 +21,17 @@ if ($method === 'GET') {                    // 🆕 GET ဆိုရင်ပဲ
             ORDER BY c.sort_order, i.sort_order';
     $rows = $pdo->query($sql)->fetchAll();
 
+    // 写真の URL に「?v=ファイルを変えた時間」をつける [Myat]
+    // 同じファイル名で写真を入れかえても、ブラウザが古い写真 (キャッシュ) を出さないように。
+    // 例: ../assets/images/ingredients/tofu.jpg → ../assets/images/ingredients/tofu.jpg?v=1794883632
+    function image_with_version(?string $url): ?string {
+        if (!$url || !str_starts_with($url, '../assets/')) {
+            return $url;                     // 外の URL などは そのまま
+        }
+        $file = __DIR__ . '/' . $url;        // api/ から見た場所 = 本物のファイル
+        return is_file($file) ? $url . '?v=' . filemtime($file) : $url;
+    }
+
     $data = [];
     foreach ($rows as $r) {
         $data[] = [
@@ -31,7 +42,7 @@ if ($method === 'GET') {                    // 🆕 GET ဆိုရင်ပဲ
             'stock'         => (int) $r['stock'],
             'weekly_stock'  => (int) $r['weekly_stock'],   // 在庫 (売れた数 = weekly_stock - stock)
             'is_available'  => (bool) $r['is_available'],
-            'image_url'     => $r['image_url'],
+            'image_url'     => image_with_version($r['image_url']),
             'category_id'   => (int) $r['category_id'],
             'category_name' => $r['category_name'],
         ];
