@@ -1199,3 +1199,80 @@ body.admin-login main form, body.admin-login main .card { padding: 28px; backgro
 .adm-sub { margin-top: -6px; }
 .adm-sub .tab { min-height: 32px; padding: 5px 12px; font-size: var(--fs-caption); }
 .adm-sub.d-none { display: none; }
+
+/* ---------- admin: new-order notice (every admin page) + new / old orders [Myat] ---------- */
+/* お知らせバー: どの管理ページでも画面の下に出る。クリックで注文一覧へ */
+.new-order-banner {
+  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 120;
+  display: flex; align-items: center; gap: 10px; max-width: calc(100% - 32px);
+  padding: 12px 18px; border-radius: var(--radius-pill);
+  background: var(--chili); color: #fff; font-weight: 700; box-shadow: var(--shadow);
+  animation: nob-in .3s ease-out, nob-pulse 2s ease-in-out .3s infinite;
+}
+.new-order-banner:hover { background: var(--chili-dark); color: #fff; text-decoration: none; }
+.new-order-banner[hidden] { display: none; }
+.new-order-banner .nob-go { padding: 3px 10px; border-radius: var(--radius-pill); background: rgba(255,255,255,.22); font-size: var(--fs-caption); white-space: nowrap; }
+@keyframes nob-in { from { opacity: 0; transform: translate(-50%, 16px); } }
+@keyframes nob-pulse { 50% { box-shadow: 0 0 0 8px var(--chili-soft), var(--shadow); } }
+
+/* 「注文」メニューの 調理待ちの数 */
+.main-nav a .nav-count {
+  display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-left: 5px; padding: 0 5px;
+  border-radius: var(--radius-pill); background: var(--chili); color: #fff; font-size: 11px; font-weight: 800; line-height: 1;
+}
+.main-nav a.is-active .nav-count { background: #fff; color: var(--chili); }
+
+/* 注文一覧: グループの見出し (新しい注文 / それ以外) */
+.order-group { grid-column: 1 / -1; font-weight: 800; padding-top: 4px; }
+.order-group.is-new { color: var(--chili); }
+.order-group + .order-card { margin-top: 0; }
+
+/* NEW のカード: 赤い枠 + うすい赤の背景 + NEW バッジ */
+.order-card.is-new {
+  border: 2px solid var(--chili); background: linear-gradient(var(--chili-soft), var(--chili-soft)), var(--surface);
+  cursor: pointer; animation: nob-in .3s ease-out;
+}
+.badge-new { background: var(--chili); color: #fff; letter-spacing: .04em; }
+
+/* 前の日の 終わった注文 は少しうすく */
+.order-card.is-past { opacity: .62; }
+.order-card.is-past:hover { opacity: 1; }
+
+/* 何分前 / 待ち時間が長い (調理待ち 15分以上) */
+.order-ago { margin-left: 4px; font-size: var(--fs-caption); color: var(--muted); font-weight: 600; white-space: nowrap; }
+.order-ago.is-late { color: var(--chili); font-weight: 800; }
+
+@media (prefers-reduced-motion: reduce) {
+  .new-order-banner, .order-card.is-new { animation: none; }
+}
+
+/* 音ボタン (ヘッダー): 🔇 = ブラウザが音を止めている → 目立たせる / 🔔 = ON */
+.header-icons .sound-btn {
+  display: inline-flex; align-items: center; gap: 4px; height: 34px; padding: 0 12px;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-pill);
+  background: var(--surface); color: var(--ink); font-size: var(--fs-caption); font-weight: 700; white-space: nowrap; cursor: pointer;
+}
+.header-icons .sound-btn.is-off { background: var(--chili); border-color: var(--chili); color: #fff; animation: nob-pulse 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .header-icons .sound-btn.is-off { animation: none; } }
+.header-icons .sound-btn { width: auto; margin-right: 6px; }
+.header-icons .sound-btn:hover { background: var(--soft); color: var(--chili); }
+.header-icons .sound-btn.is-off:hover { background: var(--chili-dark); color: #fff; }
+
+/* 順番の番号 (1, 2, 3…)。1番 = いちばん先に作る注文 → 赤で目立たせる */
+.order-card .order-top { display: flex; align-items: flex-start; gap: 12px; }
+.order-card .order-head { flex: 1; min-width: 0; }
+.queue-no {
+  flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: var(--soft); color: var(--ink); border: 2px solid var(--line-strong);
+  font-size: 20px; font-weight: 900; line-height: 1;
+}
+.queue-no.is-first { background: var(--chili); border-color: var(--chili); color: #fff; }
+
+/* 具材: 写真がないときは 絵文字 (写真があれば 上にかぶさって 見えない) [Myat] */
+.ing-photo { position: relative; display: grid; place-items: center; }
+.ing-photo .ing-emoji { font-size: 28px; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,.25)); }
+.ing-photo img { position: absolute; inset: 0; }
+
+/* ドリンク: ボトルの写真は たてに長いので 切らずに 全部見せる (cover だと ラベルが 切れる) [Myat] */
+.juice-media:not(.no-img) { background: #fff; }
+.juice-media img { object-fit: contain; padding: 6px; }
