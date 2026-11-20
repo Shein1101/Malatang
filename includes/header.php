@@ -66,10 +66,6 @@ $tab = function (array $pages) use ($current) {
   </nav>
   <div class="side-foot">
     <div class="side-tools">
-      <div class="palette-switch" role="group" aria-label="カラー">
-        <button type="button" data-palette-pick="forest" aria-pressed="true" aria-label="カラー: フォレスト (緑)" title="フォレスト (緑)"></button>
-        <button type="button" data-palette-pick="ember" aria-pressed="false" aria-label="カラー: エンバー (オレンジ)" title="エンバー (オレンジ)"></button>
-      </div>
       <button class="theme-toggle" type="button" aria-label="ライトとダークを切り替える">
         <svg class="i-sun"><use href="#i-sun"></use></svg>
         <svg class="i-moon"><use href="#i-moon"></use></svg>
