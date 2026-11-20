@@ -26,7 +26,7 @@ $tab = function (array $pages) use ($current) {
   <!-- Our own styles -->
   <link rel="stylesheet" href="<?= asset_url('assets/css/style.css') ?>">
 </head>
-<body class="has-tabbar">
+<body class="has-tabbar shell">
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-flame" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2c1 3.5-1.6 5.2-1.6 8 0 1.3.8 2.3 2 2.3s2-1 2-2.4c0-.8-.2-1.5-.6-2.2 2.9 1.6 4.7 4.6 4.7 7.6A6.5 6.5 0 0 1 12 22a6.5 6.5 0 0 1-6.5-6.7c0-4.3 3.3-6.6 4.4-10.2.3.9.4 1.7.3 2.6C12.5 6 13 4 12 2Z"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></g></symbol>
@@ -50,26 +50,29 @@ $tab = function (array $pages) use ($current) {
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></g></symbol>
   <symbol id="i-store" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v10h16V10M3 10l2-6h14l2 6M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0M10 20v-5h4v5"/></g></symbol>
 </svg>
-<header class="site-header">
-  <div class="container">
-    <a class="logo" href="store.php"><svg><use href="#i-flame"></use></svg><span class="logo-name">Chilli 鍋</span></a>
-    <nav class="top-nav hide-phone" aria-label="メインメニュー">
-      <a<?= $tab(['store.php']) ?> href="store.php"><svg><use href="#i-home"></use></svg>ホーム</a>
-      <a<?= $tab(['menu.php', 'customize.php']) ?> href="menu.php"><svg><use href="#i-menu"></use></svg>メニュー</a>
-      <a<?= $tab(['cart.php', 'checkout.php', 'payment.php']) ?> href="cart.php"><svg><use href="#i-cart"></use></svg>カート</a>
+<!-- デスクトップ: 左のサイドバー / スマホ: 上の細いバー + 下のドック (下の .tabbar) -->
+<header class="site-header side">
+  <a class="logo" href="store.php"><span class="logo-name">Chilli <em>鍋</em></span></a>
+  <nav class="side-nav" aria-label="メインメニュー">
+    <a<?= $tab(['store.php']) ?> href="store.php"><svg><use href="#i-home"></use></svg>ホーム</a>
+    <a<?= $tab(['menu.php']) ?> href="menu.php"><svg><use href="#i-menu"></use></svg>メニュー</a>
+    <a<?= $tab(['customize.php']) ?> href="customize.php"><svg><use href="#i-bowl"></use></svg>自分で作る</a>
+    <?php if ($loggedIn): ?>
+    <a<?= $tab(['mypage.php', 'history.php', 'favorites.php', 'friends.php']) ?> href="mypage.php"><svg><use href="#i-user"></use></svg>マイページ</a>
+    <?php else: ?>
+    <a<?= $tab(['login.php', 'signup.php']) ?> href="login.php"><svg><use href="#i-user"></use></svg>ログイン</a>
+    <?php endif; ?>
+    <a href="#footerLocation"><svg><use href="#i-store"></use></svg>アクセス</a>
+  </nav>
+  <div class="side-foot">
+    <div class="side-tools">
+      <button class="theme-toggle" type="button" aria-label="ライトとダークを切り替える">
+        <svg class="i-sun"><use href="#i-sun"></use></svg>
+        <svg class="i-moon"><use href="#i-moon"></use></svg>
+      </button>
       <?php if ($loggedIn): ?>
-      <a<?= $tab(['mypage.php', 'history.php', 'favorites.php', 'friends.php']) ?> href="mypage.php"><svg><use href="#i-user"></use></svg>マイページ</a>
-      <?php else: ?>
-      <a<?= $tab(['login.php', 'signup.php']) ?> href="login.php"><svg><use href="#i-user"></use></svg>ログイン</a>
-      <?php endif; ?>
-    </nav>
-    <div class="header-right">
-    <a class="cart-btn" href="cart.php" aria-label="カート"><svg><use href="#i-cart"></use></svg><span class="cart-btn-label">カート</span><span class="cart-count" style="display:none"></span></a>
-    <div class="header-icons">
-      <a class="hide-phone" href="menu.php" aria-label="検索"><svg><use href="#i-search"></use></svg></a>
-      <?php if ($loggedIn): ?>
-      <!-- アカウントメニュー: お気に入り・注文履歴・ファミリー&フレンズ・ログアウトを1つにまとめる。開け閉めは app.js -->
-      <div class="acct hide-phone" id="acctMenu">
+      <!-- アカウントメニュー: お気に入り・注文履歴・ファミリー&フレンズ・ログアウト。開け閉めは app.js -->
+      <div class="acct" id="acctMenu">
         <button class="acct-btn" id="acctBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="acctList" aria-label="アカウントメニュー">
           <svg><use href="#i-user"></use></svg>
           <span class="share-count" style="display:none" aria-hidden="true"></span>
@@ -81,22 +84,17 @@ $tab = function (array $pages) use ($current) {
           <a href="logout.php"><svg><use href="#i-logout"></use></svg>ログアウト</a>
         </nav>
       </div>
-      <?php else: ?>
-      <a class="hide-phone" href="login.php" aria-label="ログイン"><svg><use href="#i-user"></use></svg></a>
       <?php endif; ?>
-      <button class="theme-toggle" type="button" aria-label="ライトとダークを切り替える">
-        <svg class="i-sun"><use href="#i-sun"></use></svg>
-        <svg class="i-moon"><use href="#i-moon"></use></svg>
-      </button>
     </div>
-    </div>
+    <a class="cart-btn" href="cart.php" aria-label="カート"><svg><use href="#i-cart"></use></svg><span class="side-label">カートを見る</span><span class="cart-count" style="display:none"></span></a>
   </div>
 </header>
 <nav class="tabbar" aria-label="タブ">
   <ul>
     <li><a<?= $tab(['store.php']) ?> href="store.php"><svg><use href="#i-home"></use></svg>ホーム</a></li>
-    <li><a<?= $tab(['menu.php', 'customize.php']) ?> href="menu.php"><svg><use href="#i-menu"></use></svg>メニュー</a></li>
-    <li><a<?= $tab(['cart.php', 'checkout.php', 'payment.php']) ?> href="cart.php"><svg><use href="#i-cart"></use></svg>カート</a></li>
+    <li><a<?= $tab(['menu.php']) ?> href="menu.php"><svg><use href="#i-menu"></use></svg>メニュー</a></li>
+    <li><a class="dock-cart<?= in_array($current, ['cart.php', 'checkout.php', 'payment.php'], true) ? ' is-active' : '' ?>" href="cart.php" aria-label="カート"><svg><use href="#i-cart"></use></svg><span class="cart-count" style="display:none"></span></a></li>
+    <li><a<?= $tab(['customize.php']) ?> href="customize.php"><svg><use href="#i-bowl"></use></svg>自分で作る</a></li>
     <?php if ($loggedIn): ?>
     <li><a<?= $tab(['mypage.php', 'history.php', 'favorites.php', 'friends.php']) ?> href="mypage.php"><svg><use href="#i-user"></use></svg><span class="share-count" style="display:none" aria-hidden="true"></span>マイページ</a></li>
     <?php else: ?>

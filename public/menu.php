@@ -7,41 +7,37 @@ $pageTitle = 'メニュー | Chilli 鍋';
 include '../includes/header.php';
 ?>
 
-<main>
-  <section class="menu-head">
-    <div class="container">
-      <div class="menu-head-top">
-        <div>
-          <h1 class="title">メニュー</h1>
-          <p>お好きな一杯を選んで、スープ・辛さ・具材をカスタマイズできます。</p>
-        </div>
-        <form class="site-search search-in-page" action="menu.php" role="search">
-          <svg aria-hidden="true"><use href="#i-search"></use></svg>
-          <input type="search" name="q" value="<?= $searchWord ?>" placeholder="メニューや具材を検索" aria-label="メニューや具材を検索">
-        </form>
-      </div>
+<main class="container page">
+  <div class="menu-layout">
+    <!-- 左: 検索 + カテゴリ (PC では スクロールしても残る) -->
+    <aside class="menu-side">
+      <h1 class="menu-side-title">メニュー</h1>
+      <form class="site-search search-in-page" action="menu.php" role="search">
+        <svg aria-hidden="true"><use href="#i-search"></use></svg>
+        <input type="search" name="q" value="<?= $searchWord ?>" placeholder="メニューや具材を検索" aria-label="メニューや具材を検索">
+      </form>
       <div id="chips"></div>
-    </div>
-  </section>
+    </aside>
 
-  <div class="container page">
-    <p id="error" class="field-error d-none"></p>
-    <!-- 自分で作る (一から具材・味を選ぶ) → customize.php -->
-    <div id="customCta"></div>
-    <p id="noHit" class="muted d-none"></p>
-    <!-- menu のカードがここに並ぶ -->
-    <div id="menuList" class="grid-4">
-      <p class="muted">読み込み中…</p>
+    <!-- 右: 自分で作る の案内 + メニューのカード -->
+    <div class="menu-main">
+      <p id="error" class="field-error d-none"></p>
+      <div id="customCta"></div>
+      <p id="noHit" class="muted d-none"></p>
+      <div id="menuList" class="menu-rows">
+        <p class="muted">読み込み中…</p>
+      </div>
+
+      <!-- ドリンク (表示だけ。お店が admin/juices.php で管理) -->
+      <section class="pt-0 mt-5" id="juiceSection" hidden>
+        <div class="section-head"><h2 class="heading">ドリンク</h2></div>
+        <div id="juiceList" class="juice-grid"></div>
+      </section>
     </div>
   </div>
-
-  <!-- ドリンク (表示だけ。お店が admin/juices.php で管理) -->
-  <section class="container page pt-0" id="juiceSection" hidden>
-    <div class="section-head"><h2 class="heading">ドリンク 🥤</h2></div>
-    <div id="juiceList" class="juice-grid"></div>
-  </section>
 </main>
 
+<script src="<?= asset_url('assets/js/bowl.js') ?>"></script>
 <script src="<?= asset_url('assets/js/menus.js') ?>"></script>
 <script>
 // 文字を安全に HTML に入れる

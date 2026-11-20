@@ -1,4 +1,5 @@
 // assets/js/menus.js — メニューのカードとカテゴリのチップ (home.js と public/menu.php で同じものを使う). Owner: Lin
+// 写真がないときは bowl.js のどんぶりの絵 (bowl.js がないページでは 🍜)
 // esc() は それぞれのページにある
 
 // DB にカテゴリがないので、名前で分ける
@@ -16,7 +17,9 @@ function menuCard(m) {
     : '';
   const ribbon = m.name.includes('期間限定') ? '<span class="ribbon">期間限定</span>' : '';
   const name = esc(m.name.replace(LIMITED_MARK, ''));
-  const mediaBox = `<div class="card-media${m.image_url ? '' : ' no-img'}">${media}<span class="card-emoji" aria-hidden="true">🍜</span>${ribbon}</div>`;
+  const art = typeof bowlSVG === 'function' ? bowlSVG({ seed: m.id, rim: '#FBF6EE' }) : '<span class="card-emoji" aria-hidden="true">🍜</span>';
+  const tag = m.is_available ? `<span class="price-tag">${yen(m.price)}${m.is_custom ? '〜' : ''}</span>` : '';
+  const mediaBox = `<div class="card-media${m.image_url ? '' : ' no-img'}">${media}${art}${ribbon}${tag}</div>`;
 
   // 売り切れ: 押せない
   if (!m.is_available) {
@@ -26,7 +29,7 @@ function menuCard(m) {
         <div class="card-info">
           <div class="card-name">${name}</div>
           <div class="card-desc">${esc(m.description)}</div>
-          <div class="card-foot"><span class="badge badge-soldout">売り切れ</span></div>
+          <div class="card-foot"><span class="pick">売り切れ</span></div>
         </div>
       </div>`;
   }
@@ -37,10 +40,7 @@ function menuCard(m) {
       <div class="card-info">
         <div class="card-name">${name}</div>
         <div class="card-desc">${esc(m.description)}</div>
-        <div class="card-foot">
-          <span class="price">${yen(m.price)}</span>
-          <span class="add-mark" aria-hidden="true">+</span>
-        </div>
+        <div class="card-foot"><span class="pick">選んでカスタマイズ<span class="arrow" aria-hidden="true"></span></span></div>
       </div>
     </a>`;
 }
