@@ -24,6 +24,11 @@ include '../includes/admin_header.php';
       <div class="col-md-4"><label class="form-label">Instagram の URL</label><input name="instagram_url" class="form-control" placeholder="https://instagram.com/..."></div>
       <div class="col-md-4"><label class="form-label">X (旧Twitter) の URL</label><input name="x_url" class="form-control" placeholder="https://x.com/..."></div>
       <div class="col-12"><label class="form-label">説明（フッターの「お店について」）</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+      <div class="col-md-6">
+        <label class="form-label">カスタマイズで追加できる具材の最大個数</label>
+        <input name="max_custom_ingredients" type="number" min="0" class="form-control" style="max-width:140px">
+        <div class="caption">「自分で作る」で追加できる具材の合計個数の上限。<strong>0 = 無制限</strong>。</div>
+      </div>
       <div class="col-md-6 d-flex align-items-center">
         <div class="form-check form-switch">
           <input class="form-check-input" type="checkbox" role="switch" name="is_open" id="isOpen">
@@ -94,6 +99,7 @@ async function loadAll() {
   for (const key of ['store_name', 'phone', 'opening_hours', 'address', 'banner_url', 'line_url', 'instagram_url', 'x_url', 'description']) {
     f[key].value = store[key] ?? '';
   }
+  f.max_custom_ingredients.value = store.max_custom_ingredients ?? 15;
   f.is_open.checked = store.is_open;
 
   // 2. 写真
@@ -137,6 +143,7 @@ document.getElementById('storeForm').addEventListener('submit', async (e) => {
     store_name: f.store_name.value, phone: f.phone.value, opening_hours: f.opening_hours.value,
     address: f.address.value, banner_url: f.banner_url.value, description: f.description.value,
     line_url: f.line_url.value, instagram_url: f.instagram_url.value, x_url: f.x_url.value,
+    max_custom_ingredients: Number(f.max_custom_ingredients.value) || 0,
     is_open: f.is_open.checked
   });
   say(res.success ? 'お店の情報を保存しました' : res.error, res.success);

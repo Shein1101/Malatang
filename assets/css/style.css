@@ -458,7 +458,7 @@ a.card-bowl:hover .pick .arrow { background: rgba(255, 255, 255, .2); }
   .side-tools { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 8px; border-radius: 16px; background: var(--soft); }
   .side .cart-btn { display: flex; }
   .side-label { display: inline; }
-  .side .acct-list { top: auto; bottom: calc(100% + 8px); left: 0; right: auto; }
+  .side .acct-list { top: auto; bottom: calc(100% + 8px); left: auto; right: 0; width: 208px; max-width: calc(var(--side-w) - 28px); }
 }
 .side-tools { display: flex; align-items: center; gap: 4px; }
 
@@ -979,7 +979,7 @@ a.b-tile:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); t
 @media (max-width: 1023px) {
   /* phones / tablets: top bar, and the admin menu as a row you can scroll sideways */
   .admin-side { flex-wrap: wrap; height: auto; padding: 10px 16px; row-gap: 8px; }
-  .admin-side .side-nav { display: flex; order: 3; flex: 0 0 100%; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .admin-side .side-nav { display: flex; flex-wrap: wrap; order: 3; flex: 0 0 100%; gap: 6px; }
   .admin-side .side-nav::-webkit-scrollbar { display: none; }
   .admin-side .side-nav a { flex: none; display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 12px; background: var(--soft); color: var(--muted); font-size: 13px; font-weight: 700; }
   .admin-side .side-nav a svg { width: 16px; height: 16px; }
@@ -1136,7 +1136,8 @@ body.admin-login main form, body.admin-login main .card { padding: 28px; backgro
   .h-steps { grid-template-columns: 1fr; }
   .h-section { padding-top: 24px; }
   .he-form { grid-template-columns: 1fr; }
-  .tabs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  /* カテゴリタブはモバイルでも全部見えるように折り返す (横スクロールで切れない) */
+  .tabs { flex-wrap: wrap; overflow: visible; }
 }
 @media (max-width: 480px) {
   .grid-3, .grid-4 { gap: 12px; }
@@ -1187,7 +1188,8 @@ body.admin-login main form, body.admin-login main .card { padding: 28px; backgro
 .review-form .rf-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .review-form select.input { max-width: 150px; }
 .review-prompt { background: var(--surface); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 20px; }
-.review-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; align-items: start; }
+@media (max-width: 640px) { .review-grid { grid-template-columns: 1fr; } }
 .review-card { background: var(--surface); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 20px; display: grid; gap: 8px; }
 .review-card .r-stars { color: var(--gold); letter-spacing: 2px; }
 .review-card .r-name { font-weight: 700; }

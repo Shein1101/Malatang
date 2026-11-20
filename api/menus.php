@@ -141,7 +141,27 @@ function check_price($value): int {
         send_error('Price must be a number 0 or more', 400);
     }
     return $p;
-}   
+}
+
+// ready-made menu の値段を「自分で作るで同じ中身を作ったときの値段」に合わせる:
+//   price = (自分で作る base) + Σ(最初から入っている具材の値段 × 個数)
+// menu.php のカードと カスタマイズ画面の値段が ずれないようにする (具材を編集したら呼ぶ)。
+function sync_menu_price(PDO $pdo, int $menu_id): void {
+    $base = (int) ($pdo->query('SELECT price FROM menus WHERE is_custom = 1 AND is_deleted = 0 ORDER BY id LIMIT 1')->fetchColumn() ?: 0);
+    // 自分で作る base にもともと入っている具材 (春雨 など) は base に含まれているので 二重に数えない
+    $stmt = $pdo->prepare(
+        'SELECT COALESCE(SUM(i.price * mi.quantity), 0)
+         FROM menu_ingredients mi JOIN ingredients i ON i.id = mi.ingredient_id
+         WHERE mi.menu_id = ? AND i.is_deleted = 0
+           AND mi.ingredient_id NOT IN (
+               SELECT cmi.ingredient_id FROM menu_ingredients cmi
+               JOIN menus cm ON cm.id = cmi.menu_id
+               WHERE cm.is_custom = 1 AND cm.is_deleted = 0)'
+    );
+    $stmt->execute([$menu_id]);
+    $sum = (int) $stmt->fetchColumn();
+    $pdo->prepare('UPDATE menus SET price = ? WHERE id = ? AND is_custom = 0')->execute([$base + $sum, $menu_id]);
+}
 // ========== 🆕 POST: menu を追加 ==========
 // 春雨は自動で入れる (外せない)。ほかの具材はお客さんがカスタマイズで選ぶ
 if ($method === 'POST') {
@@ -239,6 +259,8 @@ if ($method === 'PUT') {
             foreach ($items as $ingId => [$qty, $removable]) {
                 $add->execute([$id, $ingId, $qty, $removable]);
             }
+            // 具材が変わったので 値段を 作り方と同じに合わせる
+            sync_menu_price($pdo, $id);
         }
         $pdo->commit();
     } catch (Throwable $e) {

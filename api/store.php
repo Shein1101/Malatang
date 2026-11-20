@@ -22,7 +22,7 @@ if ($method === 'GET') {
 
     // 1. お店の情報 (1行だけ)
     $s = $pdo->query('SELECT store_name, description, address, phone, line_url, instagram_url, x_url,
-                             opening_hours, is_open, banner_url
+                             opening_hours, is_open, banner_url, max_custom_ingredients
                       FROM store_settings WHERE id = 1')->fetch();
     $store = $s ? [
         'store_name'    => $s['store_name'],
@@ -35,6 +35,7 @@ if ($method === 'GET') {
         'opening_hours' => $s['opening_hours'],
         'is_open'       => (bool) $s['is_open'],
         'banner_url'    => $s['banner_url'],
+        'max_custom_ingredients' => (int) $s['max_custom_ingredients'],
     ] : null;
 
     // 2. 写真 (お客さん: 表示 ON だけ)
@@ -137,6 +138,7 @@ if ($type === '') {
         'store_name' => 'text', 'description' => 'text', 'address' => 'text', 'phone' => 'text',
         'line_url' => 'text', 'instagram_url' => 'text', 'x_url' => 'text',
         'opening_hours' => 'text', 'is_open' => 'bool', 'banner_url' => 'text',
+        'max_custom_ingredients' => 'int',
     ]);
     send_json(['updated' => true]);
 }

@@ -33,6 +33,8 @@ const state = {
   recipes: [],         // マイレシピ (GET favorites.php)
   recipeId: null,      // マイレシピから始めたとき、その id
   favOpen: false,      // お気に入りのドロップダウンを お客さんが開いたか
+  maxAdd: 0,           // 追加できる具材の最大個数 (お店が決める。0 = 無制限)
+  editId: null,        // カートの bowl を編集中なら その cart_bowl_id (cart.php の「編集」から)
 };
 
 const MAX_EXTRA = 10;  // 具材1つの最大個数 (api/cart.php と同じ)
@@ -63,13 +65,15 @@ async function load() {
 
   // 具材・味/辛さ・お気に入り を同時に読む (Promise.all = 全部終わるまで待つ)
   // お気に入りは login していないと 401 → guest として続ける
-  const [ingRes, optRes, recipeRes, pickRes] = await Promise.all([
+  const [ingRes, optRes, recipeRes, pickRes, storeRes] = await Promise.all([
     callApi('GET', '../api/ingredients.php'),
     callApi('GET', '../api/options.php'),
     callApi('GET', '../api/favorites.php'),
     callApi('GET', '../api/favorites.php?type=ingredient'),
+    callApi('GET', '../api/store.php'),
   ]);
   state.loggedIn = recipeRes.success && pickRes.success;
+  state.maxAdd = (storeRes.success && storeRes.data.store) ? (storeRes.data.store.max_custom_ingredients || 0) : 0;
   if (state.loggedIn) {
     state.recipes = recipeRes.data;
     state.picks = new Set(pickRes.data.map(p => p.ingredient_id));
@@ -115,9 +119,67 @@ async function load() {
   state.spiceId = state.spices.length ? state.spices[0].id : null;
   if (recipe) applyRecipe(recipe);
 
+  // カートの bowl を編集 (cart.php の「編集」ボタン): その中身を読み込む
+  const editId = Number(params.get('edit')) || null;
+  if (editId && !recipe) {
+    const cartRes = await callApi('GET', '../api/cart.php');
+    const cb = cartRes.success ? cartRes.data.bowls.find(x => x.id === editId) : null;
+    if (cb) { state.editId = editId; applyCartBowl(cb); }
+  } else if (!recipe) {
+    // 前回の続き (別のページへ移っても 選んだ内容が残る) [item 4]
+    restoreDraft();
+  }
+
   renderStatic();
   render();
   $('builder').classList.remove('d-none');
+}
+
+// カートの bowl (api/cart.php の形) を state に入れる (編集)
+function applyCartBowl(cb) {
+  state.hasSoup = cb.has_soup;
+  if (state.soups.some(s => s.id === cb.soup_id)) state.soupId = cb.soup_id;
+  if (cb.spice_level_id !== null && state.spices.some(s => s.id === cb.spice_level_id)) state.spiceId = cb.spice_level_id;
+  state.quantity = Math.min(MAX_BOWLS, Math.max(1, cb.quantity || 1));
+  for (const it of cb.ingredients || []) {
+    if (it.action === 'removed') {
+      const d = state.menu.ingredients.find(i => i.ingredient_id === it.ingredient_id);
+      if (d && d.is_removable) state.removed.add(it.ingredient_id);
+    } else {
+      const ing = state.extras.find(i => i.id === it.ingredient_id);
+      if (ing && ing.is_available && ing.stock > 0) state.added.set(ing.id, Math.min(MAX_EXTRA, it.quantity));
+    }
+  }
+}
+
+// ---- 下書き (localStorage): 別ページへ移っても 選んだ内容を残す [item 4] ----
+function draftKey() { return state.menu ? 'cz_draft_' + state.menu.id : null; }
+function saveDraft() {
+  if (!state.menu || state.editId) return;   // 編集中は下書きを上書きしない
+  try {
+    localStorage.setItem(draftKey(), JSON.stringify({
+      soupId: state.soupId, hasSoup: state.hasSoup, spiceId: state.spiceId,
+      removed: [...state.removed], added: [...state.added], quantity: state.quantity,
+    }));
+  } catch (e) { /* localStorage が使えなくても動く */ }
+}
+function clearDraft() { try { localStorage.removeItem(draftKey()); } catch (e) {} }
+function restoreDraft() {
+  let d;
+  try { d = JSON.parse(localStorage.getItem(draftKey()) || 'null'); } catch (e) { return; }
+  if (!d) return;
+  if (state.soups.some(s => s.id === d.soupId)) state.soupId = d.soupId;
+  if (typeof d.hasSoup === 'boolean') state.hasSoup = d.hasSoup;
+  if (d.spiceId !== null && state.spices.some(s => s.id === d.spiceId)) state.spiceId = d.spiceId;
+  state.quantity = Math.min(MAX_BOWLS, Math.max(1, d.quantity || 1));
+  for (const id of d.removed || []) {
+    const def = state.menu.ingredients.find(i => i.ingredient_id === id);
+    if (def && def.is_removable) state.removed.add(id);
+  }
+  for (const [id, qty] of d.added || []) {
+    const ing = state.extras.find(i => i.id === id);
+    if (ing && ing.is_available && ing.stock > 0) state.added.set(id, Math.min(MAX_EXTRA, qty));
+  }
 }
 
 // マイレシピの中身を state に入れる。今は選べないものは入れずに知らせる
@@ -159,16 +221,15 @@ function renderStatic() {
   const m = state.menu;
   $('menuName').textContent = m.name;
   document.title = m.name + ' | Chilli 鍋';
+  $('addToCart').innerHTML = (state.editId ? 'カートを更新' : 'カートに追加') + ' <span class="arrow"></span>';
 
   // 「もどる」ボタンがあるので、ここは「一から自分で作る」への軽いリンクだけにする
   $('modeLink').innerHTML = m.is_custom
     ? ''
     : '<a class="cz-switch" href="customize.php">一から自分で作る →</a>';
 
-  // 最初から入っている具材
-  if (m.ingredients.length === 0) {
-    $('defaultsBox').classList.add('d-none');
-  }
+  // 最初から入っている具材 (無ければセクションごと隠す)
+  $('defaultsBox').classList.toggle('d-none', m.ingredients.length === 0);
   $('defaultList').innerHTML = m.ingredients.map(i => `
     <li>
       <label class="check">
@@ -187,6 +248,29 @@ function renderStatic() {
   renderRecipes();
 
   renderExtras();
+  renumberSteps();
+}
+
+// 手順の番号をふり直す: 見えているセクションだけを 1,2,3… と数える。
+// (「最初から入っている具材」が無い menu でも 1,2,3,5 のように飛ばない) [Zan fix]
+function renumberSteps() {
+  const sections = [...document.querySelectorAll('#builder .cz-section')];
+  const num = new Map();   // section id → 番号
+  let n = 0;
+  sections.forEach(sec => {
+    if (sec.classList.contains('d-none')) return;
+    n++;
+    num.set(sec.id, n);
+    const label = sec.querySelector('.section-label .n');
+    if (label) label.textContent = n;
+  });
+  document.querySelectorAll('#czRail a').forEach(a => {
+    const id = (a.getAttribute('href') || '').slice(1);
+    const n2 = num.get(id);
+    const dot = a.querySelector('.n');
+    a.hidden = !n2;
+    if (n2 && dot) dot.textContent = n2;
+  });
 }
 
 // マイレシピのチップ (押すと そのレシピで作り直す)
@@ -332,9 +416,20 @@ function render() {
   });
   renderCatTabs();
   renderFavCount();
+  // 追加した具材の個数 / 上限
+  const used = addedUnits();
+  $('addCount').textContent = state.maxAdd > 0 ? `（${used} / ${state.maxAdd}個）` : (used > 0 ? `（${used}個）` : '');
   $('qty').textContent = state.quantity;
 
   renderPrice();
+  saveDraft();
+}
+
+// 追加した具材の合計個数
+function addedUnits() {
+  let n = 0;
+  for (const q of state.added.values()) n += q;
+  return n;
 }
 
 // 閉じていても 何件あって 何個入れたか わかるように
@@ -452,7 +547,13 @@ document.addEventListener('click', (e) => {
 
   if (b.dataset.extra) {
     const id = Number(b.dataset.extra);
-    const next = Math.min(MAX_EXTRA, Math.max(0, (state.added.get(id) || 0) + Number(b.dataset.step)));
+    const step = Number(b.dataset.step);
+    // 追加できる具材の最大個数を超えないように (お店が決める。0 = 無制限)
+    if (step > 0 && state.maxAdd > 0 && addedUnits() >= state.maxAdd) {
+      toast(`追加できる具材は最大 ${state.maxAdd} 個までです`);
+      return;
+    }
+    const next = Math.min(MAX_EXTRA, Math.max(0, (state.added.get(id) || 0) + step));
     if (next === 0) state.added.delete(id); else state.added.set(id, next);
   }
   if (b.id === 'qtyMinus') state.quantity = Math.max(1, state.quantity - 1);
@@ -550,15 +651,21 @@ async function addToCart() {
   const btn = $('addToCart');
   btn.disabled = true;                         // 2回押し防止
   const res = await callApi('POST', '../api/cart.php', bowl);
-  btn.disabled = false;
 
   if (!res.success) {
+    btn.disabled = false;
     showError($('error'), res.error);
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
+  // 編集中なら 前の bowl を消す (= 入れ替え)。新しいのが入ってから消すので、失敗しても元は残る。
+  if (state.editId) {
+    await callApi('DELETE', '../api/cart.php?id=' + state.editId);
+  }
+  clearDraft();
   if (typeof refreshCartCount === 'function') refreshCartCount();
-  $('toastArea').innerHTML = `<div class="toast" role="status">カートに追加しました（${yen(res.data.price)}）</div>`;
+  const msg = state.editId ? 'カートを更新しました' : `カートに追加しました（${yen(res.data.price)}）`;
+  $('toastArea').innerHTML = `<div class="toast" role="status">${esc(msg)}</div>`;
   setTimeout(() => { location.href = 'cart.php'; }, 900);
 }
 

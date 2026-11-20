@@ -77,6 +77,18 @@ if (($_GET['type'] ?? '') === 'drink') {
 if ($method === 'POST') {
     [$bowl, $items, $quantity] = read_bowl_input(read_json());
 
+    // 追加できる具材の最大個数 (お店が admin/store.php で決める。0 = 無制限)
+    $maxAdd = (int) ($pdo->query('SELECT max_custom_ingredients FROM store_settings WHERE id = 1')->fetchColumn() ?: 0);
+    if ($maxAdd > 0) {
+        $addedUnits = 0;
+        foreach ($items as $it) {
+            if ($it['action'] === 'added') $addedUnits += (int) $it['quantity'];
+        }
+        if ($addedUnits > $maxAdd) {
+            send_error("追加できる具材は最大 {$maxAdd} 個までです", 400);
+        }
+    }
+
     // 1. 今の値段で買えるか (売り切れ・外せない具材・在庫など) → だめなら 400
     $check = bowl_price($pdo, $bowl, $items, $quantity);
     if ($check['error'] !== null) {

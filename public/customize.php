@@ -66,7 +66,7 @@ include '../includes/header.php';
 
       <!-- 6. 追加する具材 (カテゴリごと) -->
       <section class="cz-section" id="czExtras">
-        <p class="section-label"><span class="n">5</span>具材を追加する</p>
+        <p class="section-label"><span class="n">5</span>具材を追加する<span id="addCount" class="caption ms-2"></span></p>
         <input type="search" id="ingSearch" class="input mb-3" placeholder="具材をさがす（例: えび、豆腐）" aria-label="具材をさがす">
         <details id="favBox" class="cz-fold d-none mb-3">
           <summary><b>♥ お気に入りの具材</b><span id="favCount" class="caption"></span></summary>

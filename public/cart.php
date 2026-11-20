@@ -59,7 +59,10 @@ function bowlCard(b) {
         <div class="cart-item-main">
           <div class="row cz-between">
             <b>${esc(b.menu_name)}</b>
-            <button class="icon-btn" data-delete="${b.id}" aria-label="削除"><svg><use href="#i-trash"/></svg></button>
+            <span class="row" style="gap:6px">
+              <a class="btn btn-ghost btn-sm" href="customize.php?menu_id=${b.menu_id}&edit=${b.id}">編集</a>
+              <button class="icon-btn" data-delete="${b.id}" aria-label="削除"><svg><use href="#i-trash"/></svg></button>
+            </span>
           </div>
           <div class="caption">${bowlText(b)}</div>
         </div>
