@@ -1278,3 +1278,137 @@ body.admin-login main form, body.admin-login main .card { padding: 28px; backgro
 /* ドリンク: ボトルの写真は たてに長いので 切らずに 全部見せる (cover だと ラベルが 切れる) [Myat] */
 .juice-media:not(.no-img) { background: #fff; }
 .juice-media img { object-fit: contain; padding: 6px; }
+
+/* 新しいデザイン (サイドバー) でも 音ボタン と 注文の数 を出す [Myat] */
+.side-foot .sound-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 36px; padding: 0 12px;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-pill);
+  background: var(--surface); color: var(--ink); font-size: var(--fs-caption); font-weight: 700; white-space: nowrap; cursor: pointer;
+}
+.side-foot .sound-btn:hover { background: var(--soft); color: var(--chili); }
+.side-foot .sound-btn.is-off { background: var(--chili); border-color: var(--chili); color: #fff; animation: nob-pulse 1.6s ease-in-out infinite; }
+.side-foot .sound-btn.is-off:hover { background: var(--chili-dark); color: #fff; }
+@media (prefers-reduced-motion: reduce) { .side-foot .sound-btn.is-off { animation: none; } }
+.side-nav a .nav-count {
+  display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-left: auto; padding: 0 5px;
+  border-radius: var(--radius-pill); background: var(--chili); color: #fff; font-size: 11px; font-weight: 800; line-height: 1;
+}
+.side-nav a.is-active .nav-count { background: #fff; color: var(--chili); }
+
+/* カート: bowl に「＋ 具材を追加」(カスタマイズの 具材のところへ) [Myat] */
+.cart-add-ing {
+  display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
+  padding: 6px 14px 6px 6px; border: 1.5px dashed var(--chili); border-radius: var(--radius-pill);
+  color: var(--chili); font-size: var(--fs-caption); font-weight: 800; text-decoration: none;
+}
+.cart-add-ing:hover { background: var(--chili-soft); color: var(--chili); text-decoration: none; }
+.cart-add-ing .cai-plus {
+  display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--chili); color: #fff; font-size: 16px; line-height: 1;
+}
+
+/* 自分で作る: 最低注文金額に 足りないときの お知らせ (カートに追加 の上) [Myat] */
+.min-price-hint {
+  margin: 0; padding: 10px 12px; border-radius: var(--radius);
+  background: var(--chili-soft); color: var(--chili); font-size: var(--fs-caption); line-height: 1.6;
+}
+.min-price-hint[hidden] { display: none; }
+
+/* 具材: メニューに最初から入っている具材 (＋ で もっと入れられる) [Myat] */
+.ing-in-menu {
+  display: inline-block; margin: 2px 0; padding: 1px 7px; border-radius: var(--radius-pill);
+  background: var(--chili-soft); color: var(--chili); font-size: 10px; font-weight: 800; line-height: 1.6;
+}
+
+/* 具材の上限に 着いたとき: 個数を赤く / ＋ を うすく (押すと 理由の toast が出る) [Myat] */
+#addCount.is-full { color: var(--chili); font-weight: 800; }
+.stepper button.is-locked { opacity: .35; }
+
+/* 最初から入っている具材: 麺を選ぶ (春雨 / インスタント麺 / トウモロコシ麺) [Myat] */
+.noodle-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.noodle-row .noodle-label { font-weight: 800; white-space: nowrap; }
+.noodle-chips { gap: 6px; }
+.noodle-chips .chip { min-height: 32px; padding: 4px 12px; font-size: var(--fs-caption); }
+.noodle-chips .chip:disabled { opacity: .45; cursor: not-allowed; }
+.noodle-chips .chip-price { margin-left: 2px; font-size: 11px; opacity: .85; }
+
+/* メニューの パクチー など「無料」 [Myat] */
+.free-badge {
+  display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: var(--radius-pill);
+  background: var(--green-soft, #e6f4ea); color: var(--green-ink, #1e7b3c); font-size: 11px; font-weight: 800; vertical-align: middle;
+}
+
+/* カート: ドリンクを追加 = 小さいカードを 横1列 (スクロール)。数が多くても 縦に のびない [Myat] */
+.cart-drinks { margin-top: 28px; }
+.drink-strip-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.drink-strip {
+  display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 10px;
+  scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; scrollbar-width: thin;
+}
+.drink-mini {
+  flex: 0 0 116px; scroll-snap-align: start; display: flex; flex-direction: column; gap: 4px;
+  padding: 8px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+}
+.drink-mini .dm-media {
+  height: 84px; display: grid; place-items: center; border-radius: calc(var(--radius) - 4px);
+  background: #fff; overflow: hidden;
+}
+.drink-mini .dm-media img { width: 100%; height: 100%; object-fit: contain; }
+.drink-mini .dm-media.no-img { background: var(--soft); }
+.drink-mini .dm-media .juice-emoji { font-size: 30px; }
+.drink-mini .dm-media:not(.no-img) .juice-emoji { display: none; }
+.drink-mini .dm-name { font-size: 12px; font-weight: 800; line-height: 1.3; height: 2.6em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.drink-mini .dm-foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+.drink-mini .dm-price { font-size: 13px; font-weight: 900; }
+.drink-mini .dm-add {
+  width: 30px; height: 30px; border: 0; border-radius: 50%; display: grid; place-items: center;
+  background: var(--chili); color: #fff; font-size: 18px; font-weight: 800; line-height: 1; cursor: pointer;
+}
+.drink-mini .dm-add:hover { background: var(--chili-dark); }
+.drink-mini .dm-add:disabled { opacity: .5; cursor: default; }
+
+/* カート: PC は 2列 (左 = 中身・ドリンク / 右 = 合計カード、スクロールしても見える)、スマホは 1列 [Myat] */
+.cart-page { max-width: 1080px; margin-inline: auto; }
+.cart-page .steps { max-width: 520px; margin-inline: auto; }
+.cart-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }   /* minmax(0,..) = ドリンクの横スクロールで 画面より 広がらない */
+.cart-main { min-width: 0; }   /* 横スクロール (ドリンク) が はみ出さないように */
+.cart-summary {
+  padding: 22px; border: 1px solid var(--card-border, var(--line)); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow);
+}
+.cart-summary-title { margin: 0; font-size: 16px; font-weight: 900; }
+@media (min-width: 900px) {
+  .cart-layout { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; gap: 32px; }
+  .cart-summary { position: sticky; top: 24px; }
+  .drink-mini { flex-basis: 132px; }
+  .drink-mini .dm-media { height: 100px; }
+}
+
+/* ホームのヒーロー (写真のとき): 左 = 文字 / 右 = どんぶりの写真。すっきり 2列 [Myat] */
+@media (min-width: 761px) {
+  .b-hero:has(.b-art-photo) {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); grid-auto-rows: min-content;
+    align-content: center; column-gap: 8px; min-height: 480px;
+  }
+  .b-hero:has(.b-art-photo) > *:not(.b-art):not(.hh-discount) { grid-column: 1; max-width: none; }
+  .b-hero:has(.b-art-photo) > .b-pill { justify-self: start; margin: 0 0 28px; }
+  .b-hero:has(.b-art-photo) .hh-title {
+    margin: 0 0 14px; font-size: clamp(24px, 3.7cqi, 38px); line-height: 1.3;
+    word-break: auto-phrase; overflow-wrap: normal; text-wrap: balance;   /* 言葉の切れ目で 改行 (「麻 / 辣湯」や「？」だけの行に ならない) */
+  }
+  .b-hero:has(.b-art-photo) .hh-sub { margin-bottom: 30px; font-size: 14px; }
+  .b-hero:has(.b-art-photo) .hh-actions { flex-wrap: nowrap; }
+  .b-hero .b-art.b-art-photo {
+    position: relative; z-index: 0; grid-column: 2; grid-row: 1 / span 8; align-self: center;
+    top: auto; right: auto; transform: none; width: 112%; margin-right: -12%;
+  }
+}
+.b-hero .b-art-photo img {
+  display: block; width: 100%; height: auto;
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 78%, transparent 100%);
+          mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 78%, transparent 100%);
+}
+@media (max-width: 760px) {
+  .b-hero .b-art.b-art-photo { top: -10px; right: 50%; transform: translateX(50%); width: min(92%, 380px); }
+  .b-hero:has(.b-art-photo) { padding-top: 290px; }
+}

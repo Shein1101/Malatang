@@ -81,6 +81,8 @@ CREATE TABLE store_settings (
     opening_hours VARCHAR(255),               -- e.g. '11:00〜21:00 (火曜定休)'
     is_open BOOLEAN NOT NULL DEFAULT TRUE,
     banner_url VARCHAR(500),                  -- main photo at the top of the store page
+    max_custom_ingredients INT NOT NULL DEFAULT 15,   -- 自分で作る: 追加できる具材の最大個数 (0 = 無制限)  [add-max-custom-ingredients.sql]
+    min_custom_price INT NOT NULL DEFAULT 1000,       -- 自分で作る: 1杯の最低注文金額 (0 = 制限なし)   [add-min-custom-price.sql]
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
  

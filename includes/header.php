@@ -48,6 +48,7 @@ $tab = function (array $pages) use ($current) {
   <symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v3M12 18.5v3M3.5 12h3M17.5 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></g></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></g></symbol>
+  <symbol id="i-drink" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1.5 13h-9z"/><path d="M5 8h14M12 8l2-5h3"/></g></symbol>
   <symbol id="i-store" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v10h16V10M3 10l2-6h14l2 6M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0M10 20v-5h4v5"/></g></symbol>
 </svg>
 <!-- デスクトップ: 左のサイドバー / スマホ: 上の細いバー + 下のドック (下の .tabbar) -->
@@ -55,7 +56,9 @@ $tab = function (array $pages) use ($current) {
   <a class="logo" href="store.php"><span class="logo-name">Chilli <em>鍋</em></span></a>
   <nav class="side-nav" aria-label="メインメニュー">
     <a<?= $tab(['store.php']) ?> href="store.php"><svg><use href="#i-home"></use></svg>ホーム</a>
-    <a<?= $tab(['menu.php']) ?> href="menu.php"><svg><use href="#i-menu"></use></svg>メニュー</a>
+    <?php $isDrinkPage = $current === 'menu.php' && ($_GET['cat'] ?? '') === 'drink'; // ドリンクを見ているとき [Myat] ?>
+    <a<?= $isDrinkPage ? '' : $tab(['menu.php']) ?> href="menu.php"><svg><use href="#i-menu"></use></svg>メニュー</a>
+    <a<?= $isDrinkPage ? ' class="is-active"' : '' ?> href="menu.php?cat=drink"><svg><use href="#i-drink"></use></svg>ドリンク</a>
     <a<?= $tab(['customize.php']) ?> href="customize.php"><svg><use href="#i-bowl"></use></svg>自分で作る</a>
     <?php if ($loggedIn): ?>
     <a<?= $tab(['mypage.php', 'history.php', 'favorites.php', 'friends.php']) ?> href="mypage.php"><svg><use href="#i-user"></use></svg>マイページ</a>
