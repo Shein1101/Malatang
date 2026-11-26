@@ -13,6 +13,16 @@ require __DIR__ . '/../includes/db.php';
 require __DIR__ . '/../includes/api.php';
 require __DIR__ . '/../includes/auth.php';   // require_admin() → 401 / 403
 
+// 写真の URL に「?v=ファイルを変えた時間」をつける (同じファイル名で 写真を入れかえても 古い写真が出ない) [Myat]
+// api/ingredients.php の image_with_version と同じ考え方
+function menu_image_url(?string $url): ?string {
+    if (!$url || !str_starts_with($url, '../assets/')) {
+        return $url;                     // 外の URL などは そのまま
+    }
+    $file = __DIR__ . '/' . $url;
+    return is_file($file) ? $url . '?v=' . filemtime($file) : $url;
+}
+
 $method = require_method('GET', 'POST', 'PUT', 'DELETE');   // 🆕
 
 // 🆕 最初から入っている具材が 品切れ の menu → { menu_id: ['ホタテ', …] }
@@ -97,7 +107,7 @@ if ($method === 'GET') {
             'name'         => $menu['name'],
             'description'  => $menu['description'],
             'price'        => (int) $menu['price'],
-            'image_url'    => $menu['image_url'],
+            'image_url'    => menu_image_url($menu['image_url']),
             'is_on'        => (bool) $menu['is_available'],
             'soldout_ingredients' => $soldout[$id] ?? [],
             'is_available' => $menu['is_available'] && empty($soldout[$id]),
@@ -120,7 +130,7 @@ if ($method === 'GET') {
             'name'         => $r['name'],
             'description'  => $r['description'],
             'price'        => (int) $r['price'],
-            'image_url'    => $r['image_url'],
+            'image_url'    => menu_image_url($r['image_url']),
             'is_on'        => (bool) $r['is_available'],
             'soldout_ingredients' => $soldout[(int) $r['id']] ?? [],
             'is_available' => $r['is_available'] && empty($soldout[(int) $r['id']]),
@@ -146,6 +156,10 @@ function check_price($value): int {
 // ready-made menu の値段を「自分で作るで同じ中身を作ったときの値段」に合わせる:
 //   price = (自分で作る base) + Σ(最初から入っている具材の値段 × 個数)
 // menu.php のカードと カスタマイズ画面の値段が ずれないようにする (具材を編集したら呼ぶ)。
+// メニューに入れても 値段に足さない「無料のトッピング」(自分で作る で 追加するときは ふつうに お金がかかる) [Myat]
+// database/add-menu-price-sync.sql の リストと 同じにする
+const FREE_GARNISH_SQL = "'パクチー'";
+
 function sync_menu_price(PDO $pdo, int $menu_id): void {
     $base = (int) ($pdo->query('SELECT price FROM menus WHERE is_custom = 1 AND is_deleted = 0 ORDER BY id LIMIT 1')->fetchColumn() ?: 0);
     // 自分で作る base にもともと入っている具材 (春雨 など) は base に含まれているので 二重に数えない
@@ -153,6 +167,7 @@ function sync_menu_price(PDO $pdo, int $menu_id): void {
         'SELECT COALESCE(SUM(i.price * mi.quantity), 0)
          FROM menu_ingredients mi JOIN ingredients i ON i.id = mi.ingredient_id
          WHERE mi.menu_id = ? AND i.is_deleted = 0
+           AND i.name NOT IN (' . FREE_GARNISH_SQL . ')   -- パクチーは メニューでは無料 (値段に入れない) [Myat]
            AND mi.ingredient_id NOT IN (
                SELECT cmi.ingredient_id FROM menu_ingredients cmi
                JOIN menus cm ON cm.id = cmi.menu_id

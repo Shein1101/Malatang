@@ -43,8 +43,17 @@ function bowl_price(PDO $pdo, array $bowl, array $items, int $quantity = 1): arr
         }
     }
 
+    // 麺をえらぶ (例: 春雨 → トウモロコシ麺) [Myat]
+    //   形は「元の麺 removed」+「えらんだ麺 added ×1以上」。元の麺が「外せません」でも、えらべる麺に かえるなら OK。
+    //   値段は 差額だけ (高い麺 → +差額、安い麺 → ±0)。
+    $swap = noodle_swap($pdo, (int) $bowl['menu_id'], $items);
+
     $json = [];
     foreach ($items as $it) {
+        // 入れかえる元の麺 は fn_bowl_price に渡さない (渡すと「外せない具材」エラーになる)
+        if ($swap && $it['action'] === 'removed' && (int) $it['ingredient_id'] === $swap['from_id']) {
+            continue;
+        }
         $json[] = ['id' => (int) $it['ingredient_id'], 'qty' => (int) $it['quantity'], 'action' => $it['action']];
     }
 
@@ -54,7 +63,20 @@ function bowl_price(PDO $pdo, array $bowl, array $items, int $quantity = 1): arr
             $bowl['menu_id'], $bowl['soup_id'], $bowl['spice_level_id'], $quantity,
             json_encode($json),
         ]);
-        return ['price' => (int) $stmt->fetchColumn(), 'error' => null];
+        $price = (int) $stmt->fetchColumn();
+        // fn_bowl_price は えらんだ麺を まるまる「追加」として 足しているので、元の麺の分 (1つ分) を 引く = 差額だけ
+        if ($swap) {
+            $price -= min($swap['from_price'], $swap['to_price']) * $quantity;
+        }
+
+        // 「自分で作る」は 1杯 ○円以上 から注文できる (お店が admin/store.php で決める。0 = 制限なし) [Myat]
+        // ここで止めるので、カートに入れる・カートから注文する・再注文 の どれでも 同じルールになる
+        $min = custom_min_price($pdo, (int) $bowl['menu_id']);
+        $perBowl = intdiv($price, max(1, $quantity));
+        if ($min > 0 && $perBowl < $min) {
+            return ['price' => $price, 'error' => '「自分で作る」は 1杯 ¥' . number_format($min) . ' 以上から注文できます（あと ¥' . number_format($min - $perBowl) . '）'];
+        }
+        return ['price' => $price, 'error' => null];
     } catch (PDOException $e) {
         // SIGNAL SQLSTATE '45000' = fn_bowl_price が「買えない」と言った
         if ($e->getCode() !== '45000') {
@@ -62,6 +84,60 @@ function bowl_price(PDO $pdo, array $bowl, array $items, int $quantity = 1): arr
         }
         return ['price' => null, 'error' => bowl_error_message($e->errorInfo[2] ?? '')];
     }
+}
+
+// えらべる麺 (この中なら どれにでも かえられる)。assets/js/customize.js の NOODLE_CHOICES と 同じにする。
+const NOODLE_CHOICES = ['春雨', 'インスタント麺', 'トウモロコシ麺'];
+
+// 麺の入れかえ か しらべる。入れかえなら [from_id, from_price, to_id, to_price]、ちがえば null。
+//   入れかえ = メニューに最初から入っている「えらべる麺」が removed で、ほかの「えらべる麺」が added
+function noodle_swap(PDO $pdo, int $menu_id, array $items): ?array {
+    $removed = [];
+    $added   = [];
+    foreach ($items as $it) {
+        if ($it['action'] === 'removed') $removed[] = (int) $it['ingredient_id'];
+        else                             $added[]   = (int) $it['ingredient_id'];
+    }
+    if (!$removed || !$added) return null;
+
+    $marks = implode(',', array_fill(0, count(NOODLE_CHOICES), '?'));
+    // 元の麺: このメニューに 最初から入っている えらべる麺 で、removed になっているもの
+    $stmt = $pdo->prepare(
+        "SELECT i.id, i.price FROM menu_ingredients mi JOIN ingredients i ON i.id = mi.ingredient_id
+         WHERE mi.menu_id = ? AND i.is_deleted = 0 AND i.name IN ($marks)"
+    );
+    $stmt->execute(array_merge([$menu_id], NOODLE_CHOICES));
+    $from = null;
+    foreach ($stmt->fetchAll() as $r) {
+        if (in_array((int) $r['id'], $removed, true)) { $from = $r; break; }
+    }
+    if (!$from) return null;
+
+    // かえる先: added の中の えらべる麺 (元の麺 いがい)
+    $stmt = $pdo->prepare("SELECT id, price FROM ingredients WHERE is_deleted = 0 AND name IN ($marks)");
+    $stmt->execute(NOODLE_CHOICES);
+    foreach ($stmt->fetchAll() as $r) {
+        if ((int) $r['id'] !== (int) $from['id'] && in_array((int) $r['id'], $added, true)) {
+            return ['from_id' => (int) $from['id'], 'from_price' => (int) $from['price'],
+                    'to_id' => (int) $r['id'], 'to_price' => (int) $r['price']];
+        }
+    }
+    return null;
+}
+
+// 「自分で作る」メニューの 最低注文金額。自分で作る でなければ 0 (制限なし)。
+// 1回のリクエストで 何回も呼ばれるので、DB は 1回だけ読む。
+function custom_min_price(PDO $pdo, int $menu_id): int {
+    static $min = null, $customIds = null;
+    if ($min === null) {
+        try {
+            $min = (int) $pdo->query('SELECT min_custom_price FROM store_settings WHERE id = 1')->fetchColumn();
+        } catch (PDOException $e) {
+            $min = 0;   // まだ add-min-custom-price.sql を実行していない DB → 制限なし (エラーにしない)
+        }
+        $customIds = array_map('intval', $pdo->query('SELECT id FROM menus WHERE is_custom = 1')->fetchAll(PDO::FETCH_COLUMN));
+    }
+    return in_array($menu_id, $customIds, true) ? $min : 0;
 }
 
 // cart に bowl を1つ入れる (チェックは先に bowl_price でしておく)

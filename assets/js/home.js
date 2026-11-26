@@ -49,7 +49,9 @@ const render = {
     const discount = d.promoBadge ? `<span class="hh-discount">${esc(d.promoBadge)}</span>` : '';
     const art = b.image_url
       ? `<div class="b-photo"><img src="${esc(b.image_url)}" alt="" onerror="this.closest('.b-photo').remove()"></div>`
-      : `<div class="b-art">${bowlSVG({ seed: 11, rim: '#F7F1E8', steam: true })}</div>`;
+      // お店が画像を入れていないとき: 麻辣湯の写真 (読めなければ 絵の どんぶり) [Myat]
+      : `<div class="b-art b-art-photo"><img src="../assets/images/hero-bowl.jpg" alt="具材たっぷりの麻辣湯"
+           onerror="this.parentElement.classList.remove('b-art-photo');this.parentElement.innerHTML=bowlSVG({ seed: 11, rim: '#F7F1E8', steam: true })"></div>`;
     const custom = d.customMenu && d.customMenu.is_available ? d.customMenu : null;
     const dishes = d.menus.filter(m => !m.is_custom).length;
     const stats = [[dishes, 'メニュー'], [d.soups.length, 'スープ'], [d.spices.length, '辛さ']]

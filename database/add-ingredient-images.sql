@@ -262,3 +262,14 @@ SELECT c.id, '福袋餃子', 150, 100, 100, '../assets/images/ingredients/fukubu
 FROM categories c
 WHERE c.name = '点心'
   AND NOT EXISTS (SELECT 1 FROM ingredients x WHERE BINARY x.name = BINARY '福袋餃子' AND x.is_deleted = 0);
+
+-- 25. メニューの写真: お肉たっぷり麻辣湯 (前の /images/menus/malatang.jpg は ファイルがなかった)
+UPDATE menus SET image_url = '../assets/images/menus/oniku-tappuri.jpg' WHERE name = 'お肉たっぷり麻辣湯' AND is_deleted = 0;
+UPDATE menus SET image_url = '../assets/images/menus/yasai-tappuri.jpg' WHERE name = '野菜たっぷり麻辣湯' AND is_deleted = 0;
+UPDATE menus SET image_url = '../assets/images/menus/kaisen.jpg' WHERE name = '海鮮麻辣湯' AND is_deleted = 0;
+UPDATE menus SET image_url = '../assets/images/menus/dango-iroiro.jpg' WHERE name = '団子いろいろ麻辣湯' AND is_deleted = 0;
+UPDATE menus SET image_url = '../assets/images/menus/tofu-yuba.jpg' WHERE name = '豆腐と湯葉の麻辣湯' AND is_deleted = 0;
+UPDATE menus SET image_url = '../assets/images/menus/shibire-ramen.jpg' WHERE name = 'しびれ麻辣ラーメン' AND is_deleted = 0;
+UPDATE menus SET image_url = '../assets/images/menus/cheese.jpg' WHERE name = 'チーズ麻辣湯' AND is_deleted = 0;
+UPDATE menus SET image_url = '../assets/images/menus/tenshin.jpg' WHERE name = '点心のせ麻辣湯' AND is_deleted = 0;
+UPDATE menus SET image_url = '../assets/images/menus/lamb-limited.jpg' WHERE name = '【期間限定】羊肉麻辣湯' AND is_deleted = 0;

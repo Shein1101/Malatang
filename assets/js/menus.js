@@ -46,7 +46,8 @@ function menuCard(m) {
 }
 
 // すべて / 麻辣湯 / … / 自分で作る (メニューがないカテゴリは出さない)
-function menuChips(menus, active) {
+// hasDrinks = 販売中のドリンクがあるか → あれば「ドリンク」も カテゴリに出す (?cat=drink) [Myat]
+function menuChips(menus, active, hasDrinks = false) {
   const dishes = menus.filter(m => !m.is_custom);
   const chip = (href, label, on) => `<a class="chip ${on ? 'is-selected' : ''}" href="${href}"${on ? ' aria-current="true"' : ''}>${esc(label)}</a>`;
   const custom = menus.find(m => m.is_custom && m.is_available);
@@ -54,6 +55,7 @@ function menuChips(menus, active) {
     <div class="chip-row">
       ${chip('menu.php', 'すべて', !active)}
       ${MENU_CATS.filter(c => dishes.some(c.match)).map(c => chip(`menu.php?cat=${c.key}`, c.label, active === c.key)).join('')}
+      ${hasDrinks ? chip('menu.php?cat=drink', '🥤 ドリンク', active === 'drink') : ''}
       ${custom ? chip('customize.php', '自分で作る', false) : ''}
     </div>`;
 }

@@ -25,6 +25,7 @@ const state = {
   hasSoup: true,
   spiceId: null,
   removed: new Set(),  // 外した具材の id
+  noodleTo: null,      // 麺を入れかえたら その具材 id (null = メニューの麺のまま) [Myat]
   added: new Map(),    // 追加した具材 id → 個数
   extraCat: null,      // 見ている具材のカテゴリ (タブ)。'all' = 全部
   quantity: 1,
@@ -34,10 +35,46 @@ const state = {
   recipeId: null,      // マイレシピから始めたとき、その id
   favOpen: false,      // お気に入りのドロップダウンを お客さんが開いたか
   maxAdd: 0,           // 追加できる具材の最大個数 (お店が決める。0 = 無制限)
+  minPrice: 0,         // 自分で作る: 1杯の最低注文金額 (お店が決める。0 = 制限なし)
   editId: null,        // カートの bowl を編集中なら その cart_bowl_id (cart.php の「編集」から)
 };
 
 const MAX_EXTRA = 10;  // 具材1つの最大個数 (api/cart.php と同じ)
+
+// ---------- 麺をえらぶ [Myat] ----------
+// メニューに入っている麺 (春雨 など) を、この中の 別の麺に かえられる。includes/bowl.php の NOODLE_CHOICES と 同じ。
+// サーバーには「元の麺 removed + えらんだ麺 added」で送る。値段は 差額だけ (サーバーも 同じ計算)。
+const NOODLE_CHOICES = ['春雨', 'インスタント麺', 'トウモロコシ麺'];
+// メニューに入っていても 値段に入らない トッピング (メニューでは「無料」と出す)。api/menus.php の FREE_GARNISH_SQL と同じ
+const FREE_GARNISH = ['パクチー'];
+// このメニューに 最初から入っている「えらべる麺」(なければ null)
+function defaultNoodle() {
+  return state.menu ? state.menu.ingredients.find(d => NOODLE_CHOICES.includes(d.name)) || null : null;
+}
+// えらべる麺 (具材の一覧から。売り切れも 入れておき、ボタンを 押せなくする)
+function noodleOptions() {
+  return NOODLE_CHOICES.map(n => state.extras.find(i => i.name === n)).filter(Boolean);
+}
+// 入れかえ中の麺の 具材データ (なければ null)
+function swappedNoodle() {
+  return state.noodleTo ? state.extras.find(i => i.id === state.noodleTo) || null : null;
+}
+// 保存した中身 (カート・下書き・マイレシピ) から 麺の入れかえを 見つけて state に入れる
+//   removedIds = 外した id の配列。見つけたら state.added から 1つ分 引く (入れかえの1つは 追加ではないので)
+function detectNoodleSwap(removedIds) {
+  const d = defaultNoodle();
+  if (!d || !removedIds.includes(d.ingredient_id)) return;
+  for (const opt of noodleOptions()) {
+    if (opt.id === d.ingredient_id) continue;
+    const q = state.added.get(opt.id) || 0;
+    if (q > 0) {
+      state.noodleTo = opt.id;
+      if (q - 1 > 0) state.added.set(opt.id, q - 1); else state.added.delete(opt.id);
+      state.removed.delete(d.ingredient_id);   // 外したのではなく 入れかえ
+      return;
+    }
+  }
+}
 const MAX_BOWLS = 20;  // 杯数の最大
 
 const $ = (id) => document.getElementById(id);
@@ -74,6 +111,8 @@ async function load() {
   ]);
   state.loggedIn = recipeRes.success && pickRes.success;
   state.maxAdd = (storeRes.success && storeRes.data.store) ? (storeRes.data.store.max_custom_ingredients || 0) : 0;
+  // 「自分で作る」の 1杯の最低注文金額 (0 = 制限なし)。サーバー (includes/bowl.php) でも 同じチェックをする [Myat]
+  state.minPrice = (storeRes.success && storeRes.data.store) ? (storeRes.data.store.min_custom_price || 0) : 0;
   if (state.loggedIn) {
     state.recipes = recipeRes.data;
     state.picks = new Set(pickRes.data.map(p => p.ingredient_id));
@@ -111,8 +150,9 @@ async function load() {
   state.menu = menuRes.data;
   state.soups = optRes.data.soups;
   state.spices = optRes.data.spice_levels;
-  const defaultIds = new Set(state.menu.ingredients.map(i => i.ingredient_id));
-  state.extras = ingRes.data.filter(i => !defaultIds.has(i.id));
+  // 追加できる具材 = 全部の具材。メニューに最初から入っている具材も「もっと入れる」ために 追加できる [Myat]
+  // (前は 最初から入っている具材を 外していたので、選んだメニューの 豚バラ などを 増やせなかった)
+  state.extras = ingRes.data;
 
   // はじめの選択: 最初の味・最初の辛さ
   state.soupId = state.soups.length ? state.soups[0].id : null;
@@ -133,6 +173,15 @@ async function load() {
   renderStatic();
   render();
   $('builder').classList.remove('d-none');
+
+  // カートの「＋ 具材を追加」から来たとき (#czExtras): 具材のところまで スクロールして 検索に カーソル [Myat]
+  // (画面ができる前は 中身が隠れているので、ブラウザの自動スクロールが効かない → ここで動かす)
+  if (location.hash === '#czExtras' && $('czExtras')) {
+    requestAnimationFrame(() => {
+      $('czExtras').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('ingSearch')?.focus({ preventScroll: true });
+    });
+  }
 }
 
 // カートの bowl (api/cart.php の形) を state に入れる (編集)
@@ -150,6 +199,8 @@ function applyCartBowl(cb) {
       if (ing && ing.is_available && ing.stock > 0) state.added.set(ing.id, Math.min(MAX_EXTRA, it.quantity));
     }
   }
+  // 麺の入れかえ (元の麺 removed + ほかの麺 added) を もどす
+  detectNoodleSwap((cb.ingredients || []).filter(it => it.action === 'removed').map(it => it.ingredient_id));
 }
 
 // ---- 下書き (localStorage): 別ページへ移っても 選んだ内容を残す [item 4] ----
@@ -159,7 +210,7 @@ function saveDraft() {
   try {
     localStorage.setItem(draftKey(), JSON.stringify({
       soupId: state.soupId, hasSoup: state.hasSoup, spiceId: state.spiceId,
-      removed: [...state.removed], added: [...state.added], quantity: state.quantity,
+      removed: [...state.removed], added: [...state.added], quantity: state.quantity, noodleTo: state.noodleTo,
     }));
   } catch (e) { /* localStorage が使えなくても動く */ }
 }
@@ -180,6 +231,9 @@ function restoreDraft() {
     const ing = state.extras.find(i => i.id === id);
     if (ing && ing.is_available && ing.stock > 0) state.added.set(id, Math.min(MAX_EXTRA, qty));
   }
+  // 下書きの 麺の入れかえ (今も えらべる・売り切れでない ときだけ)
+  const nt = d.noodleTo && noodleOptions().find(o => o.id === d.noodleTo);
+  if (nt && defaultNoodle() && nt.is_available && nt.stock > 0) state.noodleTo = nt.id;
 }
 
 // マイレシピの中身を state に入れる。今は選べないものは入れずに知らせる
@@ -208,6 +262,8 @@ function applyRecipe(r) {
       skipped.push(it.name);
     }
   }
+  // マイレシピの 麺の入れかえ も もどす
+  detectNoodleSwap(r.items.filter(it => it.action === 'removed').map(it => it.ingredient_id));
 
   if (skipped.length) {
     $('notice').textContent = '売り切れ・販売終了のため入れていないもの: ' + skipped.join('、');
@@ -230,11 +286,20 @@ function renderStatic() {
 
   // 最初から入っている具材 (無ければセクションごと隠す)
   $('defaultsBox').classList.toggle('d-none', m.ingredients.length === 0);
-  $('defaultList').innerHTML = m.ingredients.map(i => `
+  const dn = defaultNoodle();
+  $('defaultList').innerHTML = m.ingredients.map(i => (dn && i.ingredient_id === dn.ingredient_id)
+    // 麺の行: 外す かわりに 麺を えらぶ チップ (中身は renderNoodle が 入れる) [Myat]
+    ? `
+    <li class="noodle-row">
+      <span class="noodle-label">麺を選ぶ</span>
+      <div id="noodleChips" class="chip-group noodle-chips" role="group" aria-label="麺を選ぶ"></div>
+    </li>`
+    : `
     <li>
       <label class="check">
         <input type="checkbox" data-default="${i.ingredient_id}" ${state.removed.has(i.ingredient_id) ? '' : 'checked'} ${i.is_removable ? '' : 'disabled'}>
         ${esc(i.name)}${i.quantity > 1 ? ' ×' + i.quantity : ''}${portionText(i.portion)}
+        ${FREE_GARNISH.includes(i.name) ? '<span class="free-badge">無料</span>' : ''}
       </label>
       <span class="caption">${i.is_removable ? '外せます' : '外せません'}</span>
     </li>`).join('');
@@ -318,6 +383,11 @@ function ingEmoji(name, category) {
 }
 
 // 具材1枚 (丸い写真 + 名前 + 値段 + − 1 +。お気に入りの所とカテゴリの所で同じものを使う)
+// メニューに 最初から入っている具材か
+function isDefaultIng(id) {
+  return !!(state.menu && state.menu.ingredients.some(d => d.ingredient_id === id));
+}
+
 function extraRow(i) {
   const soldOut = !i.is_available || i.stock <= 0;
   const qty = state.added.get(i.id) || 0;
@@ -333,6 +403,7 @@ function extraRow(i) {
       ${heart}
       <div class="ing-photo" style="background:${ingArt(i.category_name)}">${photo}</div>
       <span class="ing-name">${esc(i.name)}</span>
+      ${isDefaultIng(i.id) ? '<span class="ing-in-menu">メニューに入っています</span>' : ''}
       ${i.portion ? `<span class="ing-portion">1つ ${esc(i.portion)}</span>` : ''}
       <span class="caption">+${yen(i.price)}</span>
       ${soldOut
@@ -419,10 +490,34 @@ function render() {
   // 追加した具材の個数 / 上限
   const used = addedUnits();
   $('addCount').textContent = state.maxAdd > 0 ? `（${used} / ${state.maxAdd}個）` : (used > 0 ? `（${used}個）` : '');
+  // 上限に 着いたら ＋ を うすくして「もう入れられない」と 見てわかるように [Myat]
+  const full = state.maxAdd > 0 && used >= state.maxAdd;
+  $('addCount').classList.toggle('is-full', full);
+  document.querySelectorAll('#builder [data-extra][data-step="1"]').forEach(btn => btn.classList.toggle('is-locked', full));
   $('qty').textContent = state.quantity;
 
+  renderNoodle();
   renderPrice();
   saveDraft();
+}
+
+// 「最初から入っている具材」の 麺の行に、えらべる麺の チップを出す
+function renderNoodle() {
+  const box = $('noodleChips');
+  const d = defaultNoodle();
+  if (!box || !d) return;
+  const from = state.extras.find(i => i.id === d.ingredient_id);
+  const fromPrice = from ? from.price : 0;
+  const current = state.noodleTo || d.ingredient_id;
+  box.innerHTML = noodleOptions().map(o => {
+    const isDefault = o.id === d.ingredient_id;
+    const soldOut = !isDefault && (!o.is_available || o.stock <= 0);
+    const diff = Math.max(0, o.price - fromPrice);
+    const on = o.id === current;
+    return `<button type="button" class="chip chip-sm ${on ? 'is-selected' : ''}" data-noodle="${o.id}" aria-pressed="${on}" ${soldOut ? 'disabled' : ''}>
+      ${esc(o.name)}${!isDefault && diff > 0 ? ` <span class="chip-price">+${yen(diff)}</span>` : ''}${soldOut ? '（売り切れ）' : ''}
+    </button>`;
+  }).join('');
 }
 
 // 追加した具材の合計個数
@@ -482,6 +577,14 @@ function calcPrice() {
   const spice = state.spices.find(s => s.id === state.spiceId);
   if (spice && spice.extra_price > 0) lines.push(['辛さ：' + spice.name, spice.extra_price]);
 
+  // 麺を入れかえたら 差額だけ (サーバーの includes/bowl.php と 同じ計算)
+  const to = swappedNoodle();
+  const d = defaultNoodle();
+  if (to && d) {
+    const from = state.extras.find(i => i.id === d.ingredient_id);
+    lines.push([`麺：${to.name}に変更`, Math.max(0, to.price - (from ? from.price : 0))]);
+  }
+
   for (const [id, qty] of state.added) {
     const ing = state.extras.find(i => i.id === id);
     lines.push([`${ing.name} ×${qty}`, ing.price * qty]);
@@ -506,7 +609,34 @@ function renderPrice() {
     bump($('total'));
   }
   $('total').textContent = yen(p.total);
-  $('addToCart').disabled = state.soupId === null;
+
+  // 「自分で作る」で 1杯が 最低金額に足りないときは カートに入れられない
+  const short = (state.menu && state.menu.is_custom && state.minPrice > 0) ? Math.max(0, state.minPrice - p.unit) : 0;
+  let hint = $('minPriceHint');
+  if (!hint) {
+    hint = document.createElement('p');
+    hint.id = 'minPriceHint';
+    hint.className = 'min-price-hint';
+    hint.setAttribute('role', 'status');
+    $('addToCart').before(hint);
+  }
+  hint.hidden = short === 0;
+  hint.innerHTML = short ? `「自分で作る」は 1杯 <b>${yen(state.minPrice)}</b> 以上から注文できます。<br>あと <b>${yen(short)}</b> 分 具材を追加してください。` : '';
+
+  // 追加した具材が 上限より多い (上限ができる前に カートに入れた bowl など) → 注文できない。何個へらせばいいか 出す
+  const over = state.maxAdd > 0 ? Math.max(0, addedUnits() - state.maxAdd) : 0;
+  let overHint = $('maxAddHint');
+  if (!overHint) {
+    overHint = document.createElement('p');
+    overHint.id = 'maxAddHint';
+    overHint.className = 'min-price-hint';
+    overHint.setAttribute('role', 'status');
+    $('addToCart').before(overHint);
+  }
+  overHint.hidden = over === 0;
+  overHint.innerHTML = over ? `追加できる具材は 最大 <b>${state.maxAdd}個</b> までです（いま ${addedUnits()}個）。<br>あと <b>${over}個</b> へらしてください。` : '';
+
+  $('addToCart').disabled = state.soupId === null || short > 0 || over > 0;
   $('shareRecipe').disabled = state.soupId === null;
 }
 
@@ -540,6 +670,11 @@ document.addEventListener('click', (e) => {
     return;
   }
 
+  if (b.dataset.noodle) {   // 麺をえらぶ: メニューの麺を押したら 元にもどす
+    const id = Number(b.dataset.noodle);
+    const d = defaultNoodle();
+    state.noodleTo = (d && id === d.ingredient_id) ? null : id;
+  }
   if (b.dataset.soup)  state.soupId  = Number(b.dataset.soup);
   if (b.dataset.spice) state.spiceId = Number(b.dataset.spice);
   if (b.dataset.broth) state.hasSoup = b.dataset.broth === '1';
@@ -548,6 +683,13 @@ document.addEventListener('click', (e) => {
   if (b.dataset.extra) {
     const id = Number(b.dataset.extra);
     const step = Number(b.dataset.step);
+    // 外した「最初からの具材」に ＋ を押したら、まず 元に戻す (外す と 追加 を 同時にはしない)
+    if (step > 0 && state.removed.has(id)) {
+      state.removed.delete(id);
+      toast('メニューの具材を元に戻しました');
+      render();
+      return;
+    }
     // 追加できる具材の最大個数を超えないように (お店が決める。0 = 無制限)
     if (step > 0 && state.maxAdd > 0 && addedUnits() >= state.maxAdd) {
       toast(`追加できる具材は最大 ${state.maxAdd} 個までです`);
@@ -570,7 +712,11 @@ document.addEventListener('click', (e) => {
 document.addEventListener('change', (e) => {
   const id = e.target.dataset && e.target.dataset.default;
   if (!id) return;
-  if (e.target.checked) state.removed.delete(Number(id)); else state.removed.add(Number(id));
+  if (e.target.checked) state.removed.delete(Number(id));
+  else {
+    state.removed.add(Number(id));
+    state.added.delete(Number(id));   // 外すなら 追加した分も なし (サーバーは 同じ具材の 外す+追加 を受けない)
+  }
   render();
 });
 
@@ -631,9 +777,17 @@ function toast(text) {
 // ---------- 7. カートに追加 ----------
 // 追加した具材 + 外した具材 (cart と マイレシピ で同じ形)
 function bowlItems() {
+  // 麺の入れかえ: 元の麺 removed + えらんだ麺 added (追加でも 同じ麺を入れていたら その数に +1)
+  const d = defaultNoodle();
+  const sw = (d && state.noodleTo) ? state.noodleTo : null;
+  const added = new Map(state.added);
+  if (sw) added.set(sw, (added.get(sw) || 0) + 1);
+  const removed = new Set(state.removed);
+  if (sw) removed.add(d.ingredient_id);
   return [
-    ...[...state.added].map(([id, qty]) => ({ ingredient_id: id, action: 'added', quantity: qty })),
-    ...[...state.removed].map(id => ({ ingredient_id: id, action: 'removed', quantity: 1 })),
+    // 念のため: 外した具材は 追加に入れない (同じ具材が2回あると サーバーが エラーにする)
+    ...[...added].filter(([id]) => !removed.has(id)).map(([id, qty]) => ({ ingredient_id: id, action: 'added', quantity: qty })),
+    ...[...removed].map(id => ({ ingredient_id: id, action: 'removed', quantity: 1 })),
   ];
 }
 
@@ -677,8 +831,7 @@ async function refreshExtras() {
   if (!res.success) return;                     // 失敗: いまの表示のまま (次の更新でまた読む)
 
   const before = state.extras.map(extraRow).join('');
-  const defaultIds = new Set(state.menu.ingredients.map(i => i.ingredient_id));
-  const extras = res.data.filter(i => !defaultIds.has(i.id));
+  const extras = res.data;   // 最初から入っている具材も 追加できる (上の init と同じ)
 
   // 売り切れ・削除になった具材は bowl から外して知らせる
   const gone = [];
@@ -689,13 +842,21 @@ async function refreshExtras() {
       state.added.delete(id);
     }
   }
+  // えらんだ麺が 売り切れ → メニューの麺に もどす
+  if (state.noodleTo) {
+    const nt = extras.find(i => i.id === state.noodleTo);
+    if (!nt || !nt.is_available || nt.stock <= 0) {
+      gone.push((nt ? nt.name : '麺') + '（メニューの麺にもどしました）');
+      state.noodleTo = null;
+    }
+  }
   state.extras = extras;
   if (gone.length) {
     $('notice').textContent = '売り切れになったので外しました: ' + gone.join('、');
     $('notice').classList.remove('d-none');
   }
 
-  if (state.extras.map(extraRow).join('') === before) return;   // 変わっていなければ作り直さない
+  if (!gone.length && state.extras.map(extraRow).join('') === before) return;   // 変わっていなければ作り直さない
   renderExtras();
   render();
 }

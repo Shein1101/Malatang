@@ -19,6 +19,8 @@ SET m.price = @base + COALESCE((
         FROM menu_ingredients mi
         JOIN ingredients i ON i.id = mi.ingredient_id
         WHERE mi.menu_id = m.id AND i.is_deleted = 0
+          -- パクチーは メニューでは無料 (値段に入れない)。api/menus.php の FREE_GARNISH_SQL と同じ [Myat]
+          AND i.name NOT IN ('パクチー')
           AND mi.ingredient_id NOT IN (
               -- derived table (SELECT * FROM (...)) so MySQL allows updating `menus` here
               SELECT x.ingredient_id FROM (

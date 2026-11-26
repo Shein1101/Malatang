@@ -29,6 +29,11 @@ include '../includes/admin_header.php';
         <input name="max_custom_ingredients" type="number" min="0" class="form-control" style="max-width:140px">
         <div class="caption">「自分で作る」で追加できる具材の合計個数の上限。<strong>0 = 無制限</strong>。</div>
       </div>
+      <div class="col-md-6">
+        <label class="form-label">「自分で作る」の最低注文金額（1杯・円）</label>
+        <input name="min_custom_price" type="number" min="0" step="10" class="form-control" style="max-width:140px">
+        <div class="caption">1杯がこの金額より安いと、カートに入れられません。<strong>0 = 制限なし</strong>。</div>
+      </div>
       <div class="col-md-6 d-flex align-items-center">
         <div class="form-check form-switch">
           <input class="form-check-input" type="checkbox" role="switch" name="is_open" id="isOpen">
@@ -100,6 +105,7 @@ async function loadAll() {
     f[key].value = store[key] ?? '';
   }
   f.max_custom_ingredients.value = store.max_custom_ingredients ?? 15;
+  f.min_custom_price.value = store.min_custom_price ?? 1000;
   f.is_open.checked = store.is_open;
 
   // 2. 写真
@@ -144,6 +150,7 @@ document.getElementById('storeForm').addEventListener('submit', async (e) => {
     address: f.address.value, banner_url: f.banner_url.value, description: f.description.value,
     line_url: f.line_url.value, instagram_url: f.instagram_url.value, x_url: f.x_url.value,
     max_custom_ingredients: Number(f.max_custom_ingredients.value) || 0,
+    min_custom_price: Math.max(0, Number(f.min_custom_price.value) || 0),
     is_open: f.is_open.checked
   });
   say(res.success ? 'お店の情報を保存しました' : res.error, res.success);

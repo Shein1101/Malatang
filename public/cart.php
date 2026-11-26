@@ -6,7 +6,8 @@ $pageTitle = 'カート | Chilli 鍋';
 include '../includes/header.php';
 ?>
 
-<main class="container page narrow">
+<!-- PC: 左 = カートの中身 + ドリンク / 右 = 合計と「注文手続きへ」(スクロールしても見える)。スマホ: 1列 [Myat] -->
+<main class="container page cart-page">
   <ol class="steps">
     <li class="is-current">カート</li>
     <li>注文情報</li>
@@ -17,19 +18,27 @@ include '../includes/header.php';
   <h1 class="heading">カート</h1>
   <p id="error" class="field-error d-none"></p>
 
-  <div id="cartList" class="stack"><p class="muted">読み込み中…</p></div>
+  <div class="cart-layout">
+    <div class="cart-main">
+      <div id="cartList" class="stack"><p class="muted">読み込み中…</p></div>
 
-  <!-- ドリンクを追加 (ジュース) -->
-  <section id="drinkAdd" class="cart-drinks d-none">
-    <h2 class="heading mt-4">ドリンクを追加 🥤</h2>
-    <div id="drinkMenu" class="juice-grid"></div>
-  </section>
+      <!-- ドリンクを追加 (ジュース) -->
+      <section id="drinkAdd" class="cart-drinks d-none">
+        <div class="drink-strip-head">
+          <h2 class="heading m-0">ドリンクを追加 🥤</h2>
+          <span class="caption">横にスクロール →</span>
+        </div>
+        <div id="drinkMenu" class="drink-strip"></div>
+      </section>
+    </div>
 
-  <div id="cartFoot" class="stack d-none">
-    <div class="total-row"><span>合計（<span id="count">0</span>）</span><span id="total" class="price-lg">¥0</span></div>
-    <p id="blocked" class="field-error d-none">売り切れなどで注文できない商品があります。削除してから進んでください。</p>
-    <a id="toCheckout" class="btn btn-chili btn-block" href="checkout.php">注文手続きへ <span class="arrow"></span></a>
-    <a class="btn btn-outline btn-block" href="menu.php">メニューに戻る</a>
+    <aside id="cartFoot" class="cart-summary stack d-none">
+      <h2 class="cart-summary-title">ご注文内容</h2>
+      <div class="total-row"><span>合計（<span id="count">0</span>）</span><span id="total" class="price-lg">¥0</span></div>
+      <p id="blocked" class="field-error d-none">売り切れなどで注文できない商品があります。削除してから進んでください。</p>
+      <a id="toCheckout" class="btn btn-chili btn-block" href="checkout.php">注文手続きへ <span class="arrow"></span></a>
+      <a class="btn btn-outline btn-block" href="menu.php">メニューに戻る</a>
+    </aside>
   </div>
 </main>
 
@@ -68,6 +77,10 @@ function bowlCard(b) {
         </div>
       </div>
       ${b.error ? `<p class="field-error">${esc(b.error)}</p>` : ''}
+      <!-- この bowl に 具材を足す → カスタマイズ画面の「具材を追加する」へ 直接とぶ [Myat] -->
+      <a class="cart-add-ing" href="customize.php?menu_id=${b.menu_id}&edit=${b.id}#czExtras">
+        <span class="cai-plus" aria-hidden="true">＋</span>具材を追加
+      </a>
       <div class="row cz-between">
         <div class="stepper">
           <button type="button" data-qty="${b.id}" data-to="${b.quantity - 1}" ${b.quantity <= 1 ? 'disabled' : ''} aria-label="減らす">−</button>
@@ -112,16 +125,14 @@ function drinkMenuCard(j) {
   const media = j.image_url
     ? `<img src="${esc(j.image_url)}" alt="${esc(j.name)}" onerror="this.parentElement.classList.add('no-img');this.remove()">`
     : '';
+  // 小さいカード (横に ならべて スクロール)。説明は 長くなるので 出さない [Myat]
   return `
-    <div class="juice-card">
-      <div class="juice-media${j.image_url ? '' : ' no-img'}">${media}<span class="juice-emoji">🥤</span></div>
-      <div class="juice-body">
-        <div class="juice-name">${esc(j.name)}</div>
-        ${j.description ? `<div class="caption">${esc(j.description)}</div>` : ''}
-        <div class="row cz-between">
-          <span class="price">${yen(j.price)}</span>
-          <button type="button" class="btn btn-chili btn-sm" data-dadd="${j.id}">＋ 追加</button>
-        </div>
+    <div class="drink-mini">
+      <div class="dm-media${j.image_url ? '' : ' no-img'}">${media}<span class="juice-emoji">🥤</span></div>
+      <div class="dm-name" title="${esc(j.name)}">${esc(j.name)}</div>
+      <div class="dm-foot">
+        <span class="dm-price">${yen(j.price)}</span>
+        <button type="button" class="dm-add" data-dadd="${j.id}" aria-label="${esc(j.name)}を追加">＋</button>
       </div>
     </div>`;
 }

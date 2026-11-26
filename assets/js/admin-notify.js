@@ -41,7 +41,8 @@
 
   // ヘッダーの 音ボタン (🔇 = 止められている / 🔔 = ON)
   function renderSoundBtn() {
-    const box = document.querySelector('.admin-header .header-icons');
+    // 新しいデザイン (サイドバー) では .side-foot、古いデザインでは ヘッダーの .header-icons
+    const box = document.querySelector('.admin-side .side-foot') || document.querySelector('.admin-header .header-icons');
     if (!box || !audioCtx) return;
     let b = document.getElementById('soundBtn');
     if (!b) {
@@ -100,7 +101,7 @@
 
   // 「注文」メニューのリンクに 調理待ちの数 を出す
   function setNavCount(n) {
-    const link = document.querySelector('.main-nav a[href="orders.php"]');
+    const link = document.querySelector('.side-nav a[href="orders.php"], .main-nav a[href="orders.php"]');
     if (!link) return;
     let b = link.querySelector('.nav-count');
     if (!n) { if (b) b.remove(); return; }
