@@ -189,18 +189,18 @@ function reviewCard(r) {
     </article>`;
 }
 
-function reviewFormHtml(mine) {
-  const sel = (n) => mine && mine.rating === n ? ' selected' : '';
-  const opt = (n) => `<option value="${n}"${sel(n)}>${starStr(n)}</option>`;
+function reviewFormHtml() {
+  // 同じ人でも 何度でも 書ける (前のを上書きしない) → いつも 空のフォーム
+  const opt = (n) => `<option value="${n}">${starStr(n)}</option>`;
   return `
     <form class="review-form" id="reviewForm">
       <div class="rf-row">
         <label class="field-label m-0" for="revRating">評価</label>
         <select class="input" id="revRating">${[5, 4, 3, 2, 1].map(opt).join('')}</select>
       </div>
-      <textarea class="input" id="revComment" rows="2" maxlength="300" placeholder="お店の感想をどうぞ（任意）">${mine && mine.comment ? esc(mine.comment) : ''}</textarea>
+      <textarea class="input" id="revComment" rows="2" maxlength="300" placeholder="お店の感想をどうぞ（任意）"></textarea>
       <div class="rf-row">
-        <button type="submit" class="btn btn-chili btn-sm">${mine ? 'レビューを更新する' : 'レビューを送る'}</button>
+        <button type="submit" class="btn btn-chili btn-sm">レビューを送る</button>
         <span id="revMsg" class="caption"></span>
       </div>
     </form>`;
@@ -213,20 +213,16 @@ async function loadReviews(loggedIn) {
     wrap.id = 'reviewsWrap';
     document.getElementById('blocks').insertAdjacentElement('afterend', wrap);
   }
-  const [res, mineRes] = await Promise.all([
-    callApi('GET', '../api/reviews.php'),
-    loggedIn ? callApi('GET', '../api/reviews.php?mine=1') : Promise.resolve({ success: true, data: null }),
-  ]);
+  const res = await callApi('GET', '../api/reviews.php');
   if (!res.success) { wrap.innerHTML = ''; return; }
   const { summary, reviews } = res.data;
-  const mine = mineRes.success ? mineRes.data : null;
   const avgN = Math.round(summary.avg);
 
   const header = `
     <div class="section-head"><div><p class="kicker">Voices<small>お客さまの声</small></p><h2 class="heading">お客さまの声</h2></div></div>
     ${summary.count ? `<div class="reviews-summary"><span class="reviews-avg">${summary.avg}</span><span><div class="reviews-stars">${starStr(avgN)}</div><div class="caption">${summary.count}件のレビュー</div></span></div>` : ''}`;
   const form = loggedIn
-    ? reviewFormHtml(mine)
+    ? reviewFormHtml()
     : '<div class="review-prompt caption">レビューを書くには <a href="login.php">ログイン</a> してください。</div>';
   const list = reviews.length
     ? `<div class="review-grid">${reviews.map(reviewCard).join('')}</div>`

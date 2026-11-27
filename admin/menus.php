@@ -27,6 +27,10 @@ include '../includes/admin_header.php';
         <label class="form-label">値段（円）</label>
         <input name="price" type="number" min="0" class="form-control" required>
       </div>
+      <div class="col-md-10">
+        <label class="form-label">画像URL（任意・写真）</label>
+        <input name="image_url" class="form-control" placeholder="例: ../assets/images/menus/xxx.jpg">
+      </div>
       <div class="col-md-2 d-flex align-items-end">
         <button class="btn btn-chili w-100">追加</button>
       </div>
@@ -77,7 +81,14 @@ async function loadList() {
   for (const m of res.data) {
     rows += `
       <tr>
-        <td><input class="form-control form-control-sm" id="name-${m.id}" value="${esc(m.name)}">${m.is_custom ? '<span class="caption">自分で作る のベース（メニュー一覧には出ません）</span>' : ''}</td>
+        <td>
+          <input class="form-control form-control-sm" id="name-${m.id}" value="${esc(m.name)}">
+          ${m.is_custom ? '<span class="caption">自分で作る のベース（メニュー一覧には出ません）</span>' : ''}
+          <div class="d-flex align-items-center gap-2 mt-1">
+            <img src="${esc(m.image_url || '')}" id="imgprev-${m.id}" alt="" style="width:44px;height:32px;object-fit:cover;border-radius:6px;background:var(--soft,#eee)" ${m.image_url ? '' : 'hidden'} onerror="this.hidden=true">
+            <input class="form-control form-control-sm" id="img-${m.id}" value="${esc(m.image_url || '')}" placeholder="画像URL（写真）" style="max-width:240px">
+          </div>
+        </td>
         <td><input class="form-control form-control-sm" id="desc-${m.id}" value="${esc(m.description)}"></td>
         <td><input type="number" min="0" class="form-control form-control-sm" style="width:100px"
                    id="price-${m.id}" value="${m.price}"></td>
@@ -114,6 +125,7 @@ document.getElementById('list').addEventListener('click', async (e) => {
       name: name,
       description: document.getElementById(`desc-${id}`).value,
       price: Number(document.getElementById(`price-${id}`).value),
+      image_url: document.getElementById(`img-${id}`).value,
       is_available: document.getElementById(`on-${id}`).checked
     });
     say(res.success ? `「${name}」を保存しました` : res.error, res.success);
@@ -236,6 +248,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
     name: form.name.value,
     description: form.description.value,
     price: Number(form.price.value),
+    image_url: form.image_url.value,
     sort_order: 99                       // 新しい menu は一番下
   });
   if (res.success) {

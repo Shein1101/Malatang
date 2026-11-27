@@ -71,15 +71,7 @@ if ($method === 'POST') {
         send_error('コメントは300文字以内で入力してください', 400);
     }
     $uid = current_user_id();
-    // 1人1件: あれば書き換え (書き直すと もう一度 表示される)
-    $stmt = $pdo->prepare('SELECT id FROM reviews WHERE user_id = ?');
-    $stmt->execute([$uid]);
-    $existing = $stmt->fetchColumn();
-    if ($existing) {
-        $pdo->prepare('UPDATE reviews SET rating = ?, comment = ?, is_visible = 1, created_at = NOW() WHERE id = ?')
-            ->execute([$rating, $comment ?: null, $existing]);
-        send_json(['id' => (int) $existing, 'updated' => true]);
-    }
+    // 同じ人でも 書くたびに 新しいレビューとして たまる (前のを上書きしない)
     $pdo->prepare('INSERT INTO reviews (user_id, rating, comment) VALUES (?, ?, ?)')
         ->execute([$uid, $rating, $comment ?: null]);
     send_json(['id' => (int) $pdo->lastInsertId(), 'created' => true], 201);

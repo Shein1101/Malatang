@@ -146,22 +146,32 @@ function orderCard(o) {
   const isPast = agoMin(o.created_at) >= 24 * 60 && FIN.includes(o.status);  // 前の日の 終わった注文
 
   const qn = queueNo.get(Number(o.id));   // 終わった注文には 番号なし
+  const typeLabel = o.order_type === 'delivery' ? '配達' : '店頭';
+  // たたんでいるときに見せる かんたんな中身 (メニュー名 ×杯数)
+  const brief = o.bowls.map(b => `${esc(b.menu_name)}×${b.quantity}`).join('、')
+    + (o.drinks && o.drinks.length ? `＋ドリンク${o.drinks.reduce((n, d) => n + d.quantity, 0)}点` : '');
 
   return `
     <div class="card order-card${isNew ? ' is-new' : ''}${isPast ? ' is-past' : ''}" data-order="${o.id}">
-      <div class="order-top">
-        ${qn ? `<span class="queue-no${qn === 1 ? ' is-first' : ''}" title="${qn}番目">${qn}</span>` : ''}
-        <div class="order-head">
-          ${isNew ? '<span class="badge badge-new">NEW</span> ' : ''}<b>注文 ${whenLabel(o.created_at)}</b> ${agoLabel(o)}
-          <div class="caption">#${esc(o.order_number)}・${esc(o.customer_name)}${o.is_guest ? '（ゲスト）' : ''}${o.customer_phone ? '・' + esc(o.customer_phone) : ''}・${o.order_type === 'delivery' ? '🛵 配達' : '🏪 店頭'}</div>
+      <details class="order-fold">
+        <summary class="order-top">
+          ${qn ? `<span class="queue-no${qn === 1 ? ' is-first' : ''}" title="${qn}番目">${qn}</span>` : ''}
+          <div class="order-head">
+            ${isNew ? '<span class="badge badge-new">NEW</span> ' : ''}<b>注文 ${whenLabel(o.created_at)}</b> ${agoLabel(o)}
+            <div class="caption">#${esc(o.order_number)}・${esc(o.customer_name)}${o.is_guest ? '（ゲスト）' : ''}${o.customer_phone ? '・' + esc(o.customer_phone) : ''}・${typeLabel}</div>
+            <div class="caption order-brief">${brief}</div>
+          </div>
+          <span class="badge ${s.badge}">${s.label}</span>
+          <span class="order-caret" aria-hidden="true"></span>
+        </summary>
+        <div class="order-detail">
+          <ul class="list">${bowlLines(o)}</ul>
+          ${o.drinks && o.drinks.length ? `<ul class="list">${o.drinks.map(d => `<li class="caption">${esc(d.name)} ×${d.quantity}</li>`).join('')}</ul>` : ''}
+          ${o.allergy_note ? `<p class="caption text-chili"><b>アレルギー：${esc(o.allergy_note)}</b></p>` : ''}
+          ${o.note ? `<p class="caption">備考：${esc(o.note)}</p>` : ''}
+          ${o.customer_address ? `<p class="caption">住所：${o.customer_postal ? esc(o.customer_postal) + ' ' : ''}${esc(o.customer_address)}</p>` : ''}
         </div>
-        <span class="badge ${s.badge}">${s.label}</span>
-      </div>
-      <ul class="list">${bowlLines(o)}</ul>
-      ${o.drinks && o.drinks.length ? `<ul class="list">${o.drinks.map(d => `<li class="caption">🥤 ${esc(d.name)} ×${d.quantity}</li>`).join('')}</ul>` : ''}
-      ${o.allergy_note ? `<p class="caption text-chili"><b>⚠ アレルギー：${esc(o.allergy_note)}</b></p>` : ''}
-      ${o.note ? `<p class="caption">備考：${esc(o.note)}</p>` : ''}
-      ${o.customer_address ? `<p class="caption">住所：${o.customer_postal ? esc(o.customer_postal) + ' ' : ''}${esc(o.customer_address)}</p>` : ''}
+      </details>
       <div class="order-foot">
         <span>合計 <span class="price">${yen(o.total_price)}</span>
           <span class="badge badge-label">${esc(payLabel)}</span>
@@ -212,16 +222,20 @@ function renderList() {
     list.innerHTML = '<div class="empty card"><svg><use href="#i-trash"/></svg><p>この分類の注文はありません</p></div>';
     return;
   }
+  // キャンセル・完了のタブだけ 「全部削除」ボタンを出す
+  const clearBar = (cat === 'cancelled' || cat === 'finished')
+    ? `<div class="order-clear-bar"><button type="button" class="btn btn-ghost btn-sm text-danger" id="delAll">このタブの注文を全部削除（${rows.length}件）</button></div>`
+    : '';
   // 新しい注文 (未確認) を いちばん上に まとめて出す。そのあとに それ以外。
   const nw = newIds();
   const fresh = rows.filter(o => nw.has(Number(o.id)));
   const rest  = rows.filter(o => !nw.has(Number(o.id)));
   const head  = (text, cls = '') => `<div class="order-group ${cls}">${text}</div>`;
-  list.innerHTML = fresh.length
-    ? head(`🔔 新しい注文 ${fresh.length}件 <span class="caption">（カードをタップすると確認済みになります）</span>`, 'is-new')
+  list.innerHTML = clearBar + (fresh.length
+    ? head(`新しい注文 ${fresh.length}件 <span class="caption">（カードをタップすると確認済みになります）</span>`, 'is-new')
       + fresh.map(orderCard).join('')
       + (rest.length ? head(`それ以外の注文 ${rest.length}件`) + rest.map(orderCard).join('') : '')
-    : rows.map(orderCard).join('');
+    : rows.map(orderCard).join(''));
 }
 
 function renderAll() {
@@ -267,11 +281,23 @@ document.getElementById('subTabs').addEventListener('click', (e) => {
 
 // ステータスを進める / キャンセル / 削除
 document.getElementById('orderList').addEventListener('click', async (e) => {
-  // NEW のカードをタップ (ボタンでも) → 確認済み にする
+  // 全部削除 (キャンセル・完了タブだけ)
+  if (e.target.id === 'delAll') {
+    const rows = currentList();
+    if (!rows.length) return;
+    if (!confirm(`このタブの ${rows.length}件 の注文を全部 削除しますか？（元に戻せません）`)) return;
+    e.target.disabled = true;
+    for (const o of rows) {
+      await callApi('DELETE', '../api/orders.php?id=' + o.id);
+    }
+    loadOrders();
+    return;
+  }
+  // NEW のカードをタップ (ボタンでも) → 確認済み にする (見た目だけ。詳細の開閉は邪魔しない)
   const card = e.target.closest('.order-card.is-new');
   if (card && window.adminNotify) {
     window.adminNotify.ack(card.dataset.order);
-    if (!e.target.closest('button')) { renderAll(); return; }
+    card.classList.remove('is-new');
   }
   const del = e.target.closest('button[data-del]');
   if (del) {

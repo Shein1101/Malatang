@@ -23,7 +23,7 @@ function seed_blocks(PDO $pdo): void {
         ['notices', 'お知らせ', null, null, null, null, 1],
         ['promo', 'トッピング1品無料', 'ご来店のお客さまに、お好きなトッピングを1品サービス。', 'SAMPLE', 'メニューを見る', 'menu.php', 0],
         ['promo', 'お友だち紹介キャンペーン', 'ファミリー&フレンズでレシピをシェアしよう。', 'SAMPLE', 'くわしく見る', 'friends.php', 0],
-        ['custom', '一から、自分で作る', '春雨とスープをベースに、好きな具材を好きなだけ。', null, '自分で作る', 'customize.php', 1],
+        ['custom', '一から、自分で作る', null, null, '自分で作る', 'customize.php', 1],
         ['ad', 'ランチタイム限定セット', '平日11:00〜14:00。ここに広告やキャンペーンの画像を入れられます。', null, 'メニューを見る', 'menu.php', 0],
     ];
     $stmt = $pdo->prepare(

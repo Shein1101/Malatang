@@ -373,6 +373,16 @@ a.card-bowl:hover .pick .arrow { background: rgba(255, 255, 255, .2); }
 .text-done { color: var(--green-ink); font-weight: 700; }
 .order-card .order-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; }
 
+/* admin orders: たたんで表示 → クリックで中身 (具材) を開く */
+.order-fold > summary { list-style: none; cursor: pointer; }
+.order-fold > summary::-webkit-details-marker { display: none; }
+.order-fold > summary:hover .order-caret { border-color: var(--ink); }
+.order-caret { align-self: center; flex: none; width: 9px; height: 9px; margin-left: 2px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .2s; }
+.order-fold[open] > summary .order-caret { transform: rotate(-135deg); }
+.order-brief { margin-top: 2px; color: var(--ink); font-weight: 600; }
+.order-detail { display: grid; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.order-clear-bar { grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-bottom: 2px; }
+
 /* simple list (cart rows, transactions) */
 .list { list-style: none; margin: 0; padding: 0; }
 .list > li {
@@ -1011,8 +1021,9 @@ body.admin .table {
   --bs-table-bg: transparent; --bs-table-hover-bg: var(--soft);
 }
 body.admin .table > thead th {
-  padding: 14px 14px; background: var(--grad-tonal); color: var(--muted);
-  font-size: 11px; font-weight: 700; letter-spacing: .12em; border-bottom: 0; white-space: nowrap;
+  padding: 13px 14px; background: var(--surface); color: var(--ink);
+  font-size: 12px; font-weight: 800; letter-spacing: .03em;
+  border-bottom: 2px solid var(--chili); white-space: nowrap;
 }
 body.admin .table > :not(caption) > * > * { padding: 14px 14px; border-bottom: 1px solid var(--line); background-color: transparent; }
 body.admin .table > tbody > tr:last-child > * { border-bottom: 0; }

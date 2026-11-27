@@ -119,15 +119,13 @@ async function load() {
   state.spiceId = state.spices.length ? state.spices[0].id : null;
   if (recipe) applyRecipe(recipe);
 
-  // カートの bowl を編集 (cart.php の「編集」ボタン): その中身を読み込む
+  // カートの bowl を編集 (cart.php の「編集」ボタン): その中身を読み込む。
+  // それ以外は いつも まっさら から始める (前の選択が残らない → 新しい注文を作りやすい)。
   const editId = Number(params.get('edit')) || null;
   if (editId && !recipe) {
     const cartRes = await callApi('GET', '../api/cart.php');
     const cb = cartRes.success ? cartRes.data.bowls.find(x => x.id === editId) : null;
     if (cb) { state.editId = editId; applyCartBowl(cb); }
-  } else if (!recipe) {
-    // 前回の続き (別のページへ移っても 選んだ内容が残る) [item 4]
-    restoreDraft();
   }
 
   renderStatic();
@@ -152,35 +150,6 @@ function applyCartBowl(cb) {
   }
 }
 
-// ---- 下書き (localStorage): 別ページへ移っても 選んだ内容を残す [item 4] ----
-function draftKey() { return state.menu ? 'cz_draft_' + state.menu.id : null; }
-function saveDraft() {
-  if (!state.menu || state.editId) return;   // 編集中は下書きを上書きしない
-  try {
-    localStorage.setItem(draftKey(), JSON.stringify({
-      soupId: state.soupId, hasSoup: state.hasSoup, spiceId: state.spiceId,
-      removed: [...state.removed], added: [...state.added], quantity: state.quantity,
-    }));
-  } catch (e) { /* localStorage が使えなくても動く */ }
-}
-function clearDraft() { try { localStorage.removeItem(draftKey()); } catch (e) {} }
-function restoreDraft() {
-  let d;
-  try { d = JSON.parse(localStorage.getItem(draftKey()) || 'null'); } catch (e) { return; }
-  if (!d) return;
-  if (state.soups.some(s => s.id === d.soupId)) state.soupId = d.soupId;
-  if (typeof d.hasSoup === 'boolean') state.hasSoup = d.hasSoup;
-  if (d.spiceId !== null && state.spices.some(s => s.id === d.spiceId)) state.spiceId = d.spiceId;
-  state.quantity = Math.min(MAX_BOWLS, Math.max(1, d.quantity || 1));
-  for (const id of d.removed || []) {
-    const def = state.menu.ingredients.find(i => i.ingredient_id === id);
-    if (def && def.is_removable) state.removed.add(id);
-  }
-  for (const [id, qty] of d.added || []) {
-    const ing = state.extras.find(i => i.id === id);
-    if (ing && ing.is_available && ing.stock > 0) state.added.set(id, Math.min(MAX_EXTRA, qty));
-  }
-}
 
 // マイレシピの中身を state に入れる。今は選べないものは入れずに知らせる
 function applyRecipe(r) {
@@ -422,7 +391,6 @@ function render() {
   $('qty').textContent = state.quantity;
 
   renderPrice();
-  saveDraft();
 }
 
 // 追加した具材の合計個数
@@ -662,7 +630,6 @@ async function addToCart() {
   if (state.editId) {
     await callApi('DELETE', '../api/cart.php?id=' + state.editId);
   }
-  clearDraft();
   if (typeof refreshCartCount === 'function') refreshCartCount();
   const msg = state.editId ? 'カートを更新しました' : `カートに追加しました（${yen(res.data.price)}）`;
   $('toastArea').innerHTML = `<div class="toast" role="status">${esc(msg)}</div>`;
